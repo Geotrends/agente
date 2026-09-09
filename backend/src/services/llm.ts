@@ -36,7 +36,7 @@ export async function askTutor({
   const hasSnippets = (additionalSnippets?.length ?? 0) > 0;
 
   if (!hasContext && !hasSnippets) {
-    return "No hay contenido de carpeta cargado: no se encontro el documento elegido y la busqueda no encontro coincidencias en otros archivos. Verifica GEOTRENDS_DOCUMENTS_ROOT y que la carpeta tenga archivos .pdf, .txt, .md, .docx o .xlsx.";
+    return "No hay fragmentos disponibles para esta consulta. Verifica que GEOTRENDS_DOCUMENTS_ROOT contenga documentos con texto extraíble.";
   }
 
   const payload = {
@@ -60,60 +60,30 @@ export async function askTutor({
   }
 }
 
-function shouldFallbackToGemini(provider: RoutedProvider, answer: string): boolean {
-  if (provider === "gemini") return false;
-  if (/HTTP 413|413\)/i.test(answer)) return true;
-  if (/Falta configurar DEEPSEEK|DeepSeek rechazo/i.test(answer)) return true;
-  if (/Groq rechazo la autenticacion|Groq indico limite/i.test(answer)) return provider === "groq";
-  return false;
+function isProviderFailure(answer: string): boolean {
+  return /^(Falta configurar |(?:Gemini|Groq|DeepSeek) (?:rechazo|indico|devolvio)|El modelo '.*' no esta disponible)/i.test(answer);
 }
 
-/** Agente unificado: elige Gemini, Groq o DeepSeek y hace fallback a Gemini si falla. */
+/** Selecciona un proveedor con clave y prueba los otros configurados si falla. */
 export async function askSmartTutor(
   input: Omit<AskTutorInput, "provider">
 ): Promise<{ answer: string; provider: RoutedProvider; routingReason: string }> {
   const history = input.history ?? [];
-  const decision = pickProvider({
-    message: input.message,
-    historyLength: history.length,
-    documentCharLength: input.courseContext.length
-  });
-
+  const decision = pickProvider({ message: input.message, historyLength: history.length,
+    documentCharLength: input.courseContext.length });
+  const configured = (["groq", "deepseek", "gemini"] as const)
+    .filter(p => Boolean(process.env[`${p.toUpperCase()}_API_KEY`]?.trim()));
+  const candidates = [decision.provider, ...configured.filter(p => p !== decision.provider)];
+  let answer = "";
   let provider = decision.provider;
   let routingReason = decision.reason;
-
-  let courseContext = budgetDocumentContext(
-    input.courseContext,
-    provider,
-    input.message,
-    history
-  );
-
-  let answer = await askTutor({
-    ...input,
-    courseContext,
-    history,
-    provider
-  });
-
-  if (shouldFallbackToGemini(provider, answer)) {
-    routingReason = `${decision.reason} Fallback → Gemini (${provider} no disponible o limite).`;
-    provider = "gemini";
-    courseContext = budgetDocumentContext(
-      input.courseContext,
-      "gemini",
-      input.message,
-      history
-    );
-    answer = await askTutor({
-      ...input,
-      courseContext,
-      history,
-      provider: "gemini"
-    });
+  for (const candidate of candidates) {
+    provider = candidate;
+    if (candidate !== decision.provider) routingReason = `${decision.reason} Se usó ${candidate} tras fallar otro proveedor.`;
+    const courseContext = budgetDocumentContext(input.courseContext, candidate, input.message, history);
+    answer = await askTutor({ ...input, courseContext, history, provider: candidate });
+    if (!isProviderFailure(answer)) break;
   }
-
   console.log(`[smart] provider=${provider} reason=${routingReason}`);
-
   return { answer, provider, routingReason };
 }

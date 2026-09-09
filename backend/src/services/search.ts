@@ -1,106 +1,84 @@
-import {
-  getDocumentsRootPath,
-  listCourseDocuments,
-  readDocumentContent,
-  safeResolveUnderRoot
-} from "./context.js";
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import { createHash } from 'node:crypto';
+import { getDocumentsRootPath, listCourseDocuments, readDocumentContent, safeResolveUnderRoot } from './context.js';
+import { embed, embeddingModel, retrievalCacheDir } from './embeddings.js';
+import { BM25, chunkText, cosine, reciprocalRankFusion } from './retrievalMath.js';
 
-export type DocumentSnippet = {
-  path: string;
-  snippet: string;
-  score: number;
-};
+type Chunk = { path: string; chunk: number; snippet: string; vector: number[] };
+type Index = { signature: string; chunks: Chunk[]; bm25: BM25; documents: number };
+let current: Index | undefined;
+let building: Promise<Index> | undefined;
+export const retrievalStatus = { state: 'idle', completed: 0, total: 0, error: '' };
 
-const STOPWORDS = new Set([
-  "a", "al", "ante", "bajo", "cabe", "con", "contra", "de", "del", "desde",
-  "durante", "en", "entre", "hacia", "hasta", "mediante", "para", "por", "segun",
-  "sin", "so", "sobre", "tras", "versus", "via", "y", "e", "o", "u", "ni",
-  "que", "como", "cuando", "donde", "porque", "pero", "si", "no", "es", "son",
-  "el", "la", "los", "las", "un", "una", "unos", "unas", "lo", "su", "sus",
-  "este", "esta", "estos", "estas", "ese", "esa", "esos", "esas", "tu", "mi",
-  "me", "te", "se", "le", "les", "nos", "ya", "muy", "mas", "menos", "poco",
-  "mucho", "todo", "todos", "toda", "todas", "algo", "algun", "alguna",
-  "the", "a", "an", "of", "in", "on", "is", "and", "or", "with", "by"
-]);
-
-export function tokenize(query: string): string[] {
-  return query
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "")
-    .split(/[^a-z0-9_]+/i)
-    .filter((tok) => tok.length >= 3 && !STOPWORDS.has(tok));
-}
-
-function normalizeText(input: string): string {
-  return input.toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu, "");
-}
-
-export type SearchOptions = {
-  query: string;
-  excludePath?: string;
-  maxDocs?: number;
-  snippetChars?: number;
-  folderPrefix?: string;
-};
-
-/**
- * Busca palabras del `query` en TODOS los documentos indexados (excepto el activo).
- * Devuelve hasta `maxDocs` snippets, ordenados por relevancia.
- *
- * Heurística simple sin embeddings:
- *   - Tokeniza el query (filtra stopwords y palabras < 3 chars).
- *   - Para cada documento: cuenta apariciones de cada token en (filename + contenido).
- *   - Score = suma de apariciones; bonus si el token coincide con el filename.
- */
-export async function searchAcrossDocuments(options: SearchOptions): Promise<DocumentSnippet[]> {
-  const { query, excludePath, maxDocs = 3, snippetChars = 1200, folderPrefix } = options;
-  const tokens = tokenize(query);
-  if (tokens.length === 0) return [];
-
+async function buildIndex(): Promise<Index> {
   const root = getDocumentsRootPath();
-  const inventory = await listCourseDocuments("", folderPrefix);
-  const candidates = inventory.filter((item) => item.id !== excludePath);
-
-  const scored: DocumentSnippet[] = [];
-
-  for (const item of candidates) {
-    const fullPath = safeResolveUnderRoot(root, item.id);
-    if (!fullPath) continue;
-
-    const content = await readDocumentContent(fullPath);
-    if (!content) continue;
-
-    const haystack = normalizeText(content);
-    const filename = normalizeText(item.id);
-
-    let score = 0;
-    let firstHitIndex = -1;
-
-    for (const token of tokens) {
-      const inFilename = filename.includes(token);
-      if (inFilename) score += 5;
-
-      let from = 0;
-      while (true) {
-        const idx = haystack.indexOf(token, from);
-        if (idx === -1) break;
-        score += 1;
-        if (firstHitIndex === -1 || idx < firstHitIndex) firstHitIndex = idx;
-        from = idx + token.length;
-        if (from - haystack.indexOf(token) > 200_000) break;
+  const inventory = await listCourseDocuments('');
+  const files = await Promise.all(inventory.map(async item => {
+    const full = safeResolveUnderRoot(root, item.id)!;
+    const stat = await fs.stat(full);
+    return { ...item, full, stamp: `${stat.mtimeMs}:${stat.size}` };
+  }));
+  const signature = createHash('sha256').update(JSON.stringify([root, files.map(f => [f.id, f.stamp]), embeddingModel, 'chunks-1000-150-v1'])).digest('hex');
+  if (current?.signature === signature) return current;
+  retrievalStatus.state = 'indexing'; retrievalStatus.completed = 0; retrievalStatus.total = files.length;
+  retrievalStatus.error = '';
+  await fs.mkdir(retrievalCacheDir, { recursive: true });
+  const chunks: Chunk[] = [];
+  for (const file of files) {
+    const key = createHash('sha256').update(JSON.stringify([root, file.id, file.stamp, embeddingModel, 'v1'])).digest('hex');
+    const cacheFile = path.join(retrievalCacheDir, `${key}.json`);
+    let entries: Chunk[] | undefined;
+    try {
+      const saved = JSON.parse(await fs.readFile(cacheFile, 'utf8')) as Chunk[];
+      if (Array.isArray(saved) && saved.every(c => c.path === file.id && typeof c.snippet === 'string' && c.vector?.length === 384 && c.vector.every(Number.isFinite))) entries = saved;
+    } catch { /* New or changed document. */ }
+    if (!entries) {
+      const text = await readDocumentContent(file.full);
+      entries = [];
+      const pieces = chunkText(text);
+      for (let i = 0; i < pieces.length; i += 8) {
+        const batch = pieces.slice(i, i + 8);
+        const vectors = await embed(batch.map(s => `${file.id}\n${s}`), 'passage');
+        entries.push(...batch.map((snippet, j) => ({ path: file.id, chunk: i + j + 1, snippet, vector: vectors[j] })));
+      }
+      if (entries.length) {
+        await fs.writeFile(`${cacheFile}.tmp`, JSON.stringify(entries));
+        await fs.rename(`${cacheFile}.tmp`, cacheFile);
       }
     }
-
-    if (score === 0) continue;
-
-    const start = firstHitIndex === -1 ? 0 : Math.max(0, firstHitIndex - 300);
-    const end = Math.min(content.length, start + snippetChars);
-    const snippet = content.slice(start, end).replace(/\s+/g, " ").trim();
-
-    scored.push({ path: item.id, snippet, score });
+    chunks.push(...entries);
+    retrievalStatus.completed++;
+    console.log(`[retrieval] ${retrievalStatus.completed}/${files.length} documents, ${chunks.length} chunks`);
   }
+  current = { signature, chunks, documents: files.length, bm25: new BM25(chunks.map(c => `${c.path}\n${c.snippet}`)) };
+  retrievalStatus.state = 'ready';
+  return current;
+}
 
-  scored.sort((a, b) => b.score - a.score);
-  return scored.slice(0, maxDocs);
+export function prepareIndex(): Promise<Index> {
+  if (!building) building = buildIndex().catch(error => {
+    retrievalStatus.state = 'error'; retrievalStatus.error = 'No se pudo preparar el índice de embeddings. Revisa la conexión y los registros del backend.';
+    throw error;
+  }).finally(() => { building = undefined; });
+  return building;
+}
+
+export async function hybridSearch(query: string, folderPrefix?: string, documentId?: string) {
+  const index = await prepareIndex();
+  const eligible = (id: number) => {
+    const p = index.chunks[id].path;
+    return (!folderPrefix || p === folderPrefix || p.startsWith(`${folderPrefix}/`)) && (!documentId || p === documentId);
+  };
+  if (!index.chunks.length) return { hits: [], documents: index.documents, chunks: 0, method: 'bm25+cosine+rrf' };
+  const [vector] = await embed([query], 'query');
+  const lexical = index.bm25.search(query).filter(r => eligible(r.id)).slice(0, 40);
+  const semantic = index.chunks.map((c, id) => ({ id, score: cosine(vector, c.vector) }))
+    .filter(r => eligible(r.id)).sort((a, b) => b.score - a.score || a.id - b.id).slice(0, 40);
+  const hits = reciprocalRankFusion([lexical, semantic]).slice(0, 8).map(r => {
+    const { vector: _, ...chunk } = index.chunks[r.id];
+    return { ...chunk, score: r.score, bm25: lexical.find(x => x.id === r.id)?.score ?? 0,
+      semantic: semantic.find(x => x.id === r.id)?.score ?? 0 };
+  });
+  return { hits, documents: index.documents, chunks: index.chunks.length, method: 'bm25+cosine+rrf' };
 }
