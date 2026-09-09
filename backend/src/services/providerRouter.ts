@@ -35,6 +35,10 @@ const CONFIG_CHECKS: Record<RoutedProvider, () => boolean> = {
   ollama: isOllamaConfigured,
 };
 
+export function isProviderConfigured(provider: RoutedProvider): boolean {
+  return CONFIG_CHECKS[provider]();
+}
+
 /**
  * Reparte entre Ollama/Groq (rapido, sin costo o barato), DeepSeek
  * (analitico) y Gemini (documentos enormes). El score de complejidad de
@@ -104,7 +108,7 @@ export function pickProvider(input: RouteInput): RouteDecision {
   return {
     provider: configured[0] ?? "gemini",
     reason: configured.length
-      ? "Proveedor disponible con API key configurada."
+      ? "Proveedor disponible y configurado."
       : "No hay proveedores configurados.",
   };
 }

@@ -1,37 +1,46 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useState, useEffect } from "react";
 import {
   AGENT_CHAT_URL,
   backendUnavailableMessage,
-  COURSE_ID,
-  NO_DOCUMENT_SENTINEL
+  COURSE_ID
 } from "../shared/agentConfig";
 import type { ChatMessage } from "../shared/agentTypes";
 import { MessageContent } from "../shared/MessageContent";
 
-type Props = {
-  selectedDocumentId: string;
-  selectedFolder: string;
-};
-
 const WELCOME: ChatMessage = {
   role: "assistant",
   content:
-    "Hola, soy el agente inteligente. Elijo automaticamente Gemini, Groq o DeepSeek segun tu pregunta y el documento. Mantengo hasta 6 intercambios de historial."
+    "Hola, soy Geobot. Puedes preguntarme directamente sobre todos tus documentos."
 };
 
-export default function SmartAgentPanel({ selectedDocumentId, selectedFolder }: Props) {
+export default function SmartAgentPanel() {
   const [messages, setMessages] = useState<ChatMessage[]>([WELCOME]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [lastLatencyMs, setLastLatencyMs] = useState<number | null>(null);
   const [lastProvider, setLastProvider] = useState<string | null>(null);
 
-  const activeDocumentLabel =
-    selectedDocumentId === NO_DOCUMENT_SENTINEL
-      ? "Sin documento activo"
-      : selectedDocumentId.split("/").pop() || selectedDocumentId;
+  const [provider, setProvider] = useState("auto");
+  const [providers, setProviders] = useState<Array<{ id: string; configured: boolean }>>([]);
+  const [sources, setSources] = useState<Array<{ path: string; chunk: number }>>([]);
+  const [indexStatus, setIndexStatus] = useState("");
+  useEffect(() => {
+    fetch(AGENT_CHAT_URL.replace(/\/chat$/, "/providers")).then(r => r.json())
+      .then(data => setProviders(data.providers)).catch(() => {});
+  }, []);
+  useEffect(() => {
+    if (!loading) return;
+    const poll = async () => {
+      try {
+        const data = await fetch(AGENT_CHAT_URL.replace(/\/chat$/, "/retrieval/status")).then(r => r.json());
+        setIndexStatus(data.state === "indexing" ? `Preparando documentos: ${data.completed} de ${data.total}. La primera consulta puede tardar varios minutos.` : "Buscando información y preparando la respuesta…");
+      } catch { /* The chat request reports connection errors. */ }
+    };
+    void poll(); const timer = setInterval(poll, 2000);
+    return () => clearInterval(timer);
+  }, [loading]);
 
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -47,6 +56,8 @@ export default function SmartAgentPanel({ selectedDocumentId, selectedFolder }: 
     setMessages((prev) => [...prev, nextUserMessage]);
     setInput("");
     setLoading(true);
+    setSources([]);
+    setIndexStatus("Buscando información…");
 
     try {
       const response = await fetch(AGENT_CHAT_URL, {
@@ -55,10 +66,8 @@ export default function SmartAgentPanel({ selectedDocumentId, selectedFolder }: 
         body: JSON.stringify({
           message: trimmed,
           courseId: COURSE_ID,
-          documentId: selectedDocumentId,
-          folder: selectedFolder,
-          provider: "auto",
-          autoRoute: true,
+          provider,
+          autoRoute: provider === "auto",
           history
         })
       });
@@ -66,9 +75,10 @@ export default function SmartAgentPanel({ selectedDocumentId, selectedFolder }: 
       const data = (await response.json()) as {
         answer?: string;
         error?: string;
-        meta?: { providerLabel?: string; provider?: string; routingReason?: string };
+        meta?: { providerLabel?: string; provider?: string; routingReason?: string; sources?: Array<{ path: string; chunk: number }> };
       };
 
+      setSources(data.meta?.sources ?? []);
       const providerLabel =
         data.meta?.providerLabel || data.meta?.provider || "auto";
       setLastProvider(
@@ -105,15 +115,20 @@ export default function SmartAgentPanel({ selectedDocumentId, selectedFolder }: 
         <img className="bot-avatar" src="/agent-avatar.png" alt="Avatar del agente inteligente" />
         <div>
           <strong>
-            Agente inteligente — <span className="agent-name">Auto</span>
+            Geobot — <span className="agent-name">{provider}</span>
           </strong>
-          <p>Gemini · Groq · DeepSeek segun la pregunta</p>
+          <p>Consulta todas tus bibliotecas</p>
         </div>
       </header>
 
       <p className="doc-ready-badge">
-        Documento activo: <strong>{activeDocumentLabel}</strong>
+        Alcance: <strong>Todos los documentos</strong>
       </p>
+      <label htmlFor="provider">Modelo </label>
+      <select id="provider" className="folder-select" value={provider} disabled={loading} onChange={e => setProvider(e.target.value)}>
+        <option value="auto">Automático</option>
+        {providers.map(p => <option key={p.id} value={p.id} disabled={!p.configured}>{p.id}{p.configured ? "" : " (sin API key)"}</option>)}
+      </select>
       <p className="latency-hint">
         Ultima respuesta: <strong>{formatLatency(lastLatencyMs)}</strong>
         {lastProvider ? (
@@ -142,12 +157,17 @@ export default function SmartAgentPanel({ selectedDocumentId, selectedFolder }: 
         )}
       </div>
 
+      {loading && <p role="status">{indexStatus}</p>}
+      {sources.length > 0 && <details><summary>Fuentes consultadas ({sources.length})</summary>
+        <ul>{sources.map(s => <li key={`${s.path}-${s.chunk}`}>{s.path} · fragmento {s.chunk}</li>)}</ul>
+      </details>}
       <form className="form" onSubmit={onSubmit}>
         <input
           className="input"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Escribe tu pregunta sobre el documento..."
+          aria-label="Pregunta"
+          placeholder="¿Qué necesitas saber?"
         />
         <button className="button icon-button" type="submit" disabled={loading} aria-label="Enviar">
           <svg

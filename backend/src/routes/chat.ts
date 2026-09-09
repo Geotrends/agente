@@ -12,6 +12,7 @@ import {
 import { hybridSearch, retrievalStatus } from "../services/search.js";
 import { askSmartTutor, askTutor, type LlmProvider } from "../services/llm.js";
 import { normalizeHistory } from "../shared/chatHistory.js";
+import { isProviderConfigured } from "../services/providerRouter.js";
 
 type ChatBody = {
   message: string;
@@ -27,7 +28,7 @@ type ChatBody = {
 const router = Router();
 router.get("/retrieval/status", (_req, res) => res.json(retrievalStatus));
 router.get("/providers", (_req, res) => res.json({ providers:
-  (["gemini", "groq", "deepseek"] as const).map(id => ({ id, configured: Boolean(process.env[`${id.toUpperCase()}_API_KEY`]?.trim()) }))
+  (["ollama", "gemini", "groq", "deepseek"] as const).map(id => ({ id, configured: isProviderConfigured(id) }))
 }));
 
 router.post("/chat", async (req, res) => {
