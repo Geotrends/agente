@@ -38,6 +38,7 @@ export async function askDeepSeek({
   try {
     const response = await fetch(url, {
       method: "POST",
+        signal: AbortSignal.timeout(60000),
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${apiKey}`

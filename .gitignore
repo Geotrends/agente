@@ -6,6 +6,10 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
-
+backend/package-lock.json
+frontend/package-lock.json
 # Documentos locales (cada equipo pone su propia copia)
 backend/data/
+
+# Índice y modelos de embeddings locales
+backend/.cache

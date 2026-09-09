@@ -34,7 +34,7 @@ export async function askGemini({
   const model = geminiClient.getGenerativeModel({
     model: modelName,
     systemInstruction
-  });
+  }, { timeout: 60000 });
 
   const geminiHistory = history.map((turn) => ({
     role: turn.role === "assistant" ? ("model" as const) : ("user" as const),

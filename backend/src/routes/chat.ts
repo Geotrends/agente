@@ -6,14 +6,12 @@ import {
   listCourseDocuments,
   listFolderEntries,
   listTopLevelFolders,
-  loadCourseContext,
   readDocumentContent,
   safeResolveUnderRoot
 } from "../services/context.js";
-import { searchAcrossDocuments } from "../services/search.js";
+import { hybridSearch, retrievalStatus } from "../services/search.js";
 import { askSmartTutor, askTutor, type LlmProvider } from "../services/llm.js";
 import { normalizeHistory } from "../shared/chatHistory.js";
-import { providerLabel, type RoutedProvider } from "../services/providerRouter.js";
 
 type ChatBody = {
   message: string;
@@ -27,52 +25,38 @@ type ChatBody = {
 };
 
 const router = Router();
+router.get("/retrieval/status", (_req, res) => res.json(retrievalStatus));
+router.get("/providers", (_req, res) => res.json({ providers:
+  (["gemini", "groq", "deepseek"] as const).map(id => ({ id, configured: Boolean(process.env[`${id.toUpperCase()}_API_KEY`]?.trim()) }))
+}));
 
 router.post("/chat", async (req, res) => {
   try {
-    const { message, courseId, documentId, lessonId, provider, folder, autoRoute, history } =
+    const { message, documentId, lessonId, provider, folder, autoRoute, history } =
       req.body as Partial<ChatBody>;
-    const selectedDocumentId = documentId || lessonId;
-
-    if (!message || !courseId || !selectedDocumentId) {
-      res.status(400).json({
-        error: "Debes enviar message, courseId y documentId."
-      });
+    if (typeof message !== "string" || !message.trim() || message.length > 12000) {
+      res.status(400).json({ error: "Envía una pregunta de entre 1 y 12000 caracteres." });
       return;
     }
-
+    if (provider && !["auto", "gemini", "groq", "deepseek", "ollama"].includes(provider)) {
+      res.status(400).json({ error: "Proveedor no válido." }); return;
+    }
+    if ([folder, documentId, lessonId].some(v => v !== undefined && typeof v !== "string")) {
+      res.status(400).json({ error: "Carpeta y documento deben ser texto." }); return;
+    }
     const folderPrefix = folder?.trim() || undefined;
+    const selected = documentId || lessonId;
+    const resolvedDocumentId = selected && selected !== "__geotrends_no_doc__" ? selected : undefined;
     const chatHistory = normalizeHistory(history);
-    const useAutoRoute = autoRoute === true || provider === "auto";
-    const inventoryItems = await listCourseDocuments(courseId, folderPrefix);
-    const resolvedDocumentId =
-      inventoryItems.some((item) => item.id === selectedDocumentId)
-        ? selectedDocumentId
-        : (inventoryItems[0]?.id ?? selectedDocumentId);
-
-    const [courseContext, additionalSnippets] = await Promise.all([
-      loadCourseContext({ courseId, documentId: resolvedDocumentId }),
-      searchAcrossDocuments({
-        query: message,
-        excludePath: resolvedDocumentId,
-        maxDocs: 3,
-        folderPrefix
-      })
-    ]);
-    console.log(
-      `[chat] folder=${folderPrefix || "ALL"} requested=${selectedDocumentId} resolved=${resolvedDocumentId} contextLen=${courseContext.trim().length} inventory=${inventoryItems.length}`
-    );
-
-    const documentsInventory = inventoryItems.map((item) => item.id);
-
-    const tutorPayload = {
-      message,
-      courseContext,
-      documentsInventory,
-      activeDocumentPath: resolvedDocumentId,
-      additionalSnippets,
-      history: chatHistory
-    };
+    const useAutoRoute = autoRoute === true || !provider || provider === "auto";
+    const previousQuestion = [...chatHistory].reverse().find(t => t.role === "user")?.content;
+    const query = previousQuestion && message.length < 160
+      ? `${previousQuestion.slice(-500)}\n${message}` : message;
+    const retrieval = await hybridSearch(query, folderPrefix, resolvedDocumentId);
+    const courseContext = retrieval.hits.map(h =>
+      `--- Fuente: ${h.path} · fragmento ${h.chunk} ---\n${h.snippet}`
+    ).join("\n\n");
+    const tutorPayload = { message, courseContext, history: chatHistory };
 
     let answer: string;
     let resolvedProvider: string;
@@ -88,29 +72,18 @@ router.post("/chat", async (req, res) => {
       resolvedProvider = provider || "gemini";
     }
 
-    res.json({
-      answer,
-      meta: {
-        courseId,
-        documentId: resolvedDocumentId,
-        provider: resolvedProvider,
-        providerLabel: useAutoRoute
-          ? providerLabel(resolvedProvider as RoutedProvider)
-          : resolvedProvider,
-        autoRoute: useAutoRoute,
-        routingReason,
-        historyMessages: chatHistory.length,
-        folder: folderPrefix || null,
-        contextLoaded: Boolean(courseContext),
-        contextChars: courseContext.length,
-        inventorySize: documentsInventory.length,
-        searchHits: additionalSnippets.map((s) => ({ path: s.path, score: s.score }))
-      }
-    });
-  } catch {
-    res.status(500).json({
-      error: "Ocurrio un error al procesar tu mensaje."
-    });
+    res.json({ answer, meta: {
+      provider: resolvedProvider,
+      providerLabel: resolvedProvider,
+      routingReason,
+      autoRoute: useAutoRoute,
+      contextChars: courseContext.length,
+      retrieval: { method: retrieval.method, documents: retrieval.documents, chunks: retrieval.chunks },
+      sources: retrieval.hits.map(({ snippet, ...source }) => source)
+    } });
+  } catch (error) {
+    console.error("[chat]", error);
+    res.status(503).json({ error: "No se pudo completar la consulta. Revisa el estado del índice y la conexión del backend." });
   }
 });
 

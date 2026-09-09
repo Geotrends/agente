@@ -115,6 +115,7 @@ export async function askGroq(input: AskProviderInput): Promise<string> {
 
       const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
         method: "POST",
+        signal: AbortSignal.timeout(60000),
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${groqApiKey}`
