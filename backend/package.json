@@ -6,10 +6,15 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc -p tsconfig.json",
-    "start": "node dist/index.js"
+    "start": "node dist/index.js",
+    "test": "node --import tsx --test test/*.test.ts",
+    "index": "tsx src/indexDocuments.ts",
+    "test:integration": "node --import tsx test/http-smoke.ts",
+    "test:providers": "node --import tsx test/smoke.ts"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
+    "@huggingface/transformers": "^3.8.1",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.21.0",
