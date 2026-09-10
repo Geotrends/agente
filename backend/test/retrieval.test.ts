@@ -1,7 +1,23 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
+import * as XLSX from 'xlsx';
 import { BM25, chunkText, cosine, reciprocalRankFusion } from '../src/services/retrievalMath.js';
+import { preprocessDocument } from '../src/services/documentPreprocessor.js';
 import { pickProvider } from '../src/services/providerRouter.js';
+
+async function withTempDocument(extension: string, content: Buffer | string, callback: (filePath: string) => Promise<void>) {
+  const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'geobot-test-'));
+  const filePath = path.join(directory, `document${extension}`);
+  await fs.writeFile(filePath, content);
+  try {
+    await callback(filePath);
+  } finally {
+    await fs.rm(directory, { recursive: true, force: true });
+  }
+}
 
 test('BM25 matches whole normalized terms and rewards rare terms', () => {
   const index = new BM25(['ruido ruido ambiental', 'ruido ambiental acústica', 'ruidoso']);
@@ -30,6 +46,24 @@ test('RRF combines ranks rather than incomparable score scales', () => {
   assert.equal(results[0].id, 1);
   assert.equal(results[0].score, 1 / 62 + 1 / 61);
   assert.equal(results.length, 3);
+});
+test('document preprocessing returns normalized Markdown for text files', async () => {
+  await withTempDocument('.txt', 'Titulo\r\n\r\n\r\nContenido', async filePath => {
+    assert.equal(await preprocessDocument(filePath), 'Titulo\n\nContenido');
+  });
+});
+test('document preprocessing converts every spreadsheet sheet to Markdown tables', async () => {
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet([['Nombre', 'Estado'], ['Alfa', 'Activo']]), 'Servicios');
+  XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet([['Codigo', 'Valor'], ['A-1', 10]]), 'Datos');
+  const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+  await withTempDocument('.xlsx', buffer, async filePath => {
+    const content = await preprocessDocument(filePath);
+    assert.match(content, /## Hoja: Servicios/);
+    assert.match(content, /\| Nombre \| Estado \|/);
+    assert.match(content, /## Hoja: Datos/);
+    assert.match(content, /\| A-1 \| 10 \|/);
+  });
 });
 test('automatic routing honors the only configured provider', () => {
   const names = ['GEMINI_API_KEY', 'GROQ_API_KEY', 'DEEPSEEK_API_KEY'];

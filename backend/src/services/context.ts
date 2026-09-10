@@ -1,9 +1,8 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import mammoth from "mammoth";
-import * as XLSX from "xlsx";
+import { preprocessDocument } from "./documentPreprocessor.js";
 
-/** Debe coincidir con `NO_DOCUMENT_SENTINEL` en el frontend cuando no hay archivos indexables (.pdf/.md/.txt/.docx/.xlsx) */
+/** Debe coincidir con `NO_DOCUMENT_SENTINEL` en el frontend cuando no hay archivos indexables. */
 const NO_INDEXED_DOCUMENT_SENTINEL = "__geotrends_no_doc__";
 
 type ContextInput = {
@@ -123,9 +122,9 @@ export type DocumentItem = {
   extension: SupportedExtension;
 };
 
-type SupportedExtension = ".md" | ".txt" | ".docx" | ".pdf" | ".xlsx";
+type SupportedExtension = ".md" | ".txt" | ".docx" | ".doc" | ".pdf" | ".xlsx" | ".xls";
 
-const SUPPORTED_EXTENSIONS: SupportedExtension[] = [".md", ".txt", ".docx", ".pdf", ".xlsx"];
+const SUPPORTED_EXTENSIONS: SupportedExtension[] = [".md", ".txt", ".docx", ".doc", ".pdf", ".xlsx", ".xls"];
 
 const IGNORED_FILE_NAMES = new Set(["desktop.ini", "thumbs.db", ".ds_store"]);
 
@@ -212,54 +211,9 @@ export function safeResolveUnderRoot(root: string, relativePosix: string): strin
   return candidate;
 }
 
-function readXlsxPlainText(buffer: Buffer): string {
-  const workbook = XLSX.read(buffer, { type: "buffer", cellDates: true, sheetStubs: true });
-  const parts: string[] = [];
-  for (const sheetName of workbook.SheetNames) {
-    const sheet = workbook.Sheets[sheetName];
-    if (!sheet) continue;
-    const csv = XLSX.utils.sheet_to_csv(sheet, { blankrows: false });
-    const trimmed = csv.trim();
-    if (trimmed) {
-      parts.push(`--- Hoja: ${sheetName} ---\n${trimmed}`);
-    }
-  }
-  return parts.join("\n\n");
-}
-
-type CachedDoc = { mtimeMs: number; content: string };
-const documentContentCache = new Map<string, CachedDoc>();
-
 export async function readDocumentContent(filePath: string): Promise<string> {
   try {
-    const stat = await fs.stat(filePath);
-    const cached = documentContentCache.get(filePath);
-    if (cached && cached.mtimeMs === stat.mtimeMs) {
-      return cached.content;
-    }
-
-    const extension = path.extname(filePath).toLowerCase() as SupportedExtension;
-    let content = "";
-
-    if (extension === ".md" || extension === ".txt") {
-      content = await fs.readFile(filePath, "utf8");
-    } else if (extension === ".docx") {
-      const result = await mammoth.extractRawText({ path: filePath });
-      content = result.value.trim();
-    } else if (extension === ".pdf") {
-      const fileBuffer = await fs.readFile(filePath);
-      const { PDFParse } = await import("pdf-parse");
-      const parser = new PDFParse({ data: fileBuffer });
-      const result = await parser.getText();
-      await parser.destroy();
-      content = result.text.trim();
-    } else if (extension === ".xlsx") {
-      const fileBuffer = await fs.readFile(filePath);
-      content = readXlsxPlainText(fileBuffer).trim();
-    }
-
-    documentContentCache.set(filePath, { mtimeMs: stat.mtimeMs, content });
-    return content;
+    return await preprocessDocument(filePath);
   } catch {
     return "";
   }

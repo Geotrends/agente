@@ -4,7 +4,15 @@ Chat sobre todos los documentos locales, sin seleccionar biblioteca o archivo. P
 
 ## Arranque
 
-Requiere Node.js 22 y documentos con texto extraíble en `backend/data` (PDF, DOCX, XLSX, Markdown o TXT). Los PDF escaneados requieren OCR previo.
+Requiere Node.js 22 y documentos en `backend/data` (PDF, DOC/DOCX, XLS/XLSX, Markdown o TXT). El backend convierte los documentos a Markdown antes de crear fragmentos y embeddings. Los PDF escaneados usan OCR local cuando el texto extraído es insuficiente.
+
+Para habilitar OCR gratuito en macOS:
+
+```bash
+brew install tesseract tesseract-lang ocrmypdf
+```
+
+La configuración está en `.env`: `OCR_ENABLED`, `OCR_LANGUAGE` y `OCR_MIN_TEXT_CHARS`. Los derivados Markdown se guardan en `backend/.cache/documents`; el índice RAG se guarda en `backend/.cache/retrieval`. Ambos directorios están ignorados por Git.
 
 En `backend`:
 
@@ -30,18 +38,19 @@ Abre http://localhost:3000. La interfaz usa `http://localhost:3001/api/chat` por
 
 ## Recuperación
 
-1. Extrae texto y divide cada archivo en fragmentos de aproximadamente 1.000 caracteres con 150 de solapamiento.
-2. BM25 (`k1=1.2`, `b=0.75`) puntúa términos normalizados del texto y la ruta. Elimina palabras comunes y usa frecuencias documentales y longitud de fragmento.
-3. Embeddings locales con [multilingual-e5-small](https://huggingface.co/Xenova/multilingual-e5-small), cuantizado a 8 bits mediante Transformers.js. Usa prefijos `query:` y `passage:`, pooling medio y normalización. No necesita otra API key ni envía los documentos a un servicio de embeddings.
-4. Búsqueda vectorial exacta por similitud coseno, independiente de BM25. Ambos motores consultan todos los fragmentos del alcance.
-5. Reciprocal Rank Fusion combina los primeros 40 candidatos de cada lista: `score = Σ 1/(60 + posición)`, con posiciones desde 1. Recupera los mejores 8 fragmentos.
-6. Envía estos fragmentos, sus rutas y el historial al proveedor elegido. El prompt pide citas y reconocer cuando la evidencia es insuficiente.
+1. Preprocesa cada archivo como Markdown: texto normalizado, DOCX/DOC convertido, PDF extraído con OCR local bajo demanda y XLS/XLSX convertido a tablas Markdown por hoja.
+2. Divide cada Markdown en fragmentos de aproximadamente 1.000 caracteres con 150 de solapamiento.
+3. BM25 (`k1=1.2`, `b=0.75`) puntúa términos normalizados del texto y la ruta. Elimina palabras comunes y usa frecuencias documentales y longitud de fragmento.
+4. Embeddings locales con [multilingual-e5-small](https://huggingface.co/Xenova/multilingual-e5-small), cuantizado a 8 bits mediante Transformers.js. Usa prefijos `query:` y `passage:`, pooling medio y normalización. No necesita otra API key ni envía los documentos a un servicio de embeddings.
+5. Búsqueda vectorial exacta por similitud coseno, independiente de BM25. Ambos motores consultan todos los fragmentos del alcance.
+6. Reciprocal Rank Fusion combina los primeros 40 candidatos de cada lista: `score = Σ 1/(60 + posición)`, con posiciones desde 1. Recupera los mejores 8 fragmentos.
+7. Envía estos fragmentos, sus rutas y el historial al proveedor elegido. El prompt pide citas y reconocer cuando la evidencia es insuficiente.
 
 La consulta incorpora la última pregunta del usuario en seguimientos cortos. El buscador no depende del proveedor que genera la respuesta. En modo automático, si falla un proveedor se prueban los otros que tengan clave. Cada llamada de generación tiene un límite de espera de 60 segundos.
 
 ## Índice y fuentes
 
-El índice se guarda por documento en `backend/.cache/retrieval` (ignorado por Git). Se reutiliza al reiniciar. Un cambio en ruta, tamaño o fecha de modificación recalcula ese documento; los archivos eliminados dejan de participar en la siguiente búsqueda. Las versiones anteriores de caché quedan en disco. `RETRIEVAL_CACHE_DIR` permite cambiar su ubicación.
+El índice se guarda por documento en `backend/.cache/retrieval` (ignorado por Git). Se reutiliza al reiniciar. Un cambio en ruta, tamaño, fecha de modificación o versión del preprocesador recalcula ese documento; los archivos eliminados dejan de participar en la siguiente búsqueda. Las versiones anteriores de caché quedan en disco. `RETRIEVAL_CACHE_DIR` y `DOCUMENT_CACHE_DIR` permiten cambiar las ubicaciones.
 
 La interfaz muestra el progreso inicial y las fuentes de la última respuesta. El API expone puntuaciones BM25, coseno y RRF por fragmento. Las citas identifican fragmentos, no páginas originales. El inventario completo no se envía al LLM.
 

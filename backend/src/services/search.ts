@@ -2,6 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { getDocumentsRootPath, listCourseDocuments, readDocumentContent, safeResolveUnderRoot } from './context.js';
+import { DOCUMENT_PREPROCESSOR_VERSION } from './documentPreprocessor.js';
 import { embed, embeddingModel, retrievalCacheDir } from './embeddings.js';
 import { BM25, chunkText, cosine, reciprocalRankFusion } from './retrievalMath.js';
 
@@ -19,14 +20,14 @@ async function buildIndex(): Promise<Index> {
     const stat = await fs.stat(full);
     return { ...item, full, stamp: `${stat.mtimeMs}:${stat.size}` };
   }));
-  const signature = createHash('sha256').update(JSON.stringify([root, files.map(f => [f.id, f.stamp]), embeddingModel, 'chunks-1000-150-v1'])).digest('hex');
+  const signature = createHash('sha256').update(JSON.stringify([root, files.map(f => [f.id, f.stamp]), embeddingModel, DOCUMENT_PREPROCESSOR_VERSION, 'chunks-1000-150-v1'])).digest('hex');
   if (current?.signature === signature) return current;
   retrievalStatus.state = 'indexing'; retrievalStatus.completed = 0; retrievalStatus.total = files.length;
   retrievalStatus.error = '';
   await fs.mkdir(retrievalCacheDir, { recursive: true });
   const chunks: Chunk[] = [];
   for (const file of files) {
-    const key = createHash('sha256').update(JSON.stringify([root, file.id, file.stamp, embeddingModel, 'v1'])).digest('hex');
+    const key = createHash('sha256').update(JSON.stringify([root, file.id, file.stamp, embeddingModel, DOCUMENT_PREPROCESSOR_VERSION, 'v1'])).digest('hex');
     const cacheFile = path.join(retrievalCacheDir, `${key}.json`);
     let entries: Chunk[] | undefined;
     try {

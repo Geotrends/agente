@@ -5,14 +5,14 @@ import ChatMarkdown from "./ChatMarkdown";
 import {
   AGENT_DOCUMENT_FILE_URL,
   AGENT_DOCUMENT_HTML_URL,
-  AGENT_DOCUMENT_TEXT_URL
+  AGENT_DOCUMENT_TEXT_URL,
 } from "./agentConfig";
 
 type Props = {
   documentPath: string;
 };
 
-type PreviewKind = "pdf" | "docx" | "md" | "txt" | "xlsx" | "unknown";
+type PreviewKind = "pdf" | "docx" | "md" | "txt" | "xlsx" | "xls" | "unknown";
 
 function getPreviewKind(path: string): PreviewKind {
   const lower = path.toLowerCase();
@@ -21,6 +21,7 @@ function getPreviewKind(path: string): PreviewKind {
   if (lower.endsWith(".md")) return "md";
   if (lower.endsWith(".txt")) return "txt";
   if (lower.endsWith(".xlsx")) return "xlsx";
+  if (lower.endsWith(".xls")) return "xls";
   return "unknown";
 }
 
@@ -76,24 +77,28 @@ export function DocumentPreview({ documentPath }: Props) {
             ignoreFonts: false,
             breakPages: true,
             ignoreLastRenderedPageBreak: true,
-            useBase64URL: true
+            useBase64URL: true,
           });
           return;
         }
 
-        if (kind === "xlsx") {
+        if (kind === "xlsx" || kind === "xls") {
           const response = await fetch(
-            `${AGENT_DOCUMENT_HTML_URL}?path=${encodeURIComponent(documentPath)}`
+            `${AGENT_DOCUMENT_HTML_URL}?path=${encodeURIComponent(documentPath)}`,
           );
-          const data = (await response.json()) as { html?: string; error?: string };
+          const data = (await response.json()) as {
+            html?: string;
+            error?: string;
+          };
           if (cancelled) return;
-          if (!response.ok) throw new Error(data.error || "No se pudo cargar la hoja.");
+          if (!response.ok)
+            throw new Error(data.error || "No se pudo cargar la hoja.");
           setHtmlContent(data.html || "<p>(Hoja vacia)</p>");
           return;
         }
 
         const response = await fetch(
-          `${AGENT_DOCUMENT_TEXT_URL}?path=${encodeURIComponent(documentPath)}`
+          `${AGENT_DOCUMENT_TEXT_URL}?path=${encodeURIComponent(documentPath)}`,
         );
         const data = (await response.json()) as {
           text?: string;
@@ -101,12 +106,19 @@ export function DocumentPreview({ documentPath }: Props) {
           error?: string;
         };
         if (cancelled) return;
-        if (!response.ok) throw new Error(data.error || "No se pudo cargar la vista previa.");
-        setTextContent(data.text?.trim() || "(Documento sin contenido legible.)");
+        if (!response.ok)
+          throw new Error(data.error || "No se pudo cargar la vista previa.");
+        setTextContent(
+          data.text?.trim() || "(Documento sin contenido legible.)",
+        );
         setTruncated(Boolean(data.truncated));
       } catch (err) {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : "Error al cargar la vista previa.");
+          setError(
+            err instanceof Error
+              ? err.message
+              : "Error al cargar la vista previa.",
+          );
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -134,8 +146,12 @@ export function DocumentPreview({ documentPath }: Props) {
           />
         ) : (
           <div className="doc-preview-word-shell">
-            {loading && <p className="doc-preview-status">Cargando vista previa...</p>}
-            {error && <p className="doc-preview-status doc-preview-error">{error}</p>}
+            {loading && (
+              <p className="doc-preview-status">Cargando vista previa...</p>
+            )}
+            {error && (
+              <p className="doc-preview-status doc-preview-error">{error}</p>
+            )}
 
             {kind === "docx" && (
               <div ref={docxHostRef} className="doc-preview-docx-host" />
@@ -144,7 +160,9 @@ export function DocumentPreview({ documentPath }: Props) {
             {!loading && !error && kind === "md" && (
               <article className="doc-preview-page doc-preview-prose">
                 {truncated && (
-                  <p className="doc-preview-truncated">Vista previa recortada (documento muy largo).</p>
+                  <p className="doc-preview-truncated">
+                    Vista previa recortada (documento muy largo).
+                  </p>
                 )}
                 <ChatMarkdown content={textContent} />
               </article>
@@ -153,7 +171,9 @@ export function DocumentPreview({ documentPath }: Props) {
             {!loading && !error && kind === "txt" && (
               <article className="doc-preview-page doc-preview-prose">
                 {truncated && (
-                  <p className="doc-preview-truncated">Vista previa recortada (documento muy largo).</p>
+                  <p className="doc-preview-truncated">
+                    Vista previa recortada (documento muy largo).
+                  </p>
                 )}
                 {textToParagraphs(textContent).map((paragraph, index) => (
                   <p key={index}>{paragraph}</p>
@@ -161,7 +181,7 @@ export function DocumentPreview({ documentPath }: Props) {
               </article>
             )}
 
-            {!loading && !error && kind === "xlsx" && (
+            {!loading && !error && (kind === "xlsx" || kind === "xls") && (
               <article
                 className="doc-preview-page doc-preview-spreadsheet"
                 dangerouslySetInnerHTML={{ __html: htmlContent }}
@@ -170,7 +190,9 @@ export function DocumentPreview({ documentPath }: Props) {
 
             {!loading && !error && kind === "unknown" && (
               <article className="doc-preview-page doc-preview-prose">
-                <p>{textContent || "Formato no soportado para vista previa."}</p>
+                <p>
+                  {textContent || "Formato no soportado para vista previa."}
+                </p>
               </article>
             )}
           </div>
