@@ -12,7 +12,8 @@ import {
 import { hybridSearch, retrievalStatus } from "../services/search.js";
 import { askSmartTutor, askTutor, type LlmProvider } from "../services/llm.js";
 import { normalizeHistory } from "../shared/chatHistory.js";
-import { isProviderConfigured } from "../services/providerRouter.js";
+import { isProviderConfigured, type RoutedProvider } from "../services/providerRouter.js";
+import { logChatInteraction } from "../services/chatLog.js";
 
 type ChatBody = {
   message: string;
@@ -32,6 +33,7 @@ router.get("/providers", (_req, res) => res.json({ providers:
 }));
 
 router.post("/chat", async (req, res) => {
+  const startedAt = performance.now();
   try {
     const { message, documentId, lessonId, provider, folder, autoRoute, history } =
       req.body as Partial<ChatBody>;
@@ -60,7 +62,7 @@ router.post("/chat", async (req, res) => {
     const tutorPayload = { message, courseContext, history: chatHistory };
 
     let answer: string;
-    let resolvedProvider: string;
+    let resolvedProvider: RoutedProvider;
     let routingReason: string | null = null;
 
     if (useAutoRoute) {
@@ -73,6 +75,10 @@ router.post("/chat", async (req, res) => {
       resolvedProvider = provider || "gemini";
     }
 
+    const sources = retrieval.hits.map(({ snippet, ...source }) => source);
+    const responseTimeMs = Math.round(performance.now() - startedAt);
+    await logChatInteraction({ provider: resolvedProvider, question: message, answer, sources, responseTimeMs });
+
     res.json({ answer, meta: {
       provider: resolvedProvider,
       providerLabel: resolvedProvider,
@@ -80,7 +86,7 @@ router.post("/chat", async (req, res) => {
       autoRoute: useAutoRoute,
       contextChars: courseContext.length,
       retrieval: { method: retrieval.method, documents: retrieval.documents, chunks: retrieval.chunks },
-      sources: retrieval.hits.map(({ snippet, ...source }) => source)
+      sources
     } });
   } catch (error) {
     console.error("[chat]", error);
@@ -146,7 +152,7 @@ router.get("/document", async (req, res) => {
         ? "application/pdf"
         : ext === ".docx"
           ? "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-          : ext === ".xlsx"
+          : ext === ".xlsx" || ext === ".xls"
             ? "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             : ext === ".md" || ext === ".txt"
               ? "text/plain; charset=utf-8"
@@ -196,7 +202,7 @@ router.get("/document/text", async (req, res) => {
   }
 });
 
-/** HTML para vista previa (xlsx como tabla). */
+/** HTML para vista previa (xlsx/xls como tabla). */
 router.get("/document/html", async (req, res) => {
   const rawPath = String(req.query.path || "").trim();
   if (!rawPath) {
@@ -212,8 +218,8 @@ router.get("/document/html", async (req, res) => {
   }
 
   const ext = path.extname(fullPath).toLowerCase();
-  if (ext !== ".xlsx") {
-    res.status(400).json({ error: "Solo xlsx usa /document/html." });
+  if (ext !== ".xlsx" && ext !== ".xls") {
+    res.status(400).json({ error: "Solo xlsx/xls usa /document/html." });
     return;
   }
 

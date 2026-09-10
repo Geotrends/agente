@@ -1,3 +1,5 @@
+import { getProviderModel } from "../shared/providerModel.js";
+import { getResponseTokenLimit } from "../services/contextBudget.js";
 import { buildSystemPrompt } from "../prompts/tutorPrompt.js";
 import { buildOpenAiMessages } from "../shared/chatHistory.js";
 import { AskProviderInput, getErrorMessage } from "../shared/llmTypes.js";
@@ -19,7 +21,7 @@ export async function askDeepSeek({
   }
 
   const url = (process.env.DEEPSEEK_API_URL || DEFAULT_DEEPSEEK_CHAT_URL).trim();
-  const model = process.env.DEEPSEEK_MODEL?.trim() || "deepseek-v4-flash";
+  const model = getProviderModel("deepseek");
 
   const systemContent = buildSystemPrompt({
     documentContext: courseContext,
@@ -32,6 +34,7 @@ export async function askDeepSeek({
     model,
     messages: buildOpenAiMessages(systemContent, history, message),
     temperature: 0.4,
+    max_tokens: getResponseTokenLimit(message, history.length),
     stream: false
   };
 

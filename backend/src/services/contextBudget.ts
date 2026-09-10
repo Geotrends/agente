@@ -112,6 +112,16 @@ function structuralScore(normalized: string): { score: number; hits: string[] } 
 
 export type QuestionComplexity = "simple" | "medium" | "complex";
 
+const RESPONSE_TOKEN_LIMITS: Record<QuestionComplexity, number> = {
+  simple: 400,
+  medium: 800,
+  complex: 1500,
+};
+
+export function getResponseTokenLimit(message: string, historyLength: number): number {
+  return RESPONSE_TOKEN_LIMITS[scoreQuestionComplexity(message, historyLength).level];
+}
+
 export interface ComplexityResult {
   score: number;
   level: QuestionComplexity;
@@ -183,7 +193,7 @@ export function trimDocumentContext(context: string, maxChars: number): string {
 /** Ajusta el texto del documento segun proveedor e historial. */
 export function budgetDocumentContext(
   context: string,
-  provider: "gemini" | "groq" | "deepseek",
+  provider: "gemini" | "groq" | "deepseek" | "ollama",
   message: string,
   history: ChatTurn[]
 ): string {

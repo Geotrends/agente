@@ -1,3 +1,5 @@
+import { getProviderModel } from "../shared/providerModel.js";
+import { getResponseTokenLimit } from "../services/contextBudget.js";
 import { buildSystemPrompt } from "../prompts/tutorPrompt.js";
 import { AskProviderInput, getErrorMessage } from "../shared/llmTypes.js";
 
@@ -10,9 +12,10 @@ export async function askOllama({
   courseContext,
   documentsInventory,
   activeDocumentPath,
-  additionalSnippets
+  additionalSnippets,
+  history = []
 }: AskProviderInput): Promise<string> {
-  const model = process.env.OLLAMA_MODEL?.trim() || "llama3.2";
+  const model = getProviderModel("ollama");
   const url = `${ollamaBaseUrl()}/api/chat`;
 
   const body = {
@@ -26,7 +29,8 @@ export async function askOllama({
       { role: "user", content: message }
     ],
     options: {
-      temperature: 0.4
+      temperature: 0.4,
+      num_predict: getResponseTokenLimit(message, history.length)
     }
   };
 

@@ -1,3 +1,5 @@
+import { getProviderModel } from "../shared/providerModel.js";
+import { getResponseTokenLimit } from "../services/contextBudget.js";
 import { buildSystemPrompt } from "../prompts/tutorPrompt.js";
 import { buildOpenAiMessages } from "../shared/chatHistory.js";
 import { AskProviderInput, getErrorMessage } from "../shared/llmTypes.js";
@@ -65,7 +67,7 @@ function shrinkPayloadForGroq(input: AskProviderInput, limits: GroqShrinkLimits)
 function buildGroqBody(
   shrunk: AskProviderInput,
   model: string
-): { model: string; messages: Array<{ role: string; content: string }>; temperature: number } {
+): { model: string; messages: Array<{ role: string; content: string }>; temperature: number; max_tokens: number } {
   const systemContent = buildSystemPrompt({
     documentContext: shrunk.courseContext,
     documentsInventory: shrunk.documentsInventory,
@@ -76,7 +78,8 @@ function buildGroqBody(
   return {
     model,
     messages: buildOpenAiMessages(systemContent, shrunk.history ?? [], shrunk.message),
-    temperature: 0.25
+    temperature: 0.25,
+    max_tokens: getResponseTokenLimit(shrunk.message, shrunk.history?.length ?? 0)
   };
 }
 
@@ -105,7 +108,7 @@ export async function askGroq(input: AskProviderInput): Promise<string> {
     maxDocChars: Math.max(4_000, envCap)
   };
 
-  const model = process.env.GROQ_MODEL || "llama-3.1-8b-instant";
+  const model = getProviderModel("groq");
   const maxAttempts = 6;
 
   try {

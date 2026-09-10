@@ -1,3 +1,5 @@
+import { getProviderModel } from "../shared/providerModel.js";
+import { getResponseTokenLimit } from "../services/contextBudget.js";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { buildSystemPrompt } from "../prompts/tutorPrompt.js";
 import { buildOpenAiMessages } from "../shared/chatHistory.js";
@@ -5,10 +7,6 @@ import { AskProviderInput, getErrorMessage } from "../shared/llmTypes.js";
 
 const geminiApiKey = process.env.GEMINI_API_KEY || "";
 const geminiClient = geminiApiKey ? new GoogleGenerativeAI(geminiApiKey) : null;
-
-function normalizeGeminiModel(value: string): string {
-  return value.replace(/^models\//, "");
-}
 
 export async function askGemini({
   message,
@@ -22,8 +20,7 @@ export async function askGemini({
     return "Falta configurar GEMINI_API_KEY en el backend.";
   }
 
-  const configuredModel = process.env.GEMINI_MODEL || "gemini-flash-latest";
-  const modelName = normalizeGeminiModel(configuredModel);
+  const modelName = getProviderModel("gemini");
   const systemInstruction = buildSystemPrompt({
     documentContext: courseContext,
     documentsInventory,
@@ -33,7 +30,8 @@ export async function askGemini({
 
   const model = geminiClient.getGenerativeModel({
     model: modelName,
-    systemInstruction
+    systemInstruction,
+    generationConfig: { maxOutputTokens: getResponseTokenLimit(message, history.length) }
   }, { timeout: 60000 });
 
   const geminiHistory = history.map((turn) => ({
@@ -65,7 +63,7 @@ export async function askGemini({
     }
 
     if (/model|not found|404/i.test(rawMessage)) {
-      return `El modelo '${configuredModel}' no esta disponible para esta cuenta.`;
+      return `El modelo '${modelName}' no esta disponible para esta cuenta.`;
     }
 
     return `Gemini devolvio un error: ${rawMessage}`;

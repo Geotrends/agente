@@ -61,7 +61,7 @@ export async function askTutor({
 }
 
 function isProviderFailure(answer: string): boolean {
-  return /^(Falta configurar |(?:Gemini|Groq|DeepSeek) (?:rechazo|indico|devolvio)|El modelo '.*' no esta disponible)/i.test(answer);
+  return /^(Falta configurar |(?:Gemini|Groq|DeepSeek|Ollama) (?:rechazo|indico|devolvio)|El modelo '.*' no esta disponible)/i.test(answer);
 }
 
 /** Selecciona un proveedor con clave y prueba los otros configurados si falla. */
