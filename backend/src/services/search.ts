@@ -5,6 +5,7 @@ import { getDocumentsRootPath, listCourseDocuments, readDocumentContent, safeRes
 import { DOCUMENT_PREPROCESSOR_VERSION } from './documentPreprocessor.js';
 import { embed, embeddingModel, retrievalCacheDir } from './embeddings.js';
 import { BM25, chunkText, cosine, reciprocalRankFusion } from './retrievalMath.js';
+import { rerank } from './reranker.js';
 
 type Chunk = { path: string; chunk: number; snippet: string; vector: number[] };
 type Index = { signature: string; chunks: Chunk[]; bm25: BM25; documents: number };
@@ -76,10 +77,26 @@ export async function hybridSearch(query: string, folderPrefix?: string, documen
   const lexical = index.bm25.search(query).filter(r => eligible(r.id)).slice(0, 40);
   const semantic = index.chunks.map((c, id) => ({ id, score: cosine(vector, c.vector) }))
     .filter(r => eligible(r.id)).sort((a, b) => b.score - a.score || a.id - b.id).slice(0, 40);
-  const hits = reciprocalRankFusion([lexical, semantic]).slice(0, 8).map(r => {
+  const fused = reciprocalRankFusion([lexical, semantic]);
+  const candidates = fused.slice(0, 16);
+  let ranked: Array<typeof candidates[number] & { rerank?: number }> = candidates;
+  let method = 'bm25+cosine+rrf';
+  try {
+    const rerankedScores = await rerank(query, candidates.map(r => ({ id: r.id, snippet: index.chunks[r.id].snippet })));
+    ranked = candidates
+      .map(r => ({ ...r, rerank: rerankedScores.get(r.id) }))
+      .sort((a, b) => (b.rerank ?? -Infinity) - (a.rerank ?? -Infinity) || a.id - b.id)
+      .slice(0, 8);
+    method = 'bm25+cosine+rrf+ms-marco';
+  } catch (error) {
+    console.warn('[retrieval] Reranker no disponible; se usa RRF:', error);
+    ranked = candidates.slice(0, 8);
+  }
+  const hits = ranked.map(r => {
     const { vector: _, ...chunk } = index.chunks[r.id];
     return { ...chunk, score: r.score, bm25: lexical.find(x => x.id === r.id)?.score ?? 0,
-      semantic: semantic.find(x => x.id === r.id)?.score ?? 0 };
+      semantic: semantic.find(x => x.id === r.id)?.score ?? 0,
+      ...(typeof r.rerank === 'number' ? { rerank: r.rerank } : {}) };
   });
-  return { hits, documents: index.documents, chunks: index.chunks.length, method: 'bm25+cosine+rrf' };
+  return { hits, documents: index.documents, chunks: index.chunks.length, method };
 }

@@ -5,7 +5,9 @@ import type { RoutedProvider } from "./providerRouter.js";
 const directory = new URL("../../data/", import.meta.url);
 const file = new URL("chat-interactions.csv", directory);
 const legacyHeader = "ID_chat,LLM,Modelo,Pregunta,Respuesta,Fuentes\r\n";
-const header = "ID_chat,LLM,Modelo,Pregunta,Respuesta,Fuentes,Tiempo_respuesta_ms\r\n";
+const legacySemicolonHeader = "ID_chat;LLM;Modelo;Pregunta;Respuesta;Fuentes\r\n";
+const header = "ID_chat;LLM;Modelo;Prompt_version;Pregunta;Respuesta;Fuentes;Tiempo_respuesta_ms\r\n";
+const promptVersion = process.env.PROMPT_VERSION?.trim() || "1";
 let lastId: number | undefined;
 let pending = Promise.resolve();
 
@@ -17,7 +19,9 @@ function readLastId(csv: string): number {
   for (let i = 0; i < csv.length; i++) {
     if (csv[i] === '"') quoted = !quoted;
     if (csv[i] === "\n" && !quoted) {
-      const id = Number(csv.slice(rowStart, i).split(",", 1)[0]);
+      const row = csv.slice(rowStart, i);
+      const delimiter = row.includes(";") ? ";" : ",";
+      const id = Number(row.split(delimiter, 1)[0]);
       if (Number.isInteger(id)) maximum = Math.max(maximum, id);
       rowStart = i + 1;
     }
@@ -29,17 +33,60 @@ function escapeCsv(value: string): string {
   return `"${value.replace(/"/g, '""')}"`;
 }
 
-// Las interacciones anteriores conservan sus datos y dejan el tiempo vacío.
-function migrateLegacyCsv(csv: string): string {
+function parseCsvRow(row: string, delimiter: string): string[] {
+  const fields: string[] = [];
+  let field = "";
   let quoted = false;
-  let result = header;
-  for (let i = legacyHeader.length; i < csv.length; i++) {
-    const char = csv[i];
-    if (char === '"') quoted = !quoted;
-    if (char === "\r" && csv[i + 1] === "\n" && !quoted) result += ",";
-    result += char;
+  for (let i = 0; i < row.length; i++) {
+    const char = row[i];
+    if (char === '"') {
+      if (quoted && row[i + 1] === '"') {
+        field += '"';
+        i++;
+      } else {
+        quoted = !quoted;
+      }
+    } else if (char === delimiter && !quoted) {
+      fields.push(field);
+      field = "";
+    } else {
+      field += char;
+    }
   }
-  return result;
+  fields.push(field);
+  return fields;
+}
+
+// Las interacciones anteriores conservan sus datos y dejan los nuevos campos vacíos.
+function migrateLegacyCsv(csv: string): string {
+  const delimiter = csv.startsWith(legacySemicolonHeader) ? ";" : ",";
+  const sourceHeader = delimiter === ";" ? legacySemicolonHeader : legacyHeader;
+  const rows: string[] = [];
+  let quoted = false;
+  let rowStart = sourceHeader.length;
+  for (let i = sourceHeader.length; i < csv.length; i++) {
+    if (csv[i] === '"') quoted = !quoted;
+    if (csv[i] === "\n" && !quoted) {
+      rows.push(csv.slice(rowStart, i).replace(/\r$/, ""));
+      rowStart = i + 1;
+    }
+  }
+  if (rowStart < csv.length) rows.push(csv.slice(rowStart));
+
+  return header + rows.filter(Boolean).map(row => {
+    const fields = parseCsvRow(row, delimiter);
+    const migrated = [
+      fields[0] || "",
+      fields[1] || "",
+      fields[2] || "",
+      "",
+      fields[3] || "",
+      fields[4] || "",
+      fields[5] || "",
+      ""
+    ];
+    return migrated.map(escapeCsv).join(";") + "\r\n";
+  }).join("");
 }
 
 export function logChatInteraction(input: {
@@ -58,15 +105,15 @@ export function logChatInteraction(input: {
         throw error;
       });
       if (!existing) await fs.writeFile(file, header, "utf8");
-      else if (existing.startsWith(legacyHeader)) {
+      else if (existing.startsWith(legacyHeader) || existing.startsWith(legacySemicolonHeader)) {
         await fs.writeFile(file, migrateLegacyCsv(existing), "utf8");
       }
       lastId = readLastId(existing);
     }
     const id = lastId + 1;
     const sources = [...new Set(input.sources.map(source => source.path.split(/[\\/]/).pop() || ""))].join("; ");
-    const fields = [input.provider, model, input.question, input.answer, sources, String(input.responseTimeMs)];
-    await fs.appendFile(file, `${id},${fields.map(escapeCsv).join(",")}\r\n`, "utf8");
+    const fields = [input.provider, model, promptVersion, input.question, input.answer, sources, String(input.responseTimeMs)];
+    await fs.appendFile(file, `${id};${fields.map(escapeCsv).join(";")}\r\n`, "utf8");
     lastId = id;
   });
   pending = write.catch(() => {});
