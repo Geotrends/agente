@@ -22,7 +22,11 @@ function parseBlocks(text: string): Block[] {
       continue;
     }
 
-    if (trimmed.includes("|") && i + 1 < lines.length && /^\|?\s*:?-+:?\s*(\|\s*:?-+:?\s*)+\|?$/.test(lines[i + 1].trim())) {
+    if (
+      trimmed.includes("|") &&
+      i + 1 < lines.length &&
+      /^\|?\s*:?-+:?\s*(\|\s*:?-+:?\s*)+\|?$/.test(lines[i + 1].trim())
+    ) {
       const headers = splitTableRow(trimmed);
       i += 2;
       const rows: string[][] = [];
@@ -46,9 +50,24 @@ function parseBlocks(text: string): Block[] {
 
     if (/^\d+[.)]\s+/.test(trimmed)) {
       const items: string[] = [];
-      while (i < lines.length && /^\d+[.)]\s+/.test(lines[i].trim())) {
-        items.push(lines[i].trim().replace(/^\d+[.)]\s+/, ""));
-        i += 1;
+      while (i < lines.length) {
+        const item = lines[i].trim();
+        if (/^\d+[.)]\s+/.test(item)) {
+          items.push(item.replace(/^\d+[.)]\s+/, ""));
+          i += 1;
+          continue;
+        }
+
+        if (!item) {
+          let next = i + 1;
+          while (next < lines.length && !lines[next].trim()) next += 1;
+          if (next < lines.length && /^\d+[.)]\s+/.test(lines[next].trim())) {
+            i = next;
+            continue;
+          }
+        }
+
+        break;
       }
       blocks.push({ type: "ol", items });
       continue;
@@ -58,7 +77,12 @@ function parseBlocks(text: string): Block[] {
     i += 1;
     while (i < lines.length) {
       const next = lines[i].trim();
-      if (!next || next.includes("|") || /^[-*•]\s+/.test(next) || /^\d+[.)]\s+/.test(next)) {
+      if (
+        !next ||
+        next.includes("|") ||
+        /^[-*•]\s+/.test(next) ||
+        /^\d+[.)]\s+/.test(next)
+      ) {
         break;
       }
       paraLines.push(next);
@@ -78,11 +102,36 @@ function splitTableRow(row: string): string[] {
     .map((cell) => cell.trim());
 }
 
+// Hallazgo A-8: el prompt (tutorPrompt.ts) exige citar con "[Título](URL)",
+// pero esto solo reconocía negrita — el enlace se veía como texto crudo con
+// corchetes y paréntesis. Se agregan enlaces y código en línea, sin adoptar
+// una librería de Markdown completa: mantener el renderer propio es la razón
+// por la que hoy no hay superficie de XSS, y la allowlist de protocolo abajo
+// la conserva (bloquea "javascript:" y "data:", entre otros).
+const INLINE_TOKEN = /(\*\*[^*]+\*\*|\[[^\]]+\]\([^)\s]+\)|`[^`]+`)/g;
+const LINK = /^\[([^\]]+)\]\(([^)\s]+)\)$/;
+
 function inlineFormat(text: string): ReactNode[] {
-  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+  const parts = text.split(INLINE_TOKEN);
   return parts.map((part, index) => {
     if (part.startsWith("**") && part.endsWith("**")) {
       return <strong key={index}>{part.slice(2, -2)}</strong>;
+    }
+    if (part.startsWith("`") && part.endsWith("`")) {
+      return <code key={index}>{part.slice(1, -1)}</code>;
+    }
+    const link = LINK.exec(part);
+    if (link) {
+      if (/^https?:\/\//i.test(link[2])) {
+        return (
+          <a key={index} href={link[2]} target="_blank" rel="noreferrer noopener">
+            {link[1]}
+          </a>
+        );
+      }
+      // Protocolo no reconocido (javascript:, data:, mailto: sin validar, etc.):
+      // se muestra solo el texto, nunca se convierte en un enlace navegable.
+      return <Fragment key={index}>{link[1]}</Fragment>;
     }
     return <Fragment key={index}>{part}</Fragment>;
   });

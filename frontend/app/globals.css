@@ -664,6 +664,23 @@ body {
   color: #444;
 }
 
+.chat-markdown a {
+  color: #1d4ed8;
+  text-decoration: underline;
+}
+
+.chat-markdown a:hover {
+  color: #1e40af;
+}
+
+.chat-markdown code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.9em;
+  background: #f0f0f0;
+  padding: 0.1em 0.35em;
+  border-radius: 3px;
+}
+
 .md-table-wrap {
   overflow-x: auto;
   margin: 0 0 10px;
