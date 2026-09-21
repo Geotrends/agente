@@ -8,6 +8,7 @@ yarn-error.log*
 pnpm-debug.log*
 backend/package-lock.json
 frontend/package-lock.json
+frontend/.env.local
 # Documentos locales (cada equipo pone su propia copia)
 backend/data/
 
@@ -28,3 +29,4 @@ __pycache__/
 .pytest_cache/
 rag_tester/resultado_*.csv
 backend/scripts/.scan-*.ts
+__pycache__
