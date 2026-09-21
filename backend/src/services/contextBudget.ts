@@ -1,5 +1,3 @@
-import type { ChatTurn } from "../shared/chatHistory.js";
-
 /**
  * Quita tildes/diacríticos y pasa a minúsculas, para no tener que
  * duplicar cada patrón en su versión acentuada y sin acentuar.
@@ -110,16 +108,70 @@ function structuralScore(normalized: string): { score: number; hits: string[] } 
   return { score, hits };
 }
 
+/**
+ * Patrones que delatan una pregunta que no se sostiene sola (hallazgo M-2).
+ *
+ * Se aplican sobre el texto normalizado (sin tildes), porque la gente escribe
+ * «segun» tanto como «según».
+ */
+const FOLLOW_UP_PATTERNS: RegExp[] = [
+  // El mismo patrón que ya usaba `referencia_previa` más abajo.
+  /\b(segun\s+(lo|el|la|los|las)|lo\s+anterior|arriba\s+mencionado)\b/,
+  // Pronombres que apuntan fuera de la propia pregunta.
+  /\b(eso|esto|aquello|lo\s+mismo|el\s+anterior|la\s+anterior)\b/,
+  // Pregunta elíptica encadenada: «¿y el plazo?», «y cuánto cuesta».
+  /^[¿\s]*y\s+/,
+];
+
+/**
+ * Demostrativo seguido de un sustantivo con contenido: «ese trámite», «dicha
+ * resolución». Va sobre el texto CON tildes a propósito: normalizarlo
+ * convertiría «está» en «esta» y «¿dónde está el documento?» pasaría por una
+ * pregunta de seguimiento. Además se exige que la palabra siguiente no sea un
+ * artículo o preposición, para que «esta en la página 3» tampoco cuente.
+ */
+const DEMONSTRATIVE = /\b(ese|esa|esos|esas|este|esta|estos|estas|dicho|dicha|dichos|dichas|aquel|aquella)\s+([\p{L}]+)/u;
+const FUNCTION_WORDS = new Set(["el", "la", "los", "las", "un", "una", "en", "de", "del", "al", "es", "son", "y", "o", "que", "se"]);
+
+/**
+ * ¿Esta pregunta necesita la anterior para entenderse?
+ *
+ * Reemplaza al umbral mágico de `message.length < 160` que decidía esto antes:
+ * la longitud no dice nada sobre si la pregunta se sostiene sola —«¿cuál es el
+ * horario de atención de la Secretaría de Movilidad?» es corta y autocontenida,
+ * y «¿y el plazo?» es cortísima y no lo es—.
+ */
+export function needsPreviousContext(message: string): boolean {
+  const normalized = normalizeSpanish(message);
+  if (FOLLOW_UP_PATTERNS.some(pattern => pattern.test(normalized))) return true;
+  const demonstrative = DEMONSTRATIVE.exec(message.toLowerCase());
+  return Boolean(demonstrative && !FUNCTION_WORDS.has(demonstrative[2]));
+}
+
+/**
+ * Últimos `maxChars` caracteres, sin partir una palabra por la mitad.
+ *
+ * El `slice(-500)` anterior cortaba donde cayera: la primera palabra del
+ * contexto llegaba mutilada al tokenizador, que la contaba como un término
+ * inexistente. Mismo criterio que usa `chunkText` al fragmentar documentos —
+ * retroceder al límite de palabra— y solo se aplica si de verdad hay que
+ * recortar.
+ */
+export function tailAtWordBoundary(text: string, maxChars: number): string {
+  const trimmed = text.trim();
+  if (trimmed.length <= maxChars) return trimmed;
+  const tail = trimmed.slice(-maxChars);
+  const boundary = tail.search(/\s/);
+  // Si no hay ningún espacio, es una sola palabra larguísima: se devuelve tal
+  // cual antes que devolver una cadena vacía.
+  return boundary === -1 ? tail : tail.slice(boundary + 1);
+}
+
 export type QuestionComplexity = "simple" | "medium" | "complex";
 
-const RESPONSE_TOKEN_LIMITS: Record<QuestionComplexity, number> = {
-  simple: 400,
-  medium: 800,
-  complex: 1500,
-};
-
-export function getResponseTokenLimit(message: string, historyLength: number): number {
-  return RESPONSE_TOKEN_LIMITS[scoreQuestionComplexity(message, historyLength).level];
+/** Tope duro compartido por todos los proveedores para evitar respuestas descontroladas. */
+export function getResponseTokenLimit(): number {
+  return 2200;
 }
 
 export interface ComplexityResult {
@@ -174,43 +226,15 @@ export function scoreQuestionComplexity(
 }
 
 /**
- * Compatibilidad con el uso anterior: booleano estricto, true solo para
- * el nivel mas alto (para no cambiar de golpe los presupuestos que
- * dependen de este valor en budgetDocumentContext).
+ * Aqui vivian `isComplexQuestion`, `trimDocumentContext` y
+ * `budgetDocumentContext`: unas 90 lineas de presupuesto de contexto que no
+ * podian recortar nada (hallazgo M-6). Sus topes iban de 12.000 a 180.000
+ * caracteres y el contexto real son 8 fragmentos de ~1.000 caracteres, asi que
+ * ninguna rama truncaba jamas.
+ *
+ * Tenian ademas una inconsistencia real: el presupuesto solo se aplicaba en la
+ * ruta de enrutamiento automatico; la seleccion manual de proveedor llamaba a
+ * `askTutor` sin presupuesto alguno. Al borrarlo, las dos rutas quedan iguales
+ * por construccion, que es mas seguro que dos caminos que divergen el dia en
+ * que alguien suba el top-k.
  */
-export function isComplexQuestion(message: string, historyLength: number): boolean {
-  return scoreQuestionComplexity(message, historyLength).level === "complex";
-}
-
-export function trimDocumentContext(context: string, maxChars: number): string {
-  if (context.length <= maxChars) return context;
-  return (
-    context.slice(0, maxChars) +
-    `\n\n[Documento truncado a ${maxChars} caracteres para ajustar el limite del modelo.]`
-  );
-}
-
-/** Ajusta el texto del documento segun proveedor e historial. */
-export function budgetDocumentContext(
-  context: string,
-  provider: "gemini" | "groq" | "deepseek" | "ollama",
-  message: string,
-  history: ChatTurn[]
-): string {
-  const hasHistory = history.length > 0;
-  const complex = isComplexQuestion(message, history.length);
-
-  if (provider === "gemini") {
-    return trimDocumentContext(context, 180_000);
-  }
-
-  if (provider === "deepseek") {
-    return trimDocumentContext(context, complex ? 48_000 : 32_000);
-  }
-
-  // groq: recorte agresivo; en seguimiento corto prioriza inicio del doc (titulos)
-  if (hasHistory && !complex && message.length < 140) {
-    return trimDocumentContext(context, 12_000);
-  }
-  return trimDocumentContext(context, 18_000);
-}
