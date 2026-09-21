@@ -13,3 +13,18 @@ backend/data/
 
 # Índice y modelos de embeddings locales
 backend/.cache
+# Registro de interacciones: datos personales, fuera del arbol compartido (A-11)
+backend/var/
+
+.claude
+.github
+.vscode
+
+# Artefactos locales y resultados reproducibles
+.DS_Store
+*.tsbuildinfo
+__pycache__/
+*.py[cod]
+.pytest_cache/
+rag_tester/resultado_*.csv
+backend/scripts/.scan-*.ts
