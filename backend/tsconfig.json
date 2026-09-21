@@ -6,6 +6,12 @@
     "outDir": "dist",
     "rootDir": "src",
     "strict": true,
+    // Hallazgo M-13: habrían señalado solos buena parte del código muerto de
+    // M-6 (~400 líneas) sin que nadie tuviera que buscarlo con grep. Los
+    // parámetros que existen por contrato se marcan con "_" al principio,
+    // que es la convención que TypeScript exceptúa.
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true

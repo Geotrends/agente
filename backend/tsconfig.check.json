@@ -1,0 +1,14 @@
+// Comprobación de tipos de TODO el proyecto, incluidos test/ y scripts/.
+//
+// `tsconfig.json` solo incluye `src/**/*` porque su trabajo es emitir `dist/`.
+// Eso deja las pruebas y las herramientas sin revisar: pueden dejar de compilar
+// sin que nadie se entere (hallazgo M-13). Esta configuración no emite nada;
+// solo verifica. Se corre con `npm run typecheck`.
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "rootDir": "."
+  },
+  "include": ["src/**/*", "test/**/*", "scripts/**/*"]
+}
