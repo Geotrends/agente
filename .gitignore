@@ -22,7 +22,6 @@ backend/var/
 # Artefactos locales y resultados reproducibles
 .DS_Store
 *.tsbuildinfo
-__pycache__/
 *.py[cod]
 .pytest_cache/
 rag_tester/resultado_*.csv
