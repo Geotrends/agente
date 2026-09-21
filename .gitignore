@@ -6,8 +6,6 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
-backend/package-lock.json
-frontend/package-lock.json
 frontend/.env.local
 # Documentos locales (cada equipo pone su propia copia)
 backend/data/
