@@ -1,44 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { preprocessDocument } from "./documentPreprocessor.js";
-
-/** Debe coincidir con `NO_DOCUMENT_SENTINEL` en el frontend cuando no hay archivos indexables. */
-const NO_INDEXED_DOCUMENT_SENTINEL = "__geotrends_no_doc__";
-
-type ContextInput = {
-  courseId: string;
-  documentId: string;
-};
-
-export async function loadCourseContext({
-  documentId
-}: ContextInput): Promise<string> {
-  const trimmed = documentId.trim();
-  if (trimmed === "" || trimmed === NO_INDEXED_DOCUMENT_SENTINEL) {
-    return "";
-  }
-
-  const root = getDocumentsRootPath();
-  const rawId = trimmed.replace(/\\/g, "/");
-
-  const ext = path.extname(rawId).toLowerCase() as SupportedExtension;
-  if (SUPPORTED_EXTENSIONS.includes(ext)) {
-    const full = safeResolveUnderRoot(root, rawId);
-    if (full) {
-      const content = await readDocumentContent(full);
-      if (content.trim()) return content;
-    }
-  }
-
-  for (const extension of SUPPORTED_EXTENSIONS) {
-    const full = safeResolveUnderRoot(root, `${rawId}${extension}`);
-    if (!full) continue;
-    const content = await readDocumentContent(full);
-    if (content.trim()) return content;
-  }
-
-  return "";
-}
+import { preprocessDocument, type Extraction } from "./documentPreprocessor.js";
 
 export async function listCourseDocuments(
   _courseId: string,
@@ -49,56 +11,6 @@ export async function listCourseDocuments(
     const flat = await collectDocumentsRecursive(root, "");
     const filtered = filterByFolder(flat, folderPrefix);
     return filtered.sort((a, b) => a.name.localeCompare(b.name));
-  } catch {
-    return [];
-  }
-}
-
-/**
- * Devuelve carpetas directas bajo `root` o bajo `relativeParent` (ej. ESTANDARES).
- * Sin parent: bibliotecas en data/. Con parent: subcarpetas dentro de esa biblioteca.
- */
-export type FolderEntry = {
-  name: string;
-  kind: "directory" | "file";
-};
-
-export async function listTopLevelFolders(relativeParent?: string): Promise<string[]> {
-  const entries = await listFolderEntries(relativeParent);
-  return entries.filter((e) => e.kind === "directory").map((e) => e.name);
-}
-
-/** Hijos directos de una biblioteca: subcarpetas y archivos indexables (.pdf, .docx, etc.). */
-export async function listFolderEntries(relativeParent?: string): Promise<FolderEntry[]> {
-  const root = getDocumentsRootPath();
-  const parent = normalizeFolderPrefix(relativeParent);
-  const dir = parent ? safeResolveUnderRoot(root, parent) : root;
-  if (!dir) return [];
-
-  try {
-    const entries = await fs.readdir(dir, { withFileTypes: true });
-    const out: FolderEntry[] = [];
-
-    for (const entry of entries) {
-      if (entry.name.startsWith(".")) continue;
-
-      if (entry.isDirectory()) {
-        out.push({ name: entry.name, kind: "directory" });
-        continue;
-      }
-
-      if (!entry.isFile() || IGNORED_FILE_NAMES.has(entry.name.toLowerCase())) continue;
-
-      const relPosix = parent ? `${parent}/${entry.name}` : entry.name;
-      if (fileToDocumentItem(relPosix.replace(/\\/g, "/"))) {
-        out.push({ name: entry.name, kind: "file" });
-      }
-    }
-
-    return out.sort((a, b) => {
-      if (a.kind !== b.kind) return a.kind === "directory" ? -1 : 1;
-      return a.name.localeCompare(b.name);
-    });
   } catch {
     return [];
   }
@@ -211,10 +123,10 @@ export function safeResolveUnderRoot(root: string, relativePosix: string): strin
   return candidate;
 }
 
-export async function readDocumentContent(filePath: string): Promise<string> {
+export async function readDocumentContent(filePath: string): Promise<Extraction> {
   try {
     return await preprocessDocument(filePath);
-  } catch {
-    return "";
+  } catch (error) {
+    return { ok: false, reason: "read_error", detail: error instanceof Error ? error.message : String(error) };
   }
 }
