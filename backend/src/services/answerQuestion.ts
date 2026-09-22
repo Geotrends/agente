@@ -110,6 +110,34 @@ export function groupSources<T extends { path: string; page?: number; snippet: s
   }));
 }
 
+const USED_SOURCES_MARKER = /<!--\s*FUENTES_USADAS:\s*([^>]*?)\s*-->\s*$/i;
+
+// El prompt ya no pide esta sección (la arma la interfaz), pero el modelo
+// puede seguir agregándola por hábito. Se recorta como red de seguridad para
+// no duplicar la lista de fuentes dentro del propio mensaje.
+const TRAILING_SOURCES_SECTION =
+  /\n{1,2}(?:-{3,}\s*\n+)?(?:#{1,6}\s*|\*\*)?fuentes\s+consultadas(?:\*\*)?\s*:?\s*\n[\s\S]*$/i;
+
+/**
+ * Extrae el marcador `FUENTES_USADAS` que el modelo agrega al final de la
+ * respuesta (regla de output_format) y lo retira del texto visible.
+ *
+ * El marcador identifica, por "Archivo local", cuáles de los fragmentos
+ * recuperados sustentaron realmente la respuesta. Sin esto, el panel mostraba
+ * siempre los 8 resultados del reranking aunque solo uno o dos se usaran.
+ */
+export function extractUsedSources(answer: string): { answer: string; usedPaths: string[] | null } {
+  const match = answer.match(USED_SOURCES_MARKER);
+  const withoutMarker = match ? answer.slice(0, match.index).trimEnd() : answer;
+  const cleaned = withoutMarker.replace(TRAILING_SOURCES_SECTION, "").trimEnd();
+  if (!match) return { answer: cleaned, usedPaths: null };
+  const paths = match[1]
+    .split("|")
+    .map(p => p.trim())
+    .filter(Boolean);
+  return { answer: cleaned, usedPaths: paths };
+}
+
 /**
  * Decide qué contexto previo acompaña a la consulta (M-2).
  *
@@ -177,19 +205,29 @@ export async function answerQuestion(request: AnswerRequest): Promise<AnswerOutc
     };
   }
 
-  const sources = groupSources(retrieval.hits);
+  const { answer, usedPaths } = extractUsedSources(result.answer);
+  const allSources = groupSources(retrieval.hits);
+  // Si el modelo no incluyó el marcador o no reportó ninguna fuente usada,
+  // se conservan todas para no ocultarle evidencia al usuario (fallback seguro).
+  const filteredSources = usedPaths && usedPaths.length > 0
+    ? allSources.filter(s => usedPaths.includes(path.basename(s.path)) || usedPaths.includes(s.path))
+    : [];
+  // Si el filtrado no coincidió con nada (p.ej. el modelo citó un nombre que
+  // no encaja exactamente), se prefiere mostrar todas antes que ocultar
+  // evidencia real por un error de formato.
+  const sources = filteredSources.length > 0 ? filteredSources : allSources;
   const responseTimeMs = Math.round(performance.now() - startedAt);
   // No se espera (M-7): la respuesta ya está lista y el registro es
   // diagnóstico, no parte del contrato con el usuario.
   void logChatInteraction({
-    provider, model, question: request.message, answer: result.answer,
+    provider, model, question: request.message, answer,
     sources: sources as Array<{ path: string; title?: string; sourceUrl?: string }>,
     responseTimeMs,
   }).catch(error => console.error("[chatLog] No se pudo registrar la interacción:", error));
 
   return {
     kind: "answer",
-    answer: result.answer,
+    answer,
     meta: { ...baseMeta, contextChars: courseContext.length, retrieval: retrievalMeta, sources },
   };
 }

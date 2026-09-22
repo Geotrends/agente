@@ -78,7 +78,7 @@ export async function loadSourceMetadata(root: string): Promise<SourceMetadataCa
     const localPath = normalizeLocalPath(record.local_path);
     if (!localPath) continue;
     const incoming = compactMetadata({
-      title: record.link_text || record.filename,
+      title: meaningfulLinkText(record.link_text) || humanizeFilename(record.filename),
       sourceUrl: validHttpUrl(record.source_url),
       sourcePageUrl: validHttpUrl(record.source_page_url),
       category: record.category,
@@ -114,6 +114,35 @@ function mergeMetadata(current: SourceMetadata | undefined, incoming: SourceMeta
     mimeType: current.mimeType || incoming.mimeType,
     sha256: current.sha256 || incoming.sha256
   });
+}
+
+// El scraper captura el texto visible del enlace como título. Para botones
+// genéricos ("Ver", "Descargar", "Clic aquí") eso es peor que el nombre del
+// archivo, así que se descarta y se usa el nombre humanizado en su lugar.
+const GENERIC_LINK_TEXT = /^(ver|ver\s+m[aá]s|descargar?|descarga|abrir|pdf|documento|archivo|clic(?:k)?\s*(?:aqu[ií])?|aqu[ií]|leer\s+m[aá]s|enlace|link)$/i;
+
+function meaningfulLinkText(value: string | undefined): string | undefined {
+  const trimmed = (value || "").trim();
+  if (!trimmed || GENERIC_LINK_TEXT.test(trimmed)) return undefined;
+  return trimmed;
+}
+
+const LOWERCASE_CONNECTORS = new Set(["de", "del", "la", "el", "los", "las", "y", "en", "para", "con", "a", "al"]);
+
+function humanizeFilename(value: string | undefined): string | undefined {
+  const trimmed = (value || "").trim();
+  if (!trimmed) return undefined;
+  const withoutExt = trimmed.replace(/\.[a-z0-9]{1,6}$/i, "");
+  const words = withoutExt.replace(/[_-]+/g, " ").trim().split(/\s+/);
+  if (!words.length) return undefined;
+  return words
+    .map((word, index) => {
+      if (/^\d/.test(word)) return word;
+      const lower = word.toLowerCase();
+      if (index > 0 && LOWERCASE_CONNECTORS.has(lower)) return lower;
+      return lower.charAt(0).toUpperCase() + lower.slice(1);
+    })
+    .join(" ");
 }
 
 function normalizeLocalPath(value: string | undefined): string | null {
