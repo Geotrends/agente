@@ -11,14 +11,124 @@ principal falla.
 
 ---
 
-## 1. Puesta en marcha
+## 1. Puesta en marcha (Docker)
+
+Todo se opera desde la raíz del repo con `make`. Los datos, el índice y el registro
+de interacciones viven en volúmenes Docker y sobreviven a reinicios y a `make down`.
 
 ### Requisitos
 
-- **Node.js 22**
-- Documentos en `backend/data` (PDF, DOC/DOCX, XLS/XLSX, Markdown o TXT)
-- Al menos una API key de proveedor, o un Ollama local
-- Binarios nativos para preprocesar el corpus:
+- Docker y Docker Compose v2 (`docker compose version`), y `make`.
+- Máquina con **≥ 8 GB de RAM** asignados a Docker (el índice vive en memoria) y
+  **≥ 25 GB libres** (corpus ~13 GB + caché ~4 GB + imágenes).
+- Configuración:
+
+  ```bash
+  cp .env.example .env
+  openssl rand -base64 48     # pégalo en AUTH_JWT_SECRET
+  ```
+
+  Obligatorio en `.env`: `AUTH_JWT_SECRET` (≥ 32 caracteres) y **al menos una**
+  API key de proveedor (`GEMINI_API_KEY`, `GROQ_API_KEY`, `DEEPSEEK_API_KEY` u
+  `OPENAI_API_KEY`). El resto ya trae valores por defecto.
+
+### Primera vez (o cuando quieran refrescar los datos)
+
+```bash
+make scrape   # 1. descarga el corpus de las 4 fuentes públicas
+make cache    # 2. preprocesa (OCR incluido) e indexa ese corpus
+```
+
+- `make scrape` **tarda horas** (≈13 GB; una sola fuente puede llevar más de una
+  hora) y no pide credenciales. Mientras avanza imprime una línea por URL: si la
+  consola sigue escribiendo, no está colgado. Para una prueba corta:
+  `make scrape ARGS="--max-pages 20"`.
+- `make cache` también **puede tardar horas** la primera vez (OCR de PDF escaneados
+  y embeddings locales). Las siguientes veces solo reprocesa los documentos nuevos o
+  modificados. Detiene el backend mientras corre: indexador y backend no deben
+  escribir la misma caché a la vez.
+
+### Arranque normal (todas las veces siguientes)
+
+```bash
+make up       # 3. levanta backend + frontend
+```
+
+| Qué | Dónde |
+| --- | --- |
+| Aplicación (UI) | `http://localhost:8080` (`FRONTEND_PORT` en `.env`) |
+| API | `http://localhost:8080/api/...` — p. ej. `/api/retrieval/status` |
+| Salud del backend | `http://localhost:8080/health` |
+
+El backend **no publica puerto propio**: nginx (contenedor `frontend`) sirve la UI y
+reenvía `/api` y `/health` al backend por la red interna. Así navegador y API
+comparten origen y no hay CORS ni URLs de backend que configurar. Tras `make up`, el
+índice tarda unos segundos en cargar; hasta entonces `/api/chat` responde 503.
+
+`make up` se niega a arrancar, con un mensaje que dice qué correr, si falta `.env`,
+si `AUTH_JWT_SECRET` no es válido, si el corpus está vacío o si falta el índice.
+
+### Apagar
+
+```bash
+make down
+```
+
+### Actualizar los datos más adelante
+
+```bash
+make scrape && make cache && make up
+```
+
+El scraper es incremental (deduplica por SHA-256) y el indexador solo recalcula lo
+que cambió.
+
+### Otros comandos
+
+| Comando | Para qué |
+| --- | --- |
+| `make logs` / `make logs S=backend` | Seguir los logs de todo o de un servicio. |
+| `make ps` | Estado y salud de los contenedores. |
+| `make build` | Reconstruir las imágenes sin arrancar nada. |
+| `make` | Lista de comandos. |
+
+### Cómo está armado
+
+| Archivo | Qué es |
+| --- | --- |
+| `docker-compose.yml` | Servicios `backend` y `frontend`; `scraper` e `indexer` bajo el profile `setup`, fuera del arranque normal. |
+| `backend/Dockerfile` | Node 22 + tesseract, ocrmypdf y LibreOffice Writer. Usuario sin privilegios (UID 10001). |
+| `frontend/Dockerfile` | Build de Next exportado a estáticos, servido por `nginx-unprivileged` en el 8080. |
+| `web_scraper/Dockerfile` | Python 3.12 con el scraper; invoca `run_all_sources.sh`. |
+| `.env.example` | Única plantilla de configuración, para Docker y para desarrollo local. |
+
+Volúmenes: `geobot-data` (corpus), `geobot-cache` (índice, Markdown derivado y modelos
+ONNX) y `geobot-var` (registro de interacciones). **No uses `docker compose down -v`**:
+borra el corpus y el índice, y habría que repetir `make scrape` y `make cache`.
+
+Notas de operación:
+
+- **Reutilizar un corpus ya descargado.** Si el host ya tiene el corpus (p. ej.
+  `backend/data`), apunta `DATA_DIR=./backend/data` en `.env` y sáltate
+  `make scrape`. `make cache` sí hay que correrlo: las claves de la caché
+  incluyen la ruta absoluta del corpus, que dentro del contenedor es otra
+  (`/app/data`), así que una caché de fuera de Docker no se reutiliza. En Linux
+  esa carpeta debe pertenecer al UID 10001 (`sudo chown -R 10001:10001 <ruta>`)
+  para que el scraper pueda escribir en ella.
+- **Detrás de otro proxy o balanceador** (TLS, dominio), apúntalo a
+  `FRONTEND_PORT` y define `TRUST_PROXY=2` en `.env`, para que el límite de tasa
+  siga viendo la IP real del cliente.
+- **Diferencias con el procedimiento anterior.** El "script de caché" no es un
+  proceso aparte: es el indexador del propio backend (`npm run index`, que en la
+  imagen se ejecuta como `node dist/indexDocuments.js`). En Docker el backend
+  escucha en el 4000 dentro de la red interna, no en el 3001 del desarrollo local.
+
+---
+
+## 1b. Desarrollo local (sin Docker)
+
+Requiere **Node.js 22**, Python ≥ 3.10 para el scraper y los binarios nativos del
+preprocesamiento:
 
 ```bash
 brew install tesseract tesseract-lang ocrmypdf   # OCR de PDF escaneados
@@ -26,47 +136,30 @@ brew install --cask libreoffice                  # conversión de .doc heredados
 ```
 
 > Sin LibreOffice, los `.doc` fallan con `spawn soffice ENOENT` y quedan fuera del
-> índice sin que nada lo anuncie. El `Dockerfile` declara ambas dependencias.
-
-### Backend
+> índice sin que nada lo anuncie. La imagen Docker ya incluye ambas dependencias.
 
 ```bash
-cd backend
+# Corpus (una vez): ver web_scraper/README.md
+cd web_scraper && python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
+./run_all_sources.sh ../backend/data
+
+# Backend
+cd ../backend
 npm install
-cp .env.example .env         # solo si aún no existe
-# Edita .env: AUTH_JWT_SECRET (obligatorio), GEOTRENDS_DOCUMENTS_ROOT y ≥1 API key.
+cp ../.env.example .env      # solo si aún no existe; completa AUTH_JWT_SECRET y ≥1 API key
 npm run index                # construye el índice (la primera vez tarda)
-npm run dev                  # servidor en http://localhost:3001 si PORT=3001
-```
+npm run dev                  # http://localhost:3001
 
-Genera el secreto de sesión con `openssl rand -base64 48` (mínimo 32 caracteres).
-En desarrollo, si falta, se usa un secreto efímero y se avisa por consola; **en
-producción el servicio no arranca sin `AUTH_JWT_SECRET`**.
-
-### Frontend
-
-```bash
+# Frontend (otra terminal, desde la raíz del repo)
 cd frontend
 npm install
 npm run dev                  # http://localhost:3000
 ```
 
-La URL del API se toma de `NEXT_PUBLIC_AGENT_API_URL` en `frontend/.env.local`
-(por defecto `http://localhost:3001/api/chat`). Ajusta `PORT=3001` en el backend
-para que coincidan.
-
-### Docker (backend)
-
-```bash
-cd backend
-docker build -t geobot-backend .
-docker run -p 4000:4000 --env-file .env \
-  -v "$PWD/data:/app/data" -v "$PWD/.cache:/app/.cache" -v "$PWD/var:/app/var" \
-  geobot-backend
-```
-
-La imagen trae tesseract, ocrmypdf y libreoffice-writer. El corpus y las cachés se
-montan como volúmenes: no viajan dentro de la imagen.
+Sin `AUTH_JWT_SECRET`, en desarrollo se usa un secreto efímero y se avisa por
+consola; **en producción el servicio no arranca**. El frontend apunta por defecto a
+`http://localhost:3001/api/chat`; para otro destino, define
+`NEXT_PUBLIC_AGENT_API_URL` en `frontend/.env.local`.
 
 ---
 
@@ -204,14 +297,14 @@ con las páginas citadas) y `abstained`.
 
 ## 5. Configuración esencial
 
-`backend/.env.example` documenta cada variable con la medición que justifica su
-valor. Las imprescindibles:
+`.env.example` (en la raíz) documenta cada variable con la medición que justifica
+su valor. Las imprescindibles:
 
 | Variable | Para qué |
 | --- | --- |
 | `AUTH_JWT_SECRET` | Firma de las sesiones; ≥32 caracteres. **Obligatoria en producción**; en desarrollo se usa un secreto efímero y avisa. |
 | `GEOTRENDS_DOCUMENTS_ROOT` | Raíz del corpus (por defecto `data`). |
-| `PORT` | Puerto del backend (usa `3001` para casar con el frontend). |
+| `PORT` | Puerto del backend en local (usa `3001` para casar con el frontend). En Docker lo fija `docker-compose.yml`. |
 | `ALLOWED_ORIGINS` | Orígenes CORS permitidos. Vacío = ninguno cruzado. |
 | `TRUST_PROXY` | Necesaria tras un proxy inverso para que el límite de tasa vea la IP real. |
 | `*_API_KEY`, `*_MODEL`, `*_MODELS` | Credencial, modelo por defecto y catálogo permitido por proveedor. |
@@ -250,7 +343,9 @@ npm run build
 | PDF escaneados sin texto | Falta `ocrmypdf`/`tesseract`, o el documento es manuscrito — Tesseract no lee letra a mano. |
 | 503 con `Retry-After` | Cola de recuperación saturada; ajusta `RETRIEVAL_MAX_QUEUE`. |
 | Consultas muy lentas | Calibra el reranker con `npm run bench:rerank` y `RERANK_CANDIDATES`. |
-| El frontend no conecta | `NEXT_PUBLIC_AGENT_API_URL` y `PORT` no coinciden. |
+| El frontend no conecta (local) | `NEXT_PUBLIC_AGENT_API_URL` y `PORT` no coinciden. |
+| La UI muestra backend caído (Docker) | El backend sigue arrancando o se reinició; revisa `make ps` y `make logs S=backend`. |
+| `make up` pide `make scrape` o `make cache` | El volumen de datos o el índice están vacíos: es la primera vez en esta máquina. |
 
 Durante la preparación inicial, ejecuta **un solo** proceso de indexación o backend
 sobre la misma caché.
