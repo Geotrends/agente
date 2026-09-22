@@ -1,13 +1,23 @@
 :root {
   color-scheme: light;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
 }
 
 * {
   box-sizing: border-box;
+  min-width: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
   margin: 0;
+  min-height: 100dvh;
   font-family: "Inter", "Segoe UI", Arial, Helvetica, sans-serif;
   background: #ffffff;
   color: #1e1e1e;
@@ -15,32 +25,42 @@ body {
 
 .container {
   max-width: 1700px;
-  min-height: 100vh;
+  height: 100dvh;
   margin: 0 auto;
-  padding: 24px 16px 28px;
+  padding: max(1.5rem, var(--safe-top)) max(1rem, var(--safe-right))
+    max(1.75rem, var(--safe-bottom)) max(1rem, var(--safe-left));
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 0.875rem;
+  width: 100%;
 }
 
 .agents-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 18px;
+  grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
+  gap: 1.125rem;
   align-items: start;
 }
 
 .hero h1 {
   margin: 0;
-  font-size: 32px;
+  font-size: clamp(1.5rem, 1.1rem + 1.6vw, 2rem);
   line-height: 1.1;
   color: #202020;
 }
 
 .hero p {
-  margin: 6px 0 0;
+  margin: 0.375rem 0 0;
   color: #555555;
-  font-size: 14px;
+  font-size: 0.875rem;
+}
+
+@media (max-width: 420px) {
+  .container {
+    padding-left: max(0.75rem, var(--safe-left));
+    padding-right: max(0.75rem, var(--safe-right));
+    gap: 0.625rem;
+  }
 }
 
 .folder-picker {
@@ -65,12 +85,12 @@ body {
   font-size: 13px;
   font-weight: 600;
   color: #1f1f1f;
-  min-width: 140px;
+  min-width: min(140px, 100%);
 }
 
 .folder-select {
   flex: 1;
-  min-width: 220px;
+  min-width: min(220px, 100%);
   border: 1px solid #d5d5d5;
   border-radius: 10px;
   padding: 8px 10px;
@@ -177,8 +197,8 @@ body {
 .doc-preview-resizable {
   width: 100%;
   min-height: 360px;
-  height: 62vh;
-  max-height: 88vh;
+  height: 62dvh;
+  max-height: 88dvh;
   resize: vertical;
   overflow: auto;
 }
@@ -298,7 +318,7 @@ body {
 
 .library-children-placeholder {
   flex: 1;
-  min-width: 220px;
+  min-width: min(220px, 100%);
   margin: 0;
   padding: 10px 12px;
   font-size: 13px;
@@ -310,7 +330,7 @@ body {
 
 .library-children-list {
   flex: 1;
-  min-width: 220px;
+  min-width: min(220px, 100%);
   max-height: 240px;
   overflow-y: auto;
   border: 1px solid #d5d5d5;
@@ -380,16 +400,18 @@ body {
 }
 
 .phone-shell {
+  container-type: inline-size;
   flex: 1 1 0;
+  width: 100%;
   --agent-color: #a0a0a0;
   background: #ffffff;
   border: 2px solid var(--agent-color);
-  border-radius: 26px;
+  border-radius: min(26px, 6vw);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-  padding: 14px;
+  padding: clamp(0.5rem, 2vw, 0.875rem);
   display: flex;
   flex-direction: column;
-  height: 620px;
+  height: clamp(420px, 80dvh, 620px);
   /* fixed visual height so panels don't expand */
   overflow: hidden;
   /* contain inner scroll */
@@ -423,6 +445,8 @@ body {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 .section-title {
@@ -438,20 +462,66 @@ body {
 }
 
 .smart-agent-shell {
+  container-type: inline-size;
   --agent-color: #7c3aed;
   background: #ffffff;
   border: 2px solid var(--agent-color);
-  border-radius: 20px;
+  border-radius: min(20px, 5vw);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-  padding: 16px;
+  padding: clamp(0.625rem, 3vw, 1rem);
   display: flex;
   flex-direction: column;
-  min-height: 480px;
-  max-height: 72vh;
+  width: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
 }
 
 .smart-messages {
   min-height: 220px;
+}
+
+/* Small phones */
+@media (max-width: 380px) {
+  .smart-agent-shell {
+    border-radius: 14px;
+  }
+}
+
+/* Any container (phone, or a small embedding div) narrower than 340px */
+@container (max-width: 340px) {
+  .smart-agent-shell {
+    padding: 0.5rem;
+  }
+
+  .chat-header {
+    padding: 0.2rem 0.1rem 0.5rem;
+  }
+
+  .bot-avatar {
+    width: 30px;
+    height: 30px;
+  }
+
+  .chat-header strong {
+    font-size: 0.8rem;
+  }
+
+  .chat-header p {
+    font-size: 0.7rem;
+  }
+
+  .message {
+    max-width: 92%;
+    font-size: 0.85rem;
+    padding: 0.5rem 0.625rem;
+  }
+
+  .input,
+  .button {
+    font-size: 0.85rem;
+    padding: 0.5rem 0.625rem;
+  }
 }
 
 .provider-badge {
@@ -480,17 +550,18 @@ body {
 .chat-header {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 4px 2px 10px;
+  gap: 0.625rem;
+  padding: 0.25rem 0.125rem 0.625rem;
   border-bottom: 1px solid #eaeaea;
   background: #ffffff;
   border-radius: 14px;
+  flex-wrap: wrap;
 }
 
 .chat-header strong {
   display: block;
   color: #1f1f1f;
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 
 .agent-name {
@@ -498,14 +569,15 @@ body {
 }
 
 .chat-header p {
-  margin: 2px 0 0;
-  font-size: 12px;
+  margin: 0.125rem 0 0;
+  font-size: 0.75rem;
   color: #666666;
 }
 
 .bot-avatar {
-  width: 38px;
-  height: 38px;
+  width: clamp(30px, 8vw, 38px);
+  height: clamp(30px, 8vw, 38px);
+  flex: none;
   border-radius: 999px;
   object-fit: cover;
   border: 1px solid #d5d5d5;
@@ -515,24 +587,55 @@ body {
 .messages {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin: 12px 2px 14px;
-  padding-right: 6px;
+  justify-content: flex-end;
+  /* anchor messages to the bottom when they don't fill the panel */
+  gap: 0.75rem;
+  margin: 0.75rem 0.125rem 0.875rem;
+  padding-right: 0.375rem;
   flex: 1 1 auto;
   /* take available space inside phone-shell */
   overflow-y: auto;
+  overflow-x: hidden;
   /* enable scroll when content overflows */
+}
+
+.message-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+  max-width: 100%;
+}
+
+.message-row.user {
+  flex-direction: row-reverse;
+  align-self: flex-end;
+}
+
+.message-row.assistant {
+  align-self: flex-start;
+}
+
+.message-avatar {
+  width: clamp(24px, 7vw, 30px);
+  height: clamp(24px, 7vw, 30px);
+  flex: none;
+  border-radius: 999px;
+  object-fit: cover;
+  border: none;
 }
 
 .message {
   border-radius: 16px;
-  padding: 11px 13px;
-  max-width: 82%;
+  padding: 0.6875rem 0.8125rem;
+  max-width: min(82%, 100%);
+  width: fit-content;
   line-height: 1.45;
-  font-size: 15px;
+  font-size: clamp(0.85rem, 0.78rem + 0.3vw, 0.9375rem);
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
-.user {
+.message.user {
   align-self: flex-end;
   background: #f5f5f5;
   color: #222222;
@@ -540,7 +643,7 @@ body {
   border-bottom-right-radius: 8px;
 }
 
-.assistant {
+.message.assistant {
   align-self: flex-start;
   background: #ffffff;
   color: #222222;
@@ -590,18 +693,21 @@ body {
 
 .form {
   display: flex;
-  gap: 10px;
+  gap: 0.625rem;
   margin-top: auto;
+  padding-bottom: var(--safe-bottom, 0px);
 }
 
 .input {
   flex: 1;
+  min-width: 0;
   border: 1px solid #d5d5d5;
   background: #ffffff;
   color: #222222;
   border-radius: 14px;
-  padding: 12px 14px;
-  font-size: 15px;
+  padding: 0.75rem 0.875rem;
+  font-size: max(0.9375rem, 16px);
+  /* >=16px avoids iOS auto-zoom on focus */
 }
 
 .input:focus {
@@ -615,17 +721,18 @@ body {
   background: #1f1f1f;
   color: white;
   border-radius: 14px;
-  padding: 10px 15px;
+  padding: 0.625rem 0.9375rem;
   cursor: pointer;
   font-weight: 600;
   box-shadow: 0 7px 16px rgba(0, 0, 0, 0.2);
+  flex: none;
 }
 
 .icon-button {
-  min-width: 56px;
+  min-width: 3rem;
   display: grid;
   place-items: center;
-  padding: 10px 12px;
+  padding: 0.625rem 0.75rem;
 }
 
 .send-icon {

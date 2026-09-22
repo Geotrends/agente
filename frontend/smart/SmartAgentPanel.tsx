@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState, useEffect } from "react";
+import { FormEvent, useState, useEffect, useRef } from "react";
 import { fetchWithSession } from "../shared/session";
 import {
   AGENT_CHAT_URL,
@@ -11,40 +11,20 @@ import { MessageContent } from "../shared/MessageContent";
 
 const WELCOME: ChatMessage = {
   role: "assistant",
-  content:
-    "Hola, soy Geobot. Puedes preguntarme directamente sobre todos tus documentos.",
+  content:`
+¡Hola! Soy Geobot, el asistente virtual del Observatorio Ambiental y Agropecuario del Municipio de Envigado.
+
+Estoy aquí para orientarte sobre trámites, requisitos, procedimientos y canales de atención relacionados con las direcciones de Ecosistemas, Bienestar Animal y Gestión Ambiental.
+
+Cuéntame, ¿en qué puedo ayudarte?`,
 };
-
-type ProviderOption = {
-  id: string;
-  configured: boolean;
-  models: string[];
-  defaultModel: string;
-};
-
-function modelOptionValue(provider: string, model: string): string {
-  return `${provider}::${encodeURIComponent(model)}`;
-}
-
-function parseModelOption(value: string): { provider: string; model: string } | null {
-  if (value === "auto") return null;
-  const separator = value.indexOf("::");
-  if (separator < 1) return null;
-  return {
-    provider: value.slice(0, separator),
-    model: decodeURIComponent(value.slice(separator + 2)),
-  };
-}
 
 export default function SmartAgentPanel() {
   const [messages, setMessages] = useState<ChatMessage[]>([WELCOME]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [lastLatencyMs, setLastLatencyMs] = useState<number | null>(null);
-  const [lastProvider, setLastProvider] = useState<string | null>(null);
 
-  const [modelSelection, setModelSelection] = useState("auto");
-  const [providers, setProviders] = useState<ProviderOption[]>([]);
   const [sources, setSources] = useState<
     Array<{
       path: string;
@@ -56,14 +36,12 @@ export default function SmartAgentPanel() {
     }>
   >([]);
   const [indexStatus, setIndexStatus] = useState("");
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
-    fetch(AGENT_CHAT_URL.replace(/\/chat$/, "/providers"))
-      .then((r) => r.json())
-      .then((data: { providers?: ProviderOption[] }) =>
-        setProviders(Array.isArray(data.providers) ? data.providers : []),
-      )
-      .catch(() => {});
-  }, []);
+    messagesEndRef.current?.scrollIntoView({ block: "end" });
+  }, [messages, loading]);
+
   useEffect(() => {
     if (!loading) return;
     const poll = async () => {
@@ -90,7 +68,6 @@ export default function SmartAgentPanel() {
     const trimmed = input.trim();
     if (!trimmed || loading) return;
     const startedAt = performance.now();
-    const selectedModel = parseModelOption(modelSelection);
 
     const history = messages
       .slice(1)
@@ -109,9 +86,8 @@ export default function SmartAgentPanel() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message: trimmed,
-          provider: selectedModel?.provider || "auto",
-          model: selectedModel?.model,
-          autoRoute: selectedModel === null,
+          provider: "auto",
+          autoRoute: true,
           history,
         }),
       });
@@ -136,13 +112,6 @@ export default function SmartAgentPanel() {
       };
 
       setSources(data.meta?.sources ?? []);
-      const providerLabel =
-        data.meta?.providerLabel || data.meta?.provider || "auto";
-      setLastProvider(
-        data.meta?.routingReason
-          ? `${providerLabel} — ${data.meta.routingReason}`
-          : providerLabel,
-      );
 
       setMessages((prev) => [
         ...prev,
@@ -152,7 +121,6 @@ export default function SmartAgentPanel() {
             data.answer ||
             data.error ||
             "Ocurrio un error al procesar la respuesta.",
-          providerLabel,
         },
       ]);
     } catch {
@@ -178,74 +146,61 @@ export default function SmartAgentPanel() {
           alt="Avatar del agente inteligente"
         />
         <div>
-          <strong>
-            Geobot — <span className="agent-name">
-              {parseModelOption(modelSelection)?.model || "automático"}
-            </span>
-          </strong>
+          <strong>Geobot</strong>
           <p>Consulta todas tus bibliotecas</p>
         </div>
       </header>
 
-      <p className="doc-ready-badge">
-        Alcance: <strong>Todos los documentos</strong>
-      </p>
-      <label htmlFor="model">Modelo </label>
-      <select
-        id="model"
-        className="folder-select"
-        value={modelSelection}
-        disabled={loading}
-        onChange={(e) => setModelSelection(e.target.value)}
-      >
-        <option value="auto">Automático</option>
-        {providers.map((p) => (
-          <optgroup
-            key={p.id}
-            label={`${p.id}${p.configured ? "" : " (sin configurar)"}`}
-            disabled={!p.configured}
-          >
-            {p.models.map((model) => (
-              <option key={`${p.id}-${model}`} value={modelOptionValue(p.id, model)}>
-                {model}{model === p.defaultModel ? " (predeterminado)" : ""}
-              </option>
-            ))}
-          </optgroup>
-        ))}
-      </select>
       <p className="latency-hint">
         Ultima respuesta: <strong>{formatLatency(lastLatencyMs)}</strong>
-        {lastProvider ? (
-          <>
-            {" "}
-            · Modelo: <strong>{lastProvider}</strong>
-          </>
-        ) : null}
       </p>
 
       <div className="messages smart-messages">
         {messages.map((message, index) => (
-          <article
+          <div
             key={`${message.role}-${index}`}
-            className={`message ${message.role}`}
+            className={`message-row ${message.role}`}
           >
-            {message.providerLabel && (
-              <span className="provider-badge">{message.providerLabel}</span>
-            )}
-            <MessageContent role={message.role} content={message.content} />
-          </article>
+            <img
+              className="message-avatar"
+              src={
+                message.role === "user"
+                  ? "/avatar_persona.png"
+                  : "/avatar_chatbot.png"
+              }
+              alt={
+                message.role === "user"
+                  ? "Avatar del usuario"
+                  : "Avatar del agente"
+              }
+            />
+            <article className={`message ${message.role}`}>
+              {message.providerLabel && (
+                <span className="provider-badge">{message.providerLabel}</span>
+              )}
+              <MessageContent role={message.role} content={message.content} />
+            </article>
+          </div>
         ))}
         {loading && (
-          <article
-            className="message assistant typing"
-            aria-live="polite"
-            aria-label="Agente escribiendo"
-          >
-            <span className="dot" />
-            <span className="dot" />
-            <span className="dot" />
-          </article>
+          <div className="message-row assistant">
+            <img
+              className="message-avatar"
+              src="/avatar_chatbot.png"
+              alt="Avatar del agente"
+            />
+            <article
+              className="message assistant typing"
+              aria-live="polite"
+              aria-label="Agente escribiendo"
+            >
+              <span className="dot" />
+              <span className="dot" />
+              <span className="dot" />
+            </article>
+          </div>
         )}
+        <div ref={messagesEndRef} />
       </div>
 
       {loading && <p role="status">{indexStatus}</p>}
@@ -262,7 +217,6 @@ export default function SmartAgentPanel() {
                 ) : (
                   s.title || getFileName(s.path)
                 )}
-                {s.category ? ` · ${s.category}` : ""}
               </li>
             ))}
           </ul>

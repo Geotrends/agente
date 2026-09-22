@@ -2,11 +2,115 @@
 
 import { Fragment, useMemo, type ReactNode } from "react";
 
+type NestedList = { ordered: boolean; items: string[] };
+type ListItem = { text: string; nested: NestedList[]; paragraphs: string[][] };
+
 type Block =
   | { type: "paragraph"; lines: string[] }
-  | { type: "ul"; items: string[] }
-  | { type: "ol"; items: string[] }
+  | { type: "ul"; items: ListItem[] }
+  | { type: "ol"; items: ListItem[] }
   | { type: "table"; headers: string[]; rows: string[][] };
+
+const BULLET_RE = /^[-*•]\s+/;
+const ORDERED_RE = /^\d+[.)]\s+/;
+
+/**
+ * Lee una lista (ordenada o no) permitiendo que items del marcador opuesto
+ * queden anidados bajo el último ítem en vez de cortar la lista en bloques
+ * separados. Sin esto, un <ol> con bullets intercalados se partía en varios
+ * <ol> de HTML, cada uno reiniciando la numeración en 1.
+ */
+function readList(lines: string[], start: number, ordered: boolean): { items: ListItem[]; next: number } {
+  const marker = ordered ? ORDERED_RE : BULLET_RE;
+  const items: ListItem[] = [];
+  let i = start;
+
+  const peekContinues = (test: RegExp): boolean => {
+    let next = i + 1;
+    while (next < lines.length && !lines[next].trim()) next += 1;
+    return next < lines.length && test.test(lines[next].trim());
+  };
+
+  const peekContinuesPlainText = (): boolean => {
+    let next = i + 1;
+    while (next < lines.length && !lines[next].trim()) next += 1;
+    if (next >= lines.length) return false;
+    const candidate = lines[next].trim();
+    return !ORDERED_RE.test(candidate) && !BULLET_RE.test(candidate) && !candidate.includes("|");
+  };
+
+  while (i < lines.length) {
+    const trimmed = lines[i].trim();
+
+    if (marker.test(trimmed)) {
+      items.push({ text: trimmed.replace(marker, ""), nested: [], paragraphs: [] });
+      i += 1;
+      continue;
+    }
+
+    const lastItem = items.length > 0 ? items[items.length - 1] : null;
+    // Solo el primer párrafo suelto tras el marcador se considera parte del
+    // ítem. Un segundo párrafo más abajo (separado por otra línea en blanco)
+    // ya no es continuación del ítem: suele ser una nota o cierre posterior
+    // a la lista, y absorberlo lo dejaba mal indentado dentro del último <li>.
+    const canAttachLoose = !!lastItem && lastItem.paragraphs.length === 0 && lastItem.nested.length === 0;
+
+    if (!trimmed) {
+      // Un ítem "suelto" (loose list item): el marcador va seguido de un
+      // párrafo explicativo en blanco. Sin este caso, ese párrafo cortaba el
+      // bloque <ol>/<ul> en dos, y el siguiente reiniciaba la numeración en 1.
+      if (peekContinues(ORDERED_RE) || peekContinues(BULLET_RE) || (canAttachLoose && peekContinuesPlainText())) {
+        i += 1;
+        continue;
+      }
+      break;
+    }
+
+    const nestedOrdered = ORDERED_RE.test(trimmed);
+    const nestedBullet = BULLET_RE.test(trimmed);
+    if ((nestedOrdered || nestedBullet) && items.length > 0) {
+      const nestedMarker = nestedOrdered ? ORDERED_RE : BULLET_RE;
+      const nestedItems: string[] = [];
+      while (i < lines.length) {
+        const line = lines[i].trim();
+        if (nestedMarker.test(line)) {
+          nestedItems.push(line.replace(nestedMarker, ""));
+          i += 1;
+          continue;
+        }
+        if (!line) {
+          let next = i + 1;
+          while (next < lines.length && !lines[next].trim()) next += 1;
+          if (next < lines.length && nestedMarker.test(lines[next].trim())) {
+            i = next;
+            continue;
+          }
+        }
+        break;
+      }
+      items[items.length - 1].nested.push({ ordered: nestedOrdered, items: nestedItems });
+      continue;
+    }
+
+    if (canAttachLoose) {
+      const paraLines: string[] = [];
+      while (i < lines.length) {
+        const line = lines[i].trim();
+        if (!line || ORDERED_RE.test(line) || BULLET_RE.test(line) || line.includes("|")) break;
+        paraLines.push(line);
+        i += 1;
+      }
+      if (paraLines.length > 0) {
+        items[items.length - 1].paragraphs.push(paraLines);
+        continue;
+      }
+    }
+
+    break;
+  }
+
+  return { items, next: i };
+}
 
 function parseBlocks(text: string): Block[] {
   const lines = text.replace(/\r\n/g, "\n").split("\n");
@@ -38,38 +142,17 @@ function parseBlocks(text: string): Block[] {
       continue;
     }
 
-    if (/^[-*•]\s+/.test(trimmed)) {
-      const items: string[] = [];
-      while (i < lines.length && /^[-*•]\s+/.test(lines[i].trim())) {
-        items.push(lines[i].trim().replace(/^[-*•]\s+/, ""));
-        i += 1;
-      }
+    if (BULLET_RE.test(trimmed)) {
+      const { items, next } = readList(lines, i, false);
       blocks.push({ type: "ul", items });
+      i = next;
       continue;
     }
 
-    if (/^\d+[.)]\s+/.test(trimmed)) {
-      const items: string[] = [];
-      while (i < lines.length) {
-        const item = lines[i].trim();
-        if (/^\d+[.)]\s+/.test(item)) {
-          items.push(item.replace(/^\d+[.)]\s+/, ""));
-          i += 1;
-          continue;
-        }
-
-        if (!item) {
-          let next = i + 1;
-          while (next < lines.length && !lines[next].trim()) next += 1;
-          if (next < lines.length && /^\d+[.)]\s+/.test(lines[next].trim())) {
-            i = next;
-            continue;
-          }
-        }
-
-        break;
-      }
+    if (ORDERED_RE.test(trimmed)) {
+      const { items, next } = readList(lines, i, true);
       blocks.push({ type: "ol", items });
+      i = next;
       continue;
     }
 
@@ -80,8 +163,8 @@ function parseBlocks(text: string): Block[] {
       if (
         !next ||
         next.includes("|") ||
-        /^[-*•]\s+/.test(next) ||
-        /^\d+[.)]\s+/.test(next)
+        BULLET_RE.test(next) ||
+        ORDERED_RE.test(next)
       ) {
         break;
       }
@@ -161,23 +244,36 @@ export default function ChatMarkdown({ content, className = "" }: Props) {
           );
         }
 
-        if (block.type === "ul") {
+        if (block.type === "ul" || block.type === "ol") {
+          const ListTag = block.type;
           return (
-            <ul key={index}>
+            <ListTag key={index}>
               {block.items.map((item, itemIndex) => (
-                <li key={itemIndex}>{inlineFormat(item)}</li>
+                <li key={itemIndex}>
+                  {inlineFormat(item.text)}
+                  {item.paragraphs.map((paraLines, paraIndex) => (
+                    <p key={paraIndex}>
+                      {paraLines.map((line, lineIndex) => (
+                        <Fragment key={lineIndex}>
+                          {lineIndex > 0 && <br />}
+                          {inlineFormat(line)}
+                        </Fragment>
+                      ))}
+                    </p>
+                  ))}
+                  {item.nested.map((sub, subIndex) => {
+                    const SubTag = sub.ordered ? "ol" : "ul";
+                    return (
+                      <SubTag key={subIndex}>
+                        {sub.items.map((subItem, subItemIndex) => (
+                          <li key={subItemIndex}>{inlineFormat(subItem)}</li>
+                        ))}
+                      </SubTag>
+                    );
+                  })}
+                </li>
               ))}
-            </ul>
-          );
-        }
-
-        if (block.type === "ol") {
-          return (
-            <ol key={index}>
-              {block.items.map((item, itemIndex) => (
-                <li key={itemIndex}>{inlineFormat(item)}</li>
-              ))}
-            </ol>
+            </ListTag>
           );
         }
 
