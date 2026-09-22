@@ -1,7 +1,7 @@
 node_modules
 .next
-dist
 .env
+dist
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
@@ -27,3 +27,6 @@ backend/var/
 rag_tester/resultado_*.csv
 backend/scripts/.scan-*.ts
 __pycache__
+
+# Export estático del frontend (build de Docker o NEXT_OUTPUT=export)
+frontend/out
