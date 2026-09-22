@@ -27,7 +27,7 @@ SOURCES="${SOURCES:-ambientometro concejo_envigado minambiente minagricultura}"
 
 if [ -f ".venv/bin/activate" ]; then
     # shellcheck disable=SC1091
-    source ".venv/bin/activate"1
+    source ".venv/bin/activate"
 elif [ -z "${VIRTUAL_ENV:-}" ]; then
     echo "Aviso: no se encontro .venv/ ni hay un entorno virtual activo." >&2
     echo "Cree uno con: python3 -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt" >&2
