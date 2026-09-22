@@ -1,0 +1,73 @@
+# Geobot — orquestación completa. El punto de entrada para operar es el
+# Makefile (make scrape | cache | up | down | logs); ver README.md.
+#
+#   frontend  nginx con los estáticos de Next + proxy de /api al backend.
+#             Es el ÚNICO servicio con puerto publicado.
+#   backend   API Express. Solo accesible desde la red interna de Compose.
+#   scraper   (profile "setup") descarga el corpus al volumen de datos.
+#   indexer   (profile "setup") construye el índice en el volumen de caché.
+#
+# Toda la configuración se lee de .env (plantilla: .env.example). Lo único que
+# se fija aquí son las rutas y el puerto DENTRO del contenedor, que dependen de
+# los volúmenes de este archivo y no deben cambiarse desde .env.
+
+name: geobot
+
+x-backend-paths: &backend-paths
+  PORT: "4000"
+  GEOTRENDS_DOCUMENTS_ROOT: /app/data
+  RETRIEVAL_CACHE_DIR: /app/.cache/retrieval
+  DOCUMENT_CACHE_DIR: /app/.cache/documents
+  CHAT_LOG_FILE: /app/var/chat-interactions.csv
+
+services:
+  backend:
+    build: ./backend
+    image: geobot-backend:latest
+    env_file: .env
+    environment:
+      <<: *backend-paths
+      # Una capa de proxy (el nginx del frontend). Súbelo si hay otro balanceador delante.
+      TRUST_PROXY: ${TRUST_PROXY:-1}
+    volumes:
+      - ${DATA_DIR:-geobot-data}:/app/data:ro
+      - geobot-cache:/app/.cache
+      - geobot-var:/app/var
+    restart: unless-stopped
+    # Healthcheck definido en backend/Dockerfile (GET /health).
+
+  frontend:
+    build: ./frontend
+    image: geobot-frontend:latest
+    ports:
+      - "${FRONTEND_PORT:-8080}:8080"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    # Healthcheck definido en frontend/Dockerfile.
+
+  scraper:
+    build: ./web_scraper
+    image: geobot-scraper:latest
+    profiles: [setup]
+    environment:
+      SOURCES: ${SCRAPER_SOURCES:-ambientometro concejo_envigado minambiente minagricultura}
+    volumes:
+      - ${DATA_DIR:-geobot-data}:/data
+
+  indexer:
+    build: ./backend
+    image: geobot-backend:latest
+    profiles: [setup]
+    env_file: .env
+    environment:
+      <<: *backend-paths
+    volumes:
+      - ${DATA_DIR:-geobot-data}:/app/data:ro
+      - geobot-cache:/app/.cache
+    command: ["node", "dist/indexDocuments.js"]
+
+volumes:
+  geobot-data:
+  geobot-cache:
+  geobot-var:
