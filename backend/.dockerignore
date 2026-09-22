@@ -1,0 +1,11 @@
+# El corpus (~13 GB), las cachés y el registro se montan como volúmenes: nunca
+# deben viajar en el contexto de build ni terminar dentro de la imagen.
+data
+.cache
+var
+node_modules
+dist
+.env
+.env.*
+*.log
+.DS_Store
