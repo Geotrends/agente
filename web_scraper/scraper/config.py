@@ -1,8 +1,24 @@
 from __future__ import annotations
 
+import hashlib
+import tempfile
 from dataclasses import dataclass, field
+from functools import lru_cache
 from pathlib import Path
 from urllib.parse import urlsplit
+
+import certifi
+
+
+@lru_cache(maxsize=8)
+def _merged_ca_bundle(extra_pem_path: str) -> str:
+    digest = hashlib.sha256(extra_pem_path.encode("utf-8")).hexdigest()[:16]
+    combined = Path(tempfile.gettempdir()) / f"corpus_scraper_cabundle_{digest}.pem"
+    if not combined.exists():
+        base = Path(certifi.where()).read_text(encoding="utf-8")
+        extra = Path(extra_pem_path).read_text(encoding="utf-8")
+        combined.write_text(f"{base}\n{extra}", encoding="utf-8")
+    return str(combined)
 
 
 START_URL = "https://ambientometroenvigado.com/observatorio/"
@@ -27,6 +43,10 @@ class ScraperConfig:
         "+https://ambientometroenvigado.com/observatorio/)"
     )
     verify_ssl: bool = True
+    # Bundle CA adicional (PEM) para sitios cuyo servidor no envia la cadena
+    # completa (falta el intermedio) y por eso certifi por si solo no valida.
+    # Vacio = usar solo verify_ssl/certifi. Ver scraper/sources.py.
+    ca_bundle: str = ""
     max_pages: int | None = None
     related_seed_urls: tuple[str, ...] = RELATED_SEED_URLS
     allowed_hosts: set[str] = field(default_factory=set)
@@ -54,6 +74,23 @@ class ScraperConfig:
     min_document_year: int = 0
     content_selectors: tuple[str, ...] = ()
     dry_run: bool = False
+    # true = paginas HTML de esta fuente son un SPA (contenido pintado por JS
+    # en el navegador); el crawler renderiza con Playwright/Chromium en vez de
+    # tomar el HTML crudo de requests. Ver scraper/sources.py.
+    render_js: bool = False
+    # Selectores CSS a probar (en orden) para el titulo, antes de h1/meta/title.
+    # Util cuando el h1 real de la fuente es generico (ej. shell de una SPA).
+    title_selectors: tuple[str, ...] = ()
+    # Selector CSS de un elemento cuyo texto se antepone al titulo como
+    # prefijo "codigo - nombre" (ej. el codigo de un documento normativo).
+    title_code_selector: str = ""
+    # Si esta definido, se busca este selector CSS en la pagina renderizada y
+    # se exige que su texto (normalizado) este en `require_text_values`; si
+    # no, la pagina se descarta por completo: no se guarda ni se siguen sus
+    # enlaces. Pensado para paginas con un estado (ej. "Vigente"/"Derogado")
+    # donde solo interesa el contenido activo. Vacio = sin filtro.
+    require_selector_text: str = ""
+    require_text_values: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
         self.output_dir = Path(self.output_dir).expanduser().resolve()
@@ -77,6 +114,19 @@ class ScraperConfig:
     @property
     def max_file_size_bytes(self) -> int:
         return self.max_file_size_mb * 1024 * 1024
+
+    @property
+    def ssl_verify(self) -> bool | str:
+        """Valor a pasar como `verify=` de requests.
+
+        Si `ca_bundle` esta definido, combina certifi con ese PEM extra en un
+        archivo cacheado en disco: algunos sitios (ej. envigado.gov.co) no
+        envian su certificado intermedio, y certifi solo no puede completar
+        la cadena hasta una raiz confiable.
+        """
+        if not self.ca_bundle:
+            return self.verify_ssl
+        return _merged_ca_bundle(self.ca_bundle)
 
     @property
     def preferred_host(self) -> str:

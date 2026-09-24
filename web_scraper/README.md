@@ -73,15 +73,10 @@ pip install -r requirements.txt
 
 ## Uso
 
-Por defecto (sin `--sources`) sigue corriendo solo `ambientometro`. Su salida ahora
-queda bajo `OUTPUT_DIR/ambientometro/` (antes era plana, directo bajo `OUTPUT_DIR/`).
-Los archivos de corridas anteriores al cambio de carpeta se quedan donde estaban;
-el dedup por SHA-256 los sigue reconociendo via `metadata/documentos.csv`, y de aqui
-en adelante todo lo nuevo cae en `ambientometro/`.
-
-```bash
-python main.py --output "/ruta/de/salida"
-```
+Cada fuente guarda su salida bajo `OUTPUT_DIR/<fuente>/`. La salida de
+`ambientometro` antes era plana, directo bajo `OUTPUT_DIR/`; los archivos de esas
+corridas se quedan donde estaban y el dedup por SHA-256 los sigue reconociendo via
+`metadata/documentos.csv`.
 
 Elegir una o varias fuentes:
 
@@ -91,14 +86,15 @@ python main.py --output "/ruta/de/salida" --sources concejo_envigado
 python main.py --output "/ruta/de/salida" --sources minagricultura
 ```
 
-O usar el script `run_all_sources.sh`, que activa el venv si existe y corre las 4
-fuentes en un solo comando (acepta cualquier flag adicional de `main.py`):
+Sin `--sources`, corre las fuentes de la variable `SCRAPER_SOURCES` (la misma del
+`.env` que usa Docker) o, si no está definida, todas las registradas en
+`scraper/sources.py`. Activa antes el venv (`source .venv/bin/activate`):
 
 ```bash
-./run_all_sources.sh /ruta/de/salida
-./run_all_sources.sh /ruta/de/salida --dry-run
-./run_all_sources.sh /ruta/de/salida --max-pages 50 --delay 1.0
-SOURCES="concejo_envigado minambiente" ./run_all_sources.sh /ruta/de/salida
+python main.py --output /ruta/de/salida
+python main.py --output /ruta/de/salida --dry-run
+python main.py --output /ruta/de/salida --max-pages 50 --delay 1.0
+SCRAPER_SOURCES="concejo_envigado minambiente" python main.py --output /ruta/de/salida
 ```
 
 `--dry-run`: no descarga ni guarda nada, solo registra en el log (y en consola) la

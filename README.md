@@ -99,7 +99,7 @@ que cambió.
 | `docker-compose.yml` | Servicios `backend` y `frontend`; `scraper` e `indexer` bajo el profile `setup`, fuera del arranque normal. |
 | `backend/Dockerfile` | Node 22 + tesseract, ocrmypdf y LibreOffice Writer. Usuario sin privilegios (UID 10001). |
 | `frontend/Dockerfile` | Build de Next exportado a estáticos, servido por `nginx-unprivileged` en el 8080. |
-| `web_scraper/Dockerfile` | Python 3.12 con el scraper; invoca `run_all_sources.sh`. |
+| `web_scraper/Dockerfile` | Python 3.12 + Chromium con el scraper; ejecuta `main.py` sobre el volumen `/data`. |
 | `.env.example` | Única plantilla de configuración, para Docker y para desarrollo local. |
 
 Volúmenes: `geobot-data` (corpus), `geobot-cache` (índice, Markdown derivado y modelos
@@ -140,8 +140,9 @@ brew install --cask libreoffice                  # conversión de .doc heredados
 
 ```bash
 # Corpus (una vez): ver web_scraper/README.md
-cd web_scraper && python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
-./run_all_sources.sh ../backend/data
+cd web_scraper && python3 -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt
+playwright install chromium   # fuentes con render JS (envigado_com, gmas2_envigado)
+python main.py --output ../backend/data
 
 # Backend
 cd ../backend

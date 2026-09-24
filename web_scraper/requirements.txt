@@ -1,4 +1,9 @@
 beautifulsoup4>=4.12,<5
+certifi>=2024.2.2
 lxml>=5,<7
 markdownify>=0.14,<2
+# Requiere ademas descargar el binario de Chromium una vez:
+#   playwright install chromium
+# Solo lo usan fuentes con render_js=True (ver scraper/sources.py).
+playwright>=1.45,<2
 requests>=2.32,<3

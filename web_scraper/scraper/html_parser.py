@@ -34,6 +34,7 @@ class ParsedPage:
     published_date: str
     content_hash: str
     dynamic_suspected: bool
+    meets_requirements: bool = True
 
 
 def _meta(soup: BeautifulSoup, *keys: tuple[str, str]) -> str:
@@ -61,9 +62,16 @@ def infer_category(url: str, soup: BeautifulSoup | None = None) -> str:
 
 def parse_html(
     html: str, url: str, content_selectors: tuple[str, ...] = (),
+    title_selectors: tuple[str, ...] = (), title_code_selector: str = "",
+    require_selector_text: str = "", require_text_values: tuple[str, ...] = (),
 ) -> ParsedPage:
     soup = BeautifulSoup(html, "lxml")
-    title_tag = soup.select_one("h1")
+    title_tag = None
+    for selector in title_selectors:
+        title_tag = soup.select_one(selector)
+        if title_tag is not None:
+            break
+    title_tag = title_tag or soup.select_one("h1")
     title = (
         _meta(soup, ("property", "og:title"), ("name", "twitter:title"))
         or (title_tag.get_text(" ", strip=True) if title_tag else "")
@@ -73,6 +81,21 @@ def parse_html(
         r"\s*[|–-]\s*(?:Ambient[oó]metro|Geoportal\s+Ambiental(?:\s+Envigado)?).*$",
         "", title, flags=re.I,
     ).strip()
+    if title_code_selector:
+        code_tag = soup.select_one(title_code_selector)
+        code = code_tag.get_text(" ", strip=True) if code_tag else ""
+        code = re.sub(r"^[^:]*:\s*", "", code).strip()
+        if code:
+            title = f"{code} - {title}"
+
+    meets_requirements = True
+    if require_selector_text:
+        status_tag = soup.select_one(require_selector_text)
+        status_text = status_tag.get_text(" ", strip=True) if status_tag else ""
+        status_text = re.sub(r"^[^:]*:\s*", "", status_text).strip()
+        meets_requirements = status_text.casefold() in {
+            value.casefold() for value in require_text_values
+        }
 
     selectors = (*content_selectors, *MAIN_SELECTORS)
     main: Tag | None = None
@@ -95,6 +118,21 @@ def parse_html(
             )
             links.append((normalized, link_text))
             seen.add(normalized)
+    # GMAS2: los adjuntos reales no usan <a href> normal sino
+    # href="javascript:downloadFile('consecutivo','ruta')" (ver static/js/util.js);
+    # hay que extraer los argumentos y armar la URL real de descarga.
+    for anchor in main.select("a[href^='javascript:downloadFile']"):
+        match = re.search(
+            r"downloadFile\(\s*['\"]([^'\"]+)['\"]\s*,\s*['\"]([^'\"]*)['\"]\s*\)",
+            str(anchor.get("href", "")),
+        )
+        if not match:
+            continue
+        key, ruta = match.groups()
+        download_url = normalize_url(f"downloadFile.public?repositorioArchivo={key}&ruta={ruta}", url)
+        if download_url and download_url not in seen:
+            links.append((download_url, anchor.get_text(" ", strip=True)))
+            seen.add(download_url)
     # Algunos sitios (ej. Concejo de Envigado) insertan el PDF de la norma con
     # <embed>/<object> en vez de <a href>; sin esto el crawler nunca lo ve.
     for embed in main.select("embed[src], object[data]"):
@@ -139,6 +177,7 @@ def parse_html(
         published_date=published,
         content_hash=hashlib.sha256(normalized_text.encode("utf-8")).hexdigest(),
         dynamic_suspected=dynamic_suspected,
+        meets_requirements=meets_requirements,
     )
 
 

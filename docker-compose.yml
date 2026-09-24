@@ -51,7 +51,8 @@ services:
     image: geobot-scraper:latest
     profiles: [setup]
     environment:
-      SOURCES: ${SCRAPER_SOURCES:-ambientometro concejo_envigado minambiente minagricultura}
+      # Vacío = todas las fuentes registradas en scraper/sources.py.
+      SCRAPER_SOURCES: ${SCRAPER_SOURCES:-}
     volumes:
       - ${DATA_DIR:-geobot-data}:/data
 

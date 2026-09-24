@@ -67,6 +67,9 @@ class SourceCrawler:
         }
         self.started_at = self._now()
         self._last_request_at = 0.0
+        self._playwright = None
+        self._browser = None
+        self._browser_page = None
 
     def _build_session(self) -> requests.Session:
         session = requests.Session()
@@ -107,7 +110,7 @@ class SourceCrawler:
             self._polite_wait()
             response = self.session.get(
                 robots_url, timeout=self.config.request_timeout,
-                verify=self.config.verify_ssl,
+                verify=self.config.ssl_verify,
             )
             response.raise_for_status()
             self.robots.parse(response.text.splitlines())
@@ -127,10 +130,38 @@ class SourceCrawler:
         try:
             return self.session.get(
                 url, timeout=self.config.request_timeout, stream=True,
-                allow_redirects=True, verify=self.config.verify_ssl,
+                allow_redirects=True, verify=self.config.ssl_verify,
             )
         finally:
             self._last_request_at = time.monotonic()
+
+    def _render_html(self, url: str) -> str:
+        """Navega `url` en Chromium headless y devuelve el HTML ya renderizado.
+
+        Solo se usa para fuentes SPA (`config.render_js=True`): el HTML crudo
+        de `requests` no trae contenido, hay que esperar a que el navegador
+        ejecute el JS de la pagina. El navegador se lanza una sola vez por
+        crawl y se reutiliza entre paginas.
+        """
+        if self._browser_page is None:
+            from playwright.sync_api import sync_playwright
+
+            self._playwright = sync_playwright().start()
+            self._browser = self._playwright.chromium.launch()
+            self._browser_page = self._browser.new_page(user_agent=self.config.user_agent)
+        self._browser_page.goto(url, wait_until="networkidle", timeout=self.config.request_timeout * 1000)
+        return self._browser_page.content()
+
+    def _close_browser(self) -> None:
+        if self._browser_page is not None:
+            self._browser_page.close()
+            self._browser_page = None
+        if self._browser is not None:
+            self._browser.close()
+            self._browser = None
+        if self._playwright is not None:
+            self._playwright.stop()
+            self._playwright = None
 
     def _record_error(self, url: str, parent: str, error_type: str, message: str) -> None:
         self.stats["errors"] += 1
@@ -196,7 +227,17 @@ class SourceCrawler:
         return children
 
     def _save_page(self, item: CrawlItem, response: requests.Response, html: str) -> list[CrawlItem]:
-        page = parse_html(html, response.url, self.config.content_selectors)
+        page = parse_html(
+            html, response.url, self.config.content_selectors,
+            title_selectors=self.config.title_selectors,
+            title_code_selector=self.config.title_code_selector,
+            require_selector_text=self.config.require_selector_text,
+            require_text_values=self.config.require_text_values,
+        )
+        if not page.meets_requirements:
+            self.stats["pages_skipped_filter"] += 1
+            self.logger.info("[SKIP] no cumple require_selector_text %s", response.url)
+            return []
         self._page_titles[response.url] = page.title
         self._page_categories[response.url] = page.category
         scraped_at = self._now()
@@ -332,9 +373,13 @@ class SourceCrawler:
             if "html" not in content_type.lower() and not looks_like_document_url(final_url):
                 raise ValueError(f"MIME inesperado: {content_type or 'ausente'}")
             self.stats["pages_visited"] += 1
-            encoding = response.encoding or response.apparent_encoding or "utf-8"
-            response.encoding = encoding
-            return self._save_page(item, response, response.text)
+            if self.config.render_js:
+                html = self._render_html(final_url)
+            else:
+                encoding = response.encoding or response.apparent_encoding or "utf-8"
+                response.encoding = encoding
+                html = response.text
+            return self._save_page(item, response, html)
         except requests.Timeout as error:
             self._record_error(item.url, item.parent_url, "timeout", str(error))
         except requests.exceptions.SSLError as error:
@@ -352,6 +397,12 @@ class SourceCrawler:
         return []
 
     def crawl(self) -> dict[str, object]:
+        try:
+            return self._crawl()
+        finally:
+            self._close_browser()
+
+    def _crawl(self) -> dict[str, object]:
         self._setup_robots()
         seen_starts: set[str] = set()
         normalized_starts: list[str] = []

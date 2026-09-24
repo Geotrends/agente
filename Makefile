@@ -17,7 +17,7 @@ help: ## Muestra esta ayuda
 	@echo "Primera vez: make scrape && make cache && make up"
 
 scrape: env-file ## Descarga el corpus (horas). Flags extra: make scrape ARGS="--max-pages 50"
-	$(SETUP) run --rm --build scraper /data $(ARGS)
+	$(SETUP) run --rm --build scraper $(ARGS)
 	@echo "Corpus descargado. Siguiente paso: make cache"
 
 cache: env-file ## Construye el índice a partir del corpus (detiene el backend mientras corre)

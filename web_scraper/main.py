@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -11,15 +12,30 @@ from scraper.metadata_store import MetadataStore
 from scraper.sources import SOURCES, SourceDefinition
 
 
+def default_sources() -> list[str]:
+    """Fuentes cuando no se pasa --sources: SCRAPER_SOURCES (la misma variable
+    del .env que usa docker compose), o todas las registradas si no esta."""
+    raw = os.environ.get("SCRAPER_SOURCES", "").split()
+    if not raw:
+        return sorted(SOURCES)
+    unknown = [name for name in raw if name not in SOURCES]
+    if unknown:
+        raise SystemExit(
+            f"SCRAPER_SOURCES tiene fuentes desconocidas: {' '.join(unknown)}. "
+            f"Validas: {' '.join(sorted(SOURCES))}"
+        )
+    return raw
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Crawler multi-fuente para el corpus documental institucional "
-        "(Ambientometro, Concejo de Envigado, MinAmbiente, MinAgricultura)",
+        "(Ambientometro, Concejo de Envigado, MinAmbiente, MinAgricultura, Envigado.gov.co, GMAS2)",
     )
     parser.add_argument("--output", required=True, type=Path, help="Carpeta raiz compartida por todas las fuentes")
     parser.add_argument(
-        "--sources", nargs="+", choices=sorted(SOURCES), default=["ambientometro"],
-        help="Fuentes a procesar en esta corrida (por defecto: solo ambientometro, igual que antes)",
+        "--sources", nargs="+", choices=sorted(SOURCES), default=None,
+        help="Fuentes a procesar en esta corrida (por defecto: SCRAPER_SOURCES, o todas si no esta definida)",
     )
     parser.add_argument(
         "--dry-run", action="store_true",
@@ -60,6 +76,12 @@ def build_config(source: SourceDefinition, args: argparse.Namespace) -> ScraperC
         min_document_year=source.min_document_year,
         content_selectors=source.content_selectors,
         document_allowed_domains=source.document_allowed_domains,
+        ca_bundle=source.ca_bundle,
+        render_js=source.render_js,
+        title_selectors=source.title_selectors,
+        title_code_selector=source.title_code_selector,
+        require_selector_text=source.require_selector_text,
+        require_text_values=source.require_text_values,
         dry_run=args.dry_run,
         max_depth=args.max_depth if args.max_depth is not None else source.max_depth,
         request_timeout=args.timeout if args.timeout is not None else REQUEST_TIMEOUT,
@@ -117,6 +139,15 @@ def print_report(manifests: dict[str, dict[str, object]], output_dir: Path, dry_
         print(f"Descartados por filtro: {manifest['documents_skipped_filter']}")
         print()
 
+    for key, label in (("envigado_com", "ENVIGADO.GOV.CO"), ("gmas2_envigado", "GMAS2 ENVIGADO")):
+        if key not in manifests:
+            continue
+        manifest = manifests[key]
+        print(label)
+        print(f"Paginas visitadas:      {manifest['pages_visited']}")
+        print(f"Markdown guardado:      {manifest['pages_saved_as_markdown']}")
+        print()
+
     total_duplicates = sum(int(m["duplicates_skipped"]) for m in manifests.values())
     total_errors = sum(int(m["errors"]) for m in manifests.values())
     print(f"Duplicados globales: {total_duplicates}")
@@ -127,6 +158,8 @@ def print_report(manifests: dict[str, dict[str, object]], output_dir: Path, dry_
 
 def main() -> int:
     args = build_parser().parse_args()
+    if args.sources is None:
+        args.sources = default_sources()
     if args.start_url and len(args.sources) != 1:
         print(
             "Aviso: --start-url se ignora porque --sources tiene mas de una fuente.",
