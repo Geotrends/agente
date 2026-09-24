@@ -16,9 +16,12 @@ test("cada variable se declara una sola vez y con nombre único", () => {
 
 test("los rangos declarados contienen a su propio valor por defecto", () => {
   for (const spec of Object.values(SETTINGS)) {
-    if (spec.kind === "bool") continue;
-    assert.ok(spec.default >= spec.min && spec.default <= spec.max,
-      `${spec.env}: el defecto ${spec.default} cae fuera de [${spec.min}, ${spec.max}]`);
+    if (spec.kind === "bool" || spec.kind === "string") continue;
+    const defaults = spec.kind === "int-list" ? spec.default : [spec.default];
+    for (const value of defaults) {
+      assert.ok(value >= spec.min && value <= spec.max,
+        `${spec.env}: el defecto ${value} cae fuera de [${spec.min}, ${spec.max}]`);
+    }
   }
 });
 

@@ -22,12 +22,14 @@
  * No se adopta Zod: para dieciséis escalares, sumar una dependencia al árbol
  * que A-10 señala como problema no compensa.
  */
-import { boolFromEnv, floatFromEnv, intFromEnv } from "./config.js";
+import { boolFromEnv, floatFromEnv, intFromEnv, intListFromEnv } from "./config.js";
 
 type IntSpec = { kind: "int"; env: string; default: number; min: number; max: number; doc: string };
 type FloatSpec = { kind: "float"; env: string; default: number; min: number; max: number; doc: string };
 type BoolSpec = { kind: "bool"; env: string; default: boolean; doc: string };
-type Spec = IntSpec | FloatSpec | BoolSpec;
+type IntListSpec = { kind: "int-list"; env: string; default: number[]; min: number; max: number; doc: string };
+type StringSpec = { kind: "string"; env: string; default: string; doc: string };
+type Spec = IntSpec | FloatSpec | BoolSpec | IntListSpec | StringSpec;
 
 const int = (env: string, value: number, min: number, max: number, doc: string): IntSpec =>
   ({ kind: "int", env, default: value, min, max, doc });
@@ -35,6 +37,10 @@ const float = (env: string, value: number, min: number, max: number, doc: string
   ({ kind: "float", env, default: value, min, max, doc });
 const bool = (env: string, value: boolean, doc: string): BoolSpec =>
   ({ kind: "bool", env, default: value, doc });
+const intList = (env: string, value: number[], min: number, max: number, doc: string): IntListSpec =>
+  ({ kind: "int-list", env, default: value, min, max, doc });
+const text = (env: string, value: string, doc: string): StringSpec =>
+  ({ kind: "string", env, default: value, doc });
 
 /**
  * El catálogo. Añadir una variable aquí es lo único que hace falta para que
@@ -78,6 +84,30 @@ export const SETTINGS = {
   authSessionTtlSeconds: int("AUTH_SESSION_TTL_SECONDS", 3600, 60, 86_400,
     "Vida del token de sesión anónima, en segundos (C-1)."),
 
+  // — Protección del chat —
+  chatMaxMessageChars: int("CHAT_MAX_MESSAGE_CHARS", 2_500, 100, 50_000,
+    "Máximo de caracteres admitidos en una pregunta."),
+  chatDailyPerIpLimit: int("CHAT_DAILY_PER_IP_LIMIT", 100, 1, 1_000_000,
+    "Consultas procesadas por IP y día UTC."),
+  chatDailyGlobalLimit: int("CHAT_DAILY_GLOBAL_LIMIT", 1_000, 1, 10_000_000,
+    "Consultas procesadas globalmente por día UTC."),
+  chatDailyAlertPercentages: intList("CHAT_DAILY_ALERT_PERCENTAGES", [10, 25, 50, 75, 90, 100], 1, 100,
+    "Porcentajes del cupo global que generan una alerta una vez por día."),
+  chatLongMessageChars: int("CHAT_LONG_MESSAGE_CHARS", 1_500, 1, 50_000,
+    "Longitud a partir de la cual una pregunta cuenta como larga (comparación estricta >)."),
+  chatLongMessageHourlyLimit: int("CHAT_LONG_MESSAGE_HOURLY_LIMIT", 10, 1, 10_000,
+    "Preguntas largas permitidas por IP dentro de una hora."),
+  chatLongMessageBlockHours: int("CHAT_LONG_MESSAGE_BLOCK_HOURS", 24, 1, 24 * 365,
+    "Duración del bloqueo por abuso de preguntas largas."),
+  chatMaxConcurrent: int("CHAT_MAX_CONCURRENT", 4, 1, 1_000,
+    "Solicitudes de chat que pueden ejecutar simultáneamente."),
+  chatMaxQueue: int("CHAT_MAX_QUEUE", 24, 0, 10_000,
+    "Solicitudes de chat que pueden esperar una plaza de ejecución."),
+  chatQueueTimeoutMs: int("CHAT_QUEUE_TIMEOUT_MS", 30_000, 100, 600_000,
+    "Espera máxima dentro de la cola del chat."),
+  chatLimitStateFile: text("CHAT_LIMIT_STATE_FILE", "var/chat-traffic-state.json",
+    "Archivo persistente de cuotas y bloqueos del chat."),
+
   // — Registro de interacciones —
   chatLogRetentionDays: int("CHAT_LOG_RETENTION_DAYS", 90, 1, 3650,
     "Días que se conservan las interacciones antes de purgarlas (A-11)."),
@@ -94,6 +124,11 @@ export const SETTINGS = {
 
 export type SettingName = keyof typeof SETTINGS;
 
+type SettingValue<S extends Spec> =
+  S extends BoolSpec ? boolean :
+  S extends IntListSpec ? number[] :
+  S extends StringSpec ? string : number;
+
 /**
  * Lee una variable declarada, validada y acotada según su especificación.
  *
@@ -102,14 +137,15 @@ export type SettingName = keyof typeof SETTINGS;
  */
 export function setting<K extends SettingName>(
   name: K,
-): (typeof SETTINGS)[K] extends BoolSpec ? boolean : number {
+): SettingValue<(typeof SETTINGS)[K]> {
   const spec: Spec = SETTINGS[name];
-  const value = spec.kind === "bool"
-    ? boolFromEnv(spec.env, spec.default)
-    : spec.kind === "int"
-      ? intFromEnv(spec.env, spec.default, spec.min, spec.max)
-      : floatFromEnv(spec.env, spec.default, spec.min, spec.max);
-  return value as (typeof SETTINGS)[K] extends BoolSpec ? boolean : number;
+  let value: boolean | number | number[] | string;
+  if (spec.kind === "bool") value = boolFromEnv(spec.env, spec.default);
+  else if (spec.kind === "int") value = intFromEnv(spec.env, spec.default, spec.min, spec.max);
+  else if (spec.kind === "float") value = floatFromEnv(spec.env, spec.default, spec.min, spec.max);
+  else if (spec.kind === "int-list") value = intListFromEnv(spec.env, spec.default, spec.min, spec.max);
+  else value = process.env[spec.env]?.trim() || spec.default;
+  return value as SettingValue<(typeof SETTINGS)[K]>;
 }
 
 /**

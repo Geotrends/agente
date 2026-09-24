@@ -698,6 +698,27 @@ body {
   padding-bottom: var(--safe-bottom, 0px);
 }
 
+.question-input-wrap {
+  position: relative;
+  display: flex;
+  flex: 1;
+  min-width: 0;
+}
+
+.character-count {
+  position: absolute;
+  right: 0.75rem;
+  bottom: 0.2rem;
+  color: #777777;
+  font-size: 0.6875rem;
+  pointer-events: none;
+}
+
+.character-count.warning {
+  color: #9b4b00;
+  font-weight: 700;
+}
+
 .input {
   flex: 1;
   min-width: 0;
@@ -705,7 +726,7 @@ body {
   background: #ffffff;
   color: #222222;
   border-radius: 14px;
-  padding: 0.75rem 0.875rem;
+  padding: 0.75rem 0.875rem 1.05rem;
   font-size: max(0.9375rem, 16px);
   /* >=16px avoids iOS auto-zoom on focus */
 }

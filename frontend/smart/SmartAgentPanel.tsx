@@ -19,11 +19,14 @@ Estoy aquí para orientarte sobre trámites, requisitos, procedimientos y canale
 Cuéntame, ¿en qué puedo ayudarte?`,
 };
 
+const DEFAULT_MAX_QUESTION_CHARS = 2500;
+
 export default function SmartAgentPanel() {
   const [messages, setMessages] = useState<ChatMessage[]>([WELCOME]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [lastLatencyMs, setLastLatencyMs] = useState<number | null>(null);
+  const [maxQuestionChars, setMaxQuestionChars] = useState(DEFAULT_MAX_QUESTION_CHARS);
 
   const [sources, setSources] = useState<
     Array<{
@@ -41,6 +44,18 @@ export default function SmartAgentPanel() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ block: "end" });
   }, [messages, loading]);
+
+  useEffect(() => {
+    void fetch(AGENT_CHAT_URL.replace(/\/chat$/, "/retrieval/status"))
+      .then(response => response.ok ? response.json() : undefined)
+      .then((data: { limits?: { maxMessageChars?: number } } | undefined) => {
+        const configured = data?.limits?.maxMessageChars;
+        if (typeof configured === "number" && Number.isInteger(configured) && configured > 0) {
+          setMaxQuestionChars(configured);
+        }
+      })
+      .catch(() => { /* El backend validará con su límite autoritativo. */ });
+  }, []);
 
   useEffect(() => {
     if (!loading) return;
@@ -111,6 +126,11 @@ export default function SmartAgentPanel() {
         };
       };
 
+      const retryAfter = Number(response.headers.get("Retry-After"));
+      const retryHint = !response.ok && Number.isFinite(retryAfter) && retryAfter > 0
+        ? ` ${formatRetryAfter(retryAfter)}`
+        : "";
+
       setSources(data.meta?.sources ?? []);
 
       setMessages((prev) => [
@@ -119,7 +139,7 @@ export default function SmartAgentPanel() {
           role: "assistant",
           content:
             data.answer ||
-            data.error ||
+            (data.error ? `${data.error}${retryHint}` : undefined) ||
             "Ocurrio un error al procesar la respuesta.",
         },
       ]);
@@ -223,17 +243,28 @@ export default function SmartAgentPanel() {
         </details>
       )}
       <form className="form" onSubmit={onSubmit}>
-        <input
-          className="input"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          aria-label="Pregunta"
-          placeholder="¿Qué necesitas saber?"
-        />
+        <div className="question-input-wrap">
+          <input
+            className="input"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            maxLength={maxQuestionChars}
+            aria-label="Pregunta"
+            aria-describedby="question-character-count"
+            placeholder="¿Qué necesitas saber?"
+          />
+          <span
+            id="question-character-count"
+            className={`character-count${input.length >= Math.floor(maxQuestionChars * 0.9) ? " warning" : ""}`}
+            aria-live="polite"
+          >
+            {input.length}/{maxQuestionChars}
+          </span>
+        </div>
         <button
           className="button icon-button"
           type="submit"
-          disabled={loading}
+          disabled={loading || !input.trim() || input.length > maxQuestionChars}
           aria-label="Enviar"
         >
           <svg
@@ -272,6 +303,15 @@ function formatLatency(ms: number | null): string {
   const seconds = ms / 1000;
   if (seconds < 60) return `${seconds.toFixed(2)} s`;
   return `${(seconds / 60).toFixed(2)} min`;
+}
+
+function formatRetryAfter(seconds: number): string {
+  const rounded = Math.ceil(seconds);
+  if (rounded < 60) return `Intenta nuevamente en unos ${rounded} segundos.`;
+  const minutes = Math.ceil(rounded / 60);
+  if (minutes < 60) return `Intenta nuevamente en unos ${minutes} minutos.`;
+  const hours = Math.ceil(minutes / 60);
+  return `Intenta nuevamente en unas ${hours} horas.`;
 }
 
 function getFileName(filePath: string): string {

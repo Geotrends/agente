@@ -7,7 +7,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { boolFromEnv, floatFromEnv, intFromEnv, resetConfigWarnings } from '../src/services/config.js';
+import { boolFromEnv, floatFromEnv, intFromEnv, intListFromEnv, resetConfigWarnings } from '../src/services/config.js';
 
 const NAME = 'TEST_CONFIG_VALUE';
 
@@ -103,6 +103,18 @@ test('boolFromEnv: solo true/false, el resto avisa', () => {
       assert.equal(boolFromEnv(NAME, true), true, 'cae al defecto');
     });
     assert.match(warnings[0], /no es "true" ni "false"/);
+  });
+});
+
+test('intListFromEnv: ordena, elimina duplicados y rechaza listas inválidas', () => {
+  withEnv('90, 10,25,25', () => {
+    assert.deepEqual(intListFromEnv(NAME, [10, 100], 1, 100), [10, 25, 90]);
+  });
+  withEnv('10,fuera,90', () => {
+    const warnings = capturingWarnings(() => {
+      assert.deepEqual(intListFromEnv(NAME, [10, 100], 1, 100), [10, 100]);
+    });
+    assert.equal(warnings.length, 1);
   });
 });
 

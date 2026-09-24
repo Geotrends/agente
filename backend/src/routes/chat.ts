@@ -5,6 +5,10 @@ import { rateLimitByIdentity, requireSession } from "./auth.js";
 import type { LlmProvider } from "../services/llm.js";
 import { isProviderConfigured, type RoutedProvider } from "../services/providerRouter.js";
 import { getProviderModel, getProviderModelCatalog } from "../shared/providerModel.js";
+import { setting } from "../services/settings.js";
+import {
+  chatAdmissionQueue, ChatQueueError, chatTraffic, type TrafficDecision,
+} from "../services/chatTraffic.js";
 
 type ChatBody = {
   message: string;
@@ -23,7 +27,11 @@ const router = Router();
  */
 const chatLimiter = rateLimitByIdentity({ windowMs: 60_000, limit: 20 });
 
-router.get("/retrieval/status", (_req, res) => res.json(getRetrievalStatus()));
+router.get("/retrieval/status", (_req, res) => res.json({
+  ...getRetrievalStatus(),
+  chatQueue: chatAdmissionQueue.status(),
+  limits: { maxMessageChars: setting("chatMaxMessageChars") },
+}));
 router.get("/providers", (_req, res) => res.json({
   providers: (["ollama", "gemini", "groq", "deepseek", "openai"] as const).map(id => ({
     id,
@@ -33,11 +41,16 @@ router.get("/providers", (_req, res) => res.json({
 }));
 
 router.post("/chat", requireSession(), chatLimiter, async (req, res) => {
+  let release: (() => void) | undefined;
   try {
     const { message, provider, model, autoRoute, history } =
       req.body as Partial<ChatBody>;
-    if (typeof message !== "string" || !message.trim() || message.length > 12000) {
-      res.status(400).json({ error: "Envía una pregunta de entre 1 y 12000 caracteres." });
+    const maxMessageChars = setting("chatMaxMessageChars");
+    if (typeof message !== "string" || !message.trim() || message.length > maxMessageChars) {
+      res.status(400).json({
+        error: `Envía una pregunta de entre 1 y ${maxMessageChars} caracteres.`,
+        code: "invalid_message",
+      });
       return;
     }
     if (provider && !["auto", "gemini", "groq", "deepseek", "ollama", "openai"].includes(provider)) {
@@ -60,24 +73,46 @@ router.post("/chat", requireSession(), chatLimiter, async (req, res) => {
         return;
       }
     }
+
+    const longDecision = await chatTraffic.checkAndRecordLongRequest(req.ip, message.length);
+    if (!longDecision.ok) {
+      respondTrafficRejection(res, longDecision);
+      return;
+    }
+
     const retrievalStatus = getRetrievalStatus();
     if (retrievalStatus.state === "error") {
       res.status(503).json({ error: retrievalStatus.error || "El índice de documentos no está disponible." });
       return;
     }
-    // "refreshing" significa que hay una reconstruccion en curso pero el indice
-    // anterior sigue sirviendo: la consulta se atiende con normalidad y solo se
-    // rechaza cuando de verdad no hay nada que consultar.
+    // "refreshing" conserva el índice anterior; los demás estados todavía no
+    // pueden consumir una consulta ni ocupar una plaza del chat.
     if (retrievalStatus.state !== "ready" && retrievalStatus.state !== "refreshing") {
-      // El primer build puede tardar largo rato. Evita dejar la peticion HTTP
-      // colgada esperando a que termine: se responde de una y el cliente puede
-      // reintentar consultando /api/retrieval/status.
       res.status(503).json({
         error: `El índice de documentos se está preparando (${retrievalStatus.completed}/${retrievalStatus.total || "?"}). Intenta de nuevo en unos minutos.`,
         meta: { retrieval: { state: retrievalStatus.state, completed: retrievalStatus.completed, total: retrievalStatus.total } }
       });
       return;
     }
+
+    // Solo se cancela mientras espera plaza. Una vez admitida, el trabajo ya
+    // reservado termina aunque el navegador cierre para dejar el estado y las
+    // cuotas en una situación determinista.
+    const disconnected = new AbortController();
+    const abortWaiting = () => disconnected.abort();
+    res.once("close", abortWaiting);
+    try {
+      release = await chatAdmissionQueue.acquire(disconnected.signal);
+    } finally {
+      res.off("close", abortWaiting);
+    }
+
+    const quotaDecision = await chatTraffic.consumeDailyQuota(req.ip);
+    if (!quotaDecision.ok) {
+      respondTrafficRejection(res, quotaDecision);
+      return;
+    }
+
     const outcome = await answerQuestion({
       message,
       history,
@@ -96,6 +131,12 @@ router.post("/chat", requireSession(), chatLimiter, async (req, res) => {
     }
     res.json({ answer: outcome.answer, meta: outcome.meta });
   } catch (error) {
+    if (error instanceof ChatQueueError) {
+      res.set("Retry-After", String(error.retryAfterSeconds));
+      res.status(503).json({ error: error.message, code: error.code });
+      return;
+    }
+    if (error instanceof Error && error.message === "client_disconnected") return;
     // Saturación no es avería: no se registra como error —bajo carga llenaría el
     // log— y se contesta con la cabecera que el cliente necesita para reintentar.
     if (error instanceof RetrievalBusyError) {
@@ -108,7 +149,17 @@ router.post("/chat", requireSession(), chatLimiter, async (req, res) => {
     }
     console.error("[chat]", error);
     res.status(503).json({ error: "No se pudo completar la consulta. Revisa el estado del índice y la conexión del backend." });
+  } finally {
+    release?.();
   }
 });
+
+function respondTrafficRejection(
+  res: import("express").Response,
+  decision: Exclude<TrafficDecision, { ok: true }>,
+): void {
+  res.set("Retry-After", String(decision.retryAfterSeconds));
+  res.status(429).json({ error: decision.message, code: decision.code });
+}
 
 export default router;

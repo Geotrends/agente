@@ -32,7 +32,7 @@
  * mientras todo parece funcionar. Una dependencia vetada vale más que código
  * de seguridad propio.
  */
-import { createSecretKey, randomUUID, type KeyObject } from "node:crypto";
+import { createHmac, createSecretKey, randomUUID, type KeyObject } from "node:crypto";
 import { jwtVerify, SignJWT } from "jose";
 import { setting } from "./settings.js";
 
@@ -87,6 +87,11 @@ function secretKey(): KeyObject {
 /** Solo para pruebas: olvida la clave memorizada tras cambiar el entorno. */
 export function resetAuthSecret(): void {
   cachedSecret = undefined;
+}
+
+/** Identificador estable y no reversible para persistir una IP sin guardarla. */
+export function fingerprintClient(value: string): string {
+  return createHmac("sha256", secretKey()).update(value).digest("hex");
 }
 
 /** Vida del token de sesión, en segundos. Declarada en el registro de M-8. */

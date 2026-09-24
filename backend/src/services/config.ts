@@ -82,3 +82,17 @@ export function boolFromEnv(name: string, fallback: boolean): boolean {
   warnOnce(name, raw, fallback, 'no es "true" ni "false"');
   return fallback;
 }
+
+/** Lista ordenada de enteros únicos, útil para porcentajes de alerta. */
+export function intListFromEnv(
+  name: string, fallback: number[], min: number, max: number,
+): number[] {
+  const raw = process.env[name];
+  if (raw === undefined || raw.trim() === "") return [...fallback];
+  const parsed = raw.split(",").map(value => Number(value.trim()));
+  if (parsed.some(value => !Number.isInteger(value) || value < min || value > max)) {
+    warnOnce(name, raw, fallback.join(","), `debe ser una lista de enteros en [${min}, ${max}]`);
+    return [...fallback];
+  }
+  return [...new Set(parsed)].sort((a, b) => a - b);
+}

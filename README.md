@@ -277,7 +277,7 @@ Content-Type: application/json
  "provider":"groq","model":"llama-3.1-8b-instant","history":[]}
 ```
 
-Solo `message` es obligatorio (1–12.000 caracteres). Sin `provider`, o con `auto`,
+Solo `message` es obligatorio (1–2.500 caracteres). Sin `provider`, o con `auto`,
 el enrutamiento es automático y **no debe enviarse `model`**. En selección manual,
 `model` debe pertenecer al catálogo `*_MODELS` del proveedor.
 
@@ -288,11 +288,18 @@ con las páginas citadas) y `abstained`.
 | Endpoint | Descripción |
 | --- | --- |
 | `GET /api/providers` | Proveedores, si están configurados, catálogo y modelo por defecto. Sin secretos. |
-| `GET /api/retrieval/status` | Progreso y estado del índice (`ready`, `refreshing`, `error`…). |
+| `GET /api/retrieval/status` | Progreso y estado del índice, ocupación de la cola y límite público de caracteres. |
 | `GET /health` | Vivacidad del proceso. Sin token y fuera del límite de tasa. |
 
 **Códigos 503** — índice no disponible, índice construyéndose, saturación
 (con cabecera `Retry-After`) o fallo de todos los proveedores.
+
+**Códigos 429** — cuota diaria global o por IP agotada, o bloqueo temporal por
+exceso de preguntas largas. Incluyen `Retry-After` y un `code` estable.
+
+La cola y las cuotas protegen CPU, proveedores y presupuesto frente a abuso en
+la capa de aplicación. No sustituyen un CDN/WAF o la mitigación del proveedor
+de red ante un DDoS volumétrico distribuido.
 
 ---
 
@@ -308,6 +315,8 @@ su valor. Las imprescindibles:
 | `PORT` | Puerto del backend en local (usa `3001` para casar con el frontend). En Docker lo fija `docker-compose.yml`. |
 | `ALLOWED_ORIGINS` | Orígenes CORS permitidos. Vacío = ninguno cruzado. |
 | `TRUST_PROXY` | Necesaria tras un proxy inverso para que el límite de tasa vea la IP real. |
+| `CHAT_MAX_MESSAGE_CHARS`, `CHAT_DAILY_*`, `CHAT_LONG_*` | Tamaño de pregunta, cuotas diarias y bloqueo por consultas largas. |
+| `CHAT_MAX_CONCURRENT`, `CHAT_MAX_QUEUE`, `CHAT_QUEUE_TIMEOUT_MS` | Capacidad y espera máxima de la cola completa del chat. |
 | `*_API_KEY`, `*_MODEL`, `*_MODELS` | Credencial, modelo por defecto y catálogo permitido por proveedor. |
 | `AUTO_ROUTE_*` | Proveedor y modelo (y su respaldo) para cada nivel de complejidad. |
 | `OCR_ENABLED`, `OCR_LANGUAGE`, `OCR_MIN_TEXT_CHARS` | Control del OCR local. |

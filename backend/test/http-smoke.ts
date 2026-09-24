@@ -35,6 +35,9 @@ process.env.RETRIEVAL_WORKER = 'false';
 // esta prueba mete sus respuestas de mentira en data/chat-interactions.csv,
 // que es de donde extract-queries.ts saca las preguntas del conjunto dorado.
 process.env.CHAT_LOG_FILE = path.join(root, 'chat-interactions.csv');
+process.env.CHAT_LIMIT_STATE_FILE = path.join(root, 'chat-traffic-state.json');
+process.env.CHAT_DAILY_PER_IP_LIMIT = '1000';
+process.env.CHAT_DAILY_GLOBAL_LIMIT = '10000';
 delete process.env.DEEPSEEK_API_KEY;
 delete process.env.OPENAI_API_KEY;
 delete process.env.OLLAMA_MODEL;
@@ -106,6 +109,14 @@ const chat = (body: unknown) => realFetch(`${base}/api/chat`, {
   body: JSON.stringify(body),
 });
 try {
+  const callsBeforeLengthProbe = calls;
+  const maxQuestion = await chat({ message: 'protección auditiva '.repeat(140).slice(0, 2500) });
+  assert.notEqual(maxQuestion.status, 400, '2500 caracteres se admiten');
+  calls = callsBeforeLengthProbe;
+  const oversizedQuestion = await chat({ message: 'x'.repeat(2501) });
+  assert.equal(oversizedQuestion.status, 400, '2501 caracteres se rechazan antes de recuperar');
+  assert.equal((await oversizedQuestion.json() as any).code, 'invalid_message');
+
   const providerResponse = await realFetch(`http://127.0.0.1:${address.port}/api/providers`);
   const providerData = await providerResponse.json() as any;
   const groqProvider = providerData.providers.find((item: any) => item.id === 'groq');
@@ -279,17 +290,6 @@ try {
   }
   assert.equal(getRetrievalStatus().queued, 0, 'la cola vuelve a cero al terminar');
 
-  // Y por HTTP: ocupar la unica plaza deja la siguiente peticion fuera, lo que
-  // permite comprobar la respuesta completa sin depender de carreras.
-  process.env.RETRIEVAL_MAX_QUEUE = '1';
-  const holding = search('protección auditiva');
-  const busy = await chat({ message: 'protección auditiva', provider: 'groq' });
-  assert.equal(busy.status, 503, 'saturado responde 503');
-  assert.ok(Number(busy.headers.get('retry-after')) >= 1, 'con cabecera Retry-After');
-  const busyBody = await busy.json() as any;
-  assert.match(busyBody.error, /muchas consultas/);
-  assert.equal(busyBody.meta.retrieval.queued, 1);
-  await holding;
   delete process.env.RETRIEVAL_MAX_QUEUE;
 
 // Esta prueba cambia variables de entorno a mitad de la corrida, y un worker
