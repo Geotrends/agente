@@ -69,6 +69,26 @@ test('respuesta vacía o sin choices cae al mensaje de "no encuentro"', async ()
   }
 });
 
+test('cortado por length sin contenido es fallo reintentable, no un "no encuentro" falso', async () => {
+  process.env.TEST_PROVIDER_KEY = 'clave-de-prueba';
+  // Caso real: gpt-oss gastó los 2.200 tokens razonando y no escribió nada.
+  mockFetch(() => new Response(JSON.stringify({
+    choices: [{ message: { content: '', reasoning: '...' }, finish_reason: 'length' }],
+  }), { status: 200 }));
+  const result = await ask(input);
+  assert.equal(result.ok, false);
+  assert.equal(result.ok ? null : result.retryable, true, 'el enrutador debe poder probar el reemplazo');
+});
+
+test('cortado por length CON contenido sigue siendo respuesta', async () => {
+  process.env.TEST_PROVIDER_KEY = 'clave-de-prueba';
+  mockFetch(() => new Response(JSON.stringify({
+    choices: [{ message: { content: 'Paso 1: acérquese a…' }, finish_reason: 'length' }],
+  }), { status: 200 }));
+  const result = await ask(input);
+  assert.equal(result.ok && result.answer, 'Paso 1: acérquese a…');
+});
+
 test('la escalera de estados: 401, 403, 429 y genérico', async () => {
   process.env.TEST_PROVIDER_KEY = 'clave-de-prueba';
   for (const status of [401, 403]) {

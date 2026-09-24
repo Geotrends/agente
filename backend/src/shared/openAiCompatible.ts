@@ -88,9 +88,22 @@ export function createOpenAiCompatibleProvider(config: OpenAiCompatibleConfig) {
       }
 
       const data = (await response.json()) as {
-        choices?: Array<{ message?: { content?: string } }>;
+        choices?: Array<{ message?: { content?: string }; finish_reason?: string }>;
       };
-      const answer = data.choices?.[0]?.message?.content?.trim() || "";
+      const choice = data.choices?.[0];
+      const answer = choice?.message?.content?.trim() || "";
+      // Cortado por límite de tokens sin haber escrito nada: un modelo de
+      // razonamiento que gastó todo el presupuesto pensando. Eso NO es "no
+      // tengo la información": tratarlo como respuesta le mostraba al usuario
+      // un "No encuentro…" falso con las fuentes correctas al lado. Como
+      // fallo, el enrutador prueba el proveedor de reemplazo.
+      if (!answer && choice?.finish_reason === "length") {
+        return {
+          result: providerFailure("unknown",
+            `${config.label} agotó el límite de tokens sin producir respuesta.`,
+            "finish_reason=length con contenido vacío", true),
+        };
+      }
       // Un 200 con cuerpo vacío no es un fallo del proveedor: respondió, y lo
       // que respondió es que no tiene nada. Se trata como respuesta.
       return { result: { ok: true, answer: answer || "No encuentro esa informacion en el documento." } as ProviderResult };

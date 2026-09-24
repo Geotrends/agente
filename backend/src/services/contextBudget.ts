@@ -169,9 +169,17 @@ export function tailAtWordBoundary(text: string, maxChars: number): string {
 
 export type QuestionComplexity = "simple" | "medium" | "complex";
 
-/** Tope duro compartido por todos los proveedores para evitar respuestas descontroladas. */
+/**
+ * Tope duro compartido por todos los proveedores para evitar respuestas descontroladas.
+ *
+ * En los modelos de razonamiento (gpt-oss, gpt-5) el razonamiento cuenta
+ * contra este mismo tope. Con 2.200 no quedaba margen: el prompt pide
+ * respuestas de hasta ~1.800 tokens, y gpt-oss llegó a gastar 2.198 solo
+ * razonando. 3.000 da ese margen; el control principal del razonamiento es
+ * `reasoning_effort` en askGroq.ts.
+ */
 export function getResponseTokenLimit(): number {
-  return 2200;
+  return 3000;
 }
 
 export interface ComplexityResult {
