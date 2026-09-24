@@ -6,6 +6,8 @@ type NestedList = { ordered: boolean; items: string[] };
 type ListItem = { text: string; nested: NestedList[]; paragraphs: string[][] };
 
 type Block =
+  | { type: "heading"; level: number; text: string }
+  | { type: "hr" }
   | { type: "paragraph"; lines: string[] }
   | { type: "ul"; items: ListItem[] }
   | { type: "ol"; items: ListItem[] }
@@ -13,6 +15,17 @@ type Block =
 
 const BULLET_RE = /^[-*•]\s+/;
 const ORDERED_RE = /^\d+[.)]\s+/;
+// "## Título" (con los "#" de cierre opcionales de CommonMark). Exige el
+// espacio tras los "#" para no confundir un "#5" suelto con un título.
+const HEADING_RE = /^(#{1,6})\s+(.+?)(?:\s+#+)?$/;
+// "---", "***" o "___" solos en la línea. Se evalúa antes que BULLET_RE,
+// que de otro modo leería "* * *" como un ítem de lista.
+const HR_RE = /^(?:-\s*){3,}$|^(?:\*\s*){3,}$|^(?:_\s*){3,}$/;
+
+/** Líneas que abren un bloque propio y por tanto cortan un párrafo o una lista. */
+function startsBlock(line: string): boolean {
+  return HEADING_RE.test(line) || HR_RE.test(line);
+}
 
 /**
  * Lee una lista (ordenada o no) permitiendo que items del marcador opuesto
@@ -36,11 +49,13 @@ function readList(lines: string[], start: number, ordered: boolean): { items: Li
     while (next < lines.length && !lines[next].trim()) next += 1;
     if (next >= lines.length) return false;
     const candidate = lines[next].trim();
-    return !ORDERED_RE.test(candidate) && !BULLET_RE.test(candidate) && !candidate.includes("|");
+    return !ORDERED_RE.test(candidate) && !BULLET_RE.test(candidate) && !candidate.includes("|") && !startsBlock(candidate);
   };
 
   while (i < lines.length) {
     const trimmed = lines[i].trim();
+
+    if (startsBlock(trimmed)) break;
 
     if (marker.test(trimmed)) {
       items.push({ text: trimmed.replace(marker, ""), nested: [], paragraphs: [] });
@@ -96,7 +111,7 @@ function readList(lines: string[], start: number, ordered: boolean): { items: Li
       const paraLines: string[] = [];
       while (i < lines.length) {
         const line = lines[i].trim();
-        if (!line || ORDERED_RE.test(line) || BULLET_RE.test(line) || line.includes("|")) break;
+        if (!line || ORDERED_RE.test(line) || BULLET_RE.test(line) || line.includes("|") || startsBlock(line)) break;
         paraLines.push(line);
         i += 1;
       }
@@ -122,6 +137,19 @@ function parseBlocks(text: string): Block[] {
     const trimmed = line.trim();
 
     if (!trimmed) {
+      i += 1;
+      continue;
+    }
+
+    const heading = HEADING_RE.exec(trimmed);
+    if (heading) {
+      blocks.push({ type: "heading", level: heading[1].length, text: heading[2] });
+      i += 1;
+      continue;
+    }
+
+    if (HR_RE.test(trimmed)) {
+      blocks.push({ type: "hr" });
       i += 1;
       continue;
     }
@@ -164,7 +192,8 @@ function parseBlocks(text: string): Block[] {
         !next ||
         next.includes("|") ||
         BULLET_RE.test(next) ||
-        ORDERED_RE.test(next)
+        ORDERED_RE.test(next) ||
+        startsBlock(next)
       ) {
         break;
       }
@@ -194,11 +223,67 @@ function splitTableRow(row: string): string[] {
 const INLINE_TOKEN = /(\*\*[^*]+\*\*|\[[^\]]+\]\([^)\s]+\)|`[^`]+`)/g;
 const LINK = /^\[([^\]]+)\]\(([^)\s]+)\)$/;
 
+// El modelo a veces mezcla HTML en el Markdown, sobre todo "<br>" dentro de
+// celdas de tabla, donde Markdown no admite saltos de línea. No se interpreta
+// HTML (eso reabriría la superficie de XSS): solo se reconocen estas etiquetas
+// por nombre. "<br>" pasa a salto de línea, "<b>"/"<strong>" a negrita y las
+// demás de formato se quitan conservando su texto. Cualquier otra etiqueta
+// sigue viéndose como texto.
+const HTML_BREAK = /<br\s*\/?>/gi;
+const HTML_BOLD = /<(b|strong)(?:\s[^<>]*)?>([\s\S]*?)<\/\1\s*>/gi;
+const HTML_FORMATTING = /<\/?(?:b|strong|i|em|u|p|span|div|small|sup|sub|font)(?:\s[^<>]*)?\/?>/gi;
+
+function normalizeInlineHtml(text: string): string {
+  return text
+    // Si el contenido ya viene en negrita Markdown, no se vuelve a envolver:
+    // "****x****" dejaría asteriscos sueltos.
+    .replace(HTML_BOLD, (_match: string, _tag: string, inner: string) => /^\*\*[\s\S]*\*\*$/.test(inner) ? inner : `**${inner}**`)
+    .replace(HTML_FORMATTING, "");
+}
+
 function inlineFormat(text: string): ReactNode[] {
+  return formatTokens(normalizeInlineHtml(text));
+}
+
+// URL http(s) suelta en el texto. El prompt pide escribir los enlaces como
+// [nombre](URL), pero si el modelo deja la URL desnuda también debe poder
+// abrirse. La puntuación final ("…pqrds-consulta.") queda fuera del enlace.
+const BARE_URL = /(https?:\/\/[^\s<>()[\]]*[^\s<>()[\].,;:!?¿¡"'])/i;
+
+function withLinks(text: string): ReactNode[] {
+  return text.split(BARE_URL).map((part, index) =>
+    index % 2 === 1 ? (
+      <a key={index} href={part} target="_blank" rel="noreferrer noopener">
+        {part}
+      </a>
+    ) : (
+      <Fragment key={index}>{part}</Fragment>
+    ),
+  );
+}
+
+/** Texto plano: "<br>" a saltos de línea reales y URLs sueltas a enlaces. */
+function withBreaks(text: string, key: number): ReactNode {
+  const lines = text.split(HTML_BREAK);
+  return (
+    <Fragment key={key}>
+      {lines.map((line, lineIndex) => (
+        <Fragment key={lineIndex}>
+          {lineIndex > 0 && <br />}
+          {withLinks(line)}
+        </Fragment>
+      ))}
+    </Fragment>
+  );
+}
+
+function formatTokens(text: string): ReactNode[] {
   const parts = text.split(INLINE_TOKEN);
   return parts.map((part, index) => {
     if (part.startsWith("**") && part.endsWith("**")) {
-      return <strong key={index}>{part.slice(2, -2)}</strong>;
+      // Recursivo: el backend enlaza códigos de formulario que a menudo el
+      // modelo ya escribió en negrita ("**Formulario GT-F-0076**").
+      return <strong key={index}>{formatTokens(part.slice(2, -2))}</strong>;
     }
     if (part.startsWith("`") && part.endsWith("`")) {
       return <code key={index}>{part.slice(1, -1)}</code>;
@@ -216,7 +301,7 @@ function inlineFormat(text: string): ReactNode[] {
       // se muestra solo el texto, nunca se convierte en un enlace navegable.
       return <Fragment key={index}>{link[1]}</Fragment>;
     }
-    return <Fragment key={index}>{part}</Fragment>;
+    return withBreaks(part, index);
   });
 }
 
@@ -231,6 +316,15 @@ export default function ChatMarkdown({ content, className = "" }: Props) {
   return (
     <div className={`chat-markdown ${className}`.trim()}>
       {blocks.map((block, index) => {
+        if (block.type === "heading") {
+          const HeadingTag = `h${block.level}` as "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
+          return <HeadingTag key={index}>{inlineFormat(block.text)}</HeadingTag>;
+        }
+
+        if (block.type === "hr") {
+          return <hr key={index} />;
+        }
+
         if (block.type === "paragraph") {
           return (
             <p key={index}>
