@@ -34,6 +34,16 @@ WORKDIR /app
 # debe reinstalar node_modules ni recompilar las dependencias nativas.
 COPY package.json package-lock.json* ./
 RUN npm ci --omit=dev || npm install --omit=dev
+# onnxruntime-web (backend WASM/navegador de @huggingface/transformers) y las
+# variantes musl/wasm32 de sharp y @napi-rs/canvas viajan igual porque el
+# lockfile las lista como optionalDependencies validas y npm no filtra por
+# libc de forma confiable en build cross-arch; esta imagen es Debian/glibc y
+# solo corre en Node (nunca navegador), asi que son ~250 MB muertos. Se
+# reconoce por lo que YA usa el codigo (onnxruntime-node, ver
+# src/services/reranker.ts), no por lo que ya no se usa.
+RUN rm -rf node_modules/onnxruntime-web \
+    node_modules/@img/sharp-*musl* node_modules/@img/sharp-wasm32 \
+    node_modules/@napi-rs/canvas-*musl*
 
 FROM base AS build
 RUN npm install
@@ -61,10 +71,17 @@ COPY --from=build /app/dist ./dist
 VOLUME ["/app/data", "/app/.cache", "/app/var"]
 
 # Usuario sin privilegios: el proceso solo necesita leer el corpus y escribir
-# sus cachés.
+# sus cachés. Ojo con `chown -R /app`: node_modules y dist ya existen en una
+# capa anterior (heredada de `base`), y OverlayFS copia el arbol COMPLETO a la
+# capa nueva en cuanto le cambias el owner con -R ("copy-up") aunque el
+# contenido no cambie -- duplicaba node_modules entero (~660 MB) en esta sola
+# linea. Node solo necesita LEER node_modules/dist (los crea root, son
+# legibles por cualquiera por permisos por defecto); lo unico que de verdad
+# hace falta escribir en runtime son los 3 directorios de volumenes, que aqui
+# estan vacios, asi que el chown no recursivo es practicamente gratis.
 RUN useradd --system --uid 10001 geobot \
     && mkdir -p /app/data /app/.cache /app/var \
-    && chown -R geobot:geobot /app
+    && chown geobot:geobot /app/data /app/.cache /app/var
 USER geobot
 
 EXPOSE 4000
