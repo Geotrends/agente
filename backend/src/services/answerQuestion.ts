@@ -19,6 +19,7 @@
 import path from "node:path";
 import { performance } from "node:perf_hooks";
 import { logChatInteraction } from "./chatLog.js";
+import { linkDocumentCodes, loadDocumentCodeIndex } from "./documentLinks.js";
 import { askSmartTutor, askTutor } from "./llm.js";
 import type { RoutedProvider } from "./providerRouter.js";
 import { search } from "./retrievalClient.js";
@@ -110,6 +111,34 @@ export function groupSources<T extends { path: string; page?: number; snippet: s
   }));
 }
 
+/**
+ * Decide qué fuentes mostrar en la interfaz a partir de lo que el modelo
+ * reportó haber usado (M-4).
+ *
+ * `usedPaths === null` y `usedPaths === []` se veían igual antes de esto —
+ * ambos caían al mismo fallback de "mostrar todas"—, así que un saludo sin
+ * ninguna fuente real terminaba mostrando las 8 recuperadas por el reranker
+ * como si hubieran sustentado la respuesta.
+ */
+export function selectSources<T extends { path: string }>(
+  usedPaths: string[] | null, allSources: T[],
+): T[] {
+  // El modelo omitió el marcador por completo: señal desconocida, no
+  // debería pasar (el prompt lo exige siempre), pero ante la duda se
+  // prefiere no ocultarle evidencia al usuario.
+  if (usedPaths === null) return allSources;
+  // El modelo puso el marcador vacío a propósito ("no usé ningún
+  // fragmento", p.ej. un saludo): se respeta, no se muestra ninguna.
+  if (usedPaths.length === 0) return [];
+  const filtered = allSources.filter(
+    s => usedPaths.includes(path.basename(s.path)) || usedPaths.includes(s.path),
+  );
+  // Si el filtrado no coincidió con nada (p.ej. el modelo citó un nombre
+  // que no encaja exactamente), se prefiere mostrar todas antes que ocultar
+  // evidencia real por un error de formato.
+  return filtered.length > 0 ? filtered : allSources;
+}
+
 const USED_SOURCES_MARKER = /<!--\s*FUENTES_USADAS:\s*([^>]*?)\s*-->\s*$/i;
 
 // El prompt ya no pide esta sección (la arma la interfaz), pero el modelo
@@ -136,6 +165,48 @@ export function extractUsedSources(answer: string): { answer: string; usedPaths:
     .map(p => p.trim())
     .filter(Boolean);
   return { answer: cleaned, usedPaths: paths };
+}
+
+/**
+ * Enlaza los códigos de formato ("GT-F-0076") a su archivo descargable. Es un
+ * enriquecimiento: si el catálogo no se puede leer, la respuesta sale igual,
+ * sin enlaces, en vez de convertirse en un error para el usuario.
+ */
+async function linkKnownDocuments(answer: string): Promise<string> {
+  try {
+    return linkDocumentCodes(answer, await loadDocumentCodeIndex());
+  } catch (error) {
+    console.error("[documentLinks] No se pudo cargar el catálogo de documentos:", error);
+    return answer;
+  }
+}
+
+// "carne" sin tilde por "carné": el procedimiento oficial GT-P-011 lo escribe
+// así ("entregara el carne de la mascota") y el modelo lo copiaba, a veces con
+// artículo femenino ("la carne de la mascota"), que se lee como comida. Solo
+// se corrige donde el contexto indica documento: tras un artículo masculino
+// ("el carne" nunca es comida) o antes de "de vacunación", "de la mascota",
+// "municipal", etc. "Consumo de carne" y similares no se tocan.
+const CARNET_CONTEXT = String.raw`(?=["”»]?\s+(?:municipal|del\s+animal|de\s+(?:la\s+|el\s+|las\s+|los\s+)?(?:vacun\w*|mascota\w*|animal\w*|identificaci\w*|registro|rum)\b))`;
+// Sin \b al final: en JavaScript la "é" no cuenta como letra para \b.
+const CARNET_AFTER_ARTICLE = /\b(el|un|del|al)(\s+["“«]?)carn[eé](?![\wáéíóúñ])/gi;
+const CARNET_BEFORE_CONTEXT = new RegExp(`\\b(?:(la|una|el|un)(\\s+["“«]?))?carn[eé](?![\\wáéíóúñ])${CARNET_CONTEXT}`, "gi");
+const MASCULINE: Record<string, string> = { la: "el", una: "un", el: "el", un: "un" };
+
+function matchCase(original: string, replacement: string): string {
+  return original[0] === original[0].toUpperCase() ? replacement[0].toUpperCase() + replacement.slice(1) : replacement;
+}
+
+/** Corrige "carne"/"carné" de documento a "carnet", con artículo masculino. */
+export function fixCarnet(answer: string): string {
+  return answer
+    .replace(CARNET_BEFORE_CONTEXT, (whole: string, article?: string, gap = "") => {
+      const word = whole.slice(article ? article.length + gap.length : 0);
+      const fixed = matchCase(word, "carnet");
+      return article ? `${matchCase(article, MASCULINE[article.toLowerCase()])}${gap}${fixed}` : fixed;
+    })
+    .replace(CARNET_AFTER_ARTICLE, (whole: string, article: string, gap: string) =>
+      `${article}${gap}${matchCase(whole.slice(article.length + gap.length), "carnet")}`);
 }
 
 /**
@@ -205,17 +276,10 @@ export async function answerQuestion(request: AnswerRequest): Promise<AnswerOutc
     };
   }
 
-  const { answer, usedPaths } = extractUsedSources(result.answer);
+  const { answer: rawAnswer, usedPaths } = extractUsedSources(result.answer);
+  const answer = await linkKnownDocuments(fixCarnet(rawAnswer));
   const allSources = groupSources(retrieval.hits);
-  // Si el modelo no incluyó el marcador o no reportó ninguna fuente usada,
-  // se conservan todas para no ocultarle evidencia al usuario (fallback seguro).
-  const filteredSources = usedPaths && usedPaths.length > 0
-    ? allSources.filter(s => usedPaths.includes(path.basename(s.path)) || usedPaths.includes(s.path))
-    : [];
-  // Si el filtrado no coincidió con nada (p.ej. el modelo citó un nombre que
-  // no encaja exactamente), se prefiere mostrar todas antes que ocultar
-  // evidencia real por un error de formato.
-  const sources = filteredSources.length > 0 ? filteredSources : allSources;
+  const sources = selectSources(usedPaths, allSources);
   const responseTimeMs = Math.round(performance.now() - startedAt);
   // No se espera (M-7): la respuesta ya está lista y el registro es
   // diagnóstico, no parte del contrato con el usuario.

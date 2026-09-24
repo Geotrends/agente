@@ -8,7 +8,7 @@
  */
 import assert from "node:assert/strict";
 import test from "node:test";
-import { formatContextEntry, groupSources, previousContextFor } from "../src/services/answerQuestion.js";
+import { fixCarnet, formatContextEntry, groupSources, previousContextFor, selectSources } from "../src/services/answerQuestion.js";
 
 test("el encabezado de fragmento lleva los campos que la regla 7 del prompt necesita para citar", () => {
   const entry = formatContextEntry({
@@ -68,4 +68,44 @@ test("M-2: la pregunta que se sostiene sola no arrastra el tema anterior", () =>
 
 test("M-2: sin historial nunca hay contexto previo", () => {
   assert.equal(previousContextFor("¿y eso?", []), undefined);
+});
+
+test("M-4: marcador FUENTES_USADAS vacío (saludo) no muestra ninguna fuente", () => {
+  const allSources = [{ path: "a.pdf" }, { path: "b.pdf" }];
+  // El modelo puso <!--FUENTES_USADAS:--> a propósito: no usó nada.
+  assert.deepEqual(selectSources([], allSources), []);
+});
+
+test("M-4: sin marcador (usedPaths null) se muestran todas por seguridad", () => {
+  const allSources = [{ path: "a.pdf" }, { path: "b.pdf" }];
+  assert.deepEqual(selectSources(null, allSources), allSources);
+});
+
+test("M-4: con fuentes citadas, se filtra solo a las usadas", () => {
+  const allSources = [{ path: "a.pdf" }, { path: "b.pdf" }, { path: "c.pdf" }];
+  assert.deepEqual(selectSources(["a.pdf"], allSources), [{ path: "a.pdf" }]);
+});
+
+test("M-4: cita que no encaja con ningún path cae a mostrar todas (no oculta evidencia)", () => {
+  const allSources = [{ path: "a.pdf" }, { path: "b.pdf" }];
+  assert.deepEqual(selectSources(["nombre-que-no-existe.pdf"], allSources), allSources);
+});
+
+test("'carne' de documento pasa a 'carnet', con artículo masculino", () => {
+  // Frases reales: la fuente GT-P-011 escribe "carne" sin tilde.
+  assert.equal(fixCarnet("te entregará la “carne de la mascota”"), "te entregará el “carnet de la mascota”");
+  assert.equal(fixCarnet("Copia del carne de vacunación."), "Copia del carnet de vacunación.");
+  assert.equal(fixCarnet("Entrega del carne Municipal"), "Entrega del carnet Municipal");
+  assert.equal(fixCarnet("presentar el carné escaneado"), "presentar el carnet escaneado");
+  assert.equal(fixCarnet("Carne de vacunas al día"), "Carnet de vacunas al día");
+  assert.equal(fixCarnet("una carne de identificación"), "un carnet de identificación");
+});
+
+test("'carne' como alimento no se toca", () => {
+  for (const text of [
+    "No le des carne cruda a tu mascota.",
+    "la carne de res y la carne de cerdo",
+    "El consumo de carne en la dieta del animal.",
+    "carnetización",
+  ]) assert.equal(fixCarnet(text), text);
 });
