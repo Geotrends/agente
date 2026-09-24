@@ -587,16 +587,30 @@ body {
 .messages {
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
-  /* anchor messages to the bottom when they don't fill the panel */
+  /* NO justify-content: flex-end aqui: combinado con overflow-y:auto en un
+     flex column, Chrome y Firefox calculan mal el scrollable overflow
+     cuando el contenido excede el alto (scrollHeight queda igual a
+     clientHeight, sin importar cuanto contenido haya) y el scroll deja de
+     funcionar por completo. El anclaje al fondo con pocos mensajes se logra
+     igual con margin-top:auto en el primer hijo, sin el bug. */
   gap: 0.75rem;
   margin: 0.75rem 0.125rem 0.875rem;
   padding-right: 0.375rem;
   flex: 1 1 auto;
   /* take available space inside phone-shell */
+  min-height: 0;
+  /* sin esto, un flex item no se encoge bajo el alto de su contenido: con
+     historiales largos .messages crecia sin limite y overflow-y nunca
+     llegaba a activarse (no habia nada que desbordar) */
   overflow-y: auto;
   overflow-x: hidden;
   /* enable scroll when content overflows */
+}
+
+.messages > :first-child {
+  /* reemplaza a justify-content:flex-end (ver arriba): empuja el contenido
+     al fondo cuando hay pocos mensajes, sin romper el scroll con muchos. */
+  margin-top: auto;
 }
 
 .message-row {
@@ -604,6 +618,12 @@ body {
   align-items: flex-end;
   gap: 0.5rem;
   max-width: 100%;
+  /* sin esto, .messages (flex column + overflow-y:auto) aplasta cada fila
+     para que quepan todas en vez de desbordar: con historiales largos las
+     filas se achicaban hasta casi 0px y el contenedor nunca llegaba a
+     necesitar scroll (confirmado midiendo alturas reales: una fila llegaba
+     a 0px con 60+ mensajes) */
+  flex-shrink: 0;
 }
 
 .message-row.user {
