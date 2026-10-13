@@ -1,0 +1,19 @@
+{
+  "task_count": 95,
+  "stories": {
+    "US1": 12,
+    "US2": 16,
+    "US3": 9,
+    "US4": 7,
+    "US5": 9,
+    "US6": 11,
+    "US7": 8
+  },
+  "shared_tasks": 23,
+  "parallel_tasks": 23,
+  "requirements": 62,
+  "format": "PASS",
+  "model_constraints_quoted": "PASS",
+  "references": "PASS",
+  "tasks_sha256": "bc7d1c51d0ba5cb28a065f6334447c6db2876c27acb703d1e67094b8d4de1f5e"
+}

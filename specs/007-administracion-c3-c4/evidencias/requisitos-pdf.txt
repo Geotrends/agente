@@ -1,0 +1,814 @@
+Fuente: /Users/geotrends/Desktop/DEV_LAOR/DOCUMENACION_C3_C4.pdf
+Sección 4.7, páginas impresas 62–85. Membretes repetidos retirados.
+
+     4.7 Bloque 7: Administración (H6 – C3, H5 – C4).
+     4.7.1     Requisitos Funcionales.
+     4.7.1.1      RF-C3-AD-01
+         •     Hito: H6-C3
+         •     Prioridad: Esencial
+         •     Descripción: El sistema deberá permitir al Gestor documental y al administrador
+               técnico cargar manualmente un documento desde el panel de administración,
+               exigiendo como campos obligatorios el tipo de documento, el título, la dirección
+               responsable, el enlace de acceso público y el procedimiento asociado (código o
+               'ninguno'), y aceptando como campos opcionales el código, la versión, la fecha de
+               última actualización y la fecha de validez, y deberá rechazar la carga, indicando el
+               campo faltante, cuando falte algún campo obligatorio.
+         •     Criterio de verificación: 6 cargas: 3 válidas (PDF, DOCX, XLSX) y 3 inválidas (sin
+               enlace, dirección y título). Las válidas se aceptan; las inválidas se rechazan
+               indicando el campo faltante y sin almacenar el archivo; igual resultado con ambos
+               perfiles.
+         •     Entregable asociado: Panel o mecanismo de actualización de la base documental.
+     4.7.1.2      RF-C3-AD-02
+         •     Hito: H6-C3
+         •     Prioridad: Esencial
+        •      Descripción: El sistema deberá registrar en la matriz documental cada documento
+               cargado manualmente y aceptado, con estado 'Pendiente de aprobación', origen
+               'manual', usuario que lo cargó, fecha y hora de carga y los campos de RF-C3-AD-
+               01, y deberá mostrar como 'N/A' los campos opcionales no diligenciados.
+        •      Criterio de verificación: Con las 3 cargas válidas: 3 filas con esos datos,
+               opcionales vacíos en 'N/A'. Las 3 rechazadas dejan 0 filas. Filas de la matriz =
+               documentos cargados.
+        •      Entregable asociado: Matriz documental de trámites ambientales; Panel o
+               mecanismo de actualización de la base documental.
+     4.7.1.3      RF-C3-AD-03
+        •      Hito: H6-C3
+        •      Prioridad: Esencial
+        •      Descripción: El sistema deberá excluir de la recuperación, en todas las consultas,
+               los fragmentos de todo documento cuyo estado sea 'Pendiente de aprobación',
+               derogado (RF-C3-IV-03) o 'Vencido' (RF-C3-AD-38); un documento pendiente
+               solo será recuperable cuando el administrador técnico lo publique.
+        •      Criterio de verificación: Documento de prueba pendiente con dato único: 5
+               consultas con 0 fragmentos recuperados y sin usar el dato. Tras publicarlo, 5
+               consultas lo recuperan y citan. El documento de prueba se retira al final y consta
+               el retiro.
+        •      Entregable asociado: Base de conocimiento institucional estructurada; Lógica de
+               consulta automatizada.
+     4.7.1.4      RF-C3-AD-04
+        •      Hito: H6-C3
+        •      Prioridad: Esencial
+        •      Descripción: El sistema deberá permitir al administrador técnico publicar un
+               documento en estado 'Pendiente de aprobación' desde el panel, cambiando su
+               estado a 'Publicado' y haciéndolo disponible para la recuperación una vez
+               finalizada su indexación en Qdrant.
+        •      Criterio de verificación: 3 documentos pendientes (uno con tablas) publicados:
+               estado 'Publicado', indexación completada y 5 consultas por documento lo
+               recuperan y citan. Durante la indexación, una consulta cada 30 s sin error con la
+               versión anterior (RNF-C3-IV-02).
+        •      Entregable asociado: Panel o mecanismo de actualización de la base documental;
+               Base de conocimiento institucional estructurada.
+     4.7.1.5      RF-C3-AD-05
+        •      Hito: H6-C3
+        •      Prioridad: Esencial
+        •      Descripción: El sistema deberá permitir al administrador técnico crear, desde el
+               panel, una cuenta de usuario con nombre, correo electrónico, perfil asignado
+               (administrador técnico o Gestor documental) y contraseña inicial, y deberá
+               rechazar la creación, indicando el campo en falta o repetido, cuando falte alguno
+               de esos datos o el correo ya exista.
+        •      Criterio de verificación: 7 intentos: 2 creaciones válidas (una por perfil) con inicio
+               de sesión posible; 5 rechazos, uno por cada campo ausente (nombre, correo,
+               perfil, contraseña) y uno por correo repetido, sin crear cuenta. Gestor documental
+               denegado.
+        •      Entregable asociado: Panel o mecanismo de actualización de la base documental.
+     4.7.1.6      RF-C3-AD-06
+        •      Hito: H6-C3
+        •      Prioridad: Esencial
+        •      Descripción: El sistema deberá permitir al administrador técnico desactivar una
+               cuenta de usuario desde el panel, y deberá, desde ese momento, cerrar las
+               sesiones activas de esa cuenta y rechazar todo nuevo inicio de sesión con ella,
+               conservando la cuenta y su historial de acciones.
+        •      Criterio de verificación: 3 cuentas con sesión abierta (2 Gestores, 1 administrador
+               técnico) desactivadas: siguiente solicitud 401, inicio de sesión rechazado sin
+               revelar si la cuenta existe, estado 'Desactivada' en la lista, cargas anteriores con
+               su usuario. Gestor denegado.
+        •      Entregable asociado: Panel o mecanismo de actualización de la base documental.
+     4.7.1.7      RF-C3-AD-07
+        •      Hito: H6-C3
+        •      Prioridad: Importante
+        •      Descripción: El sistema deberá permitir al administrador técnico reactivar una
+               cuenta de usuario desactivada desde el panel, restituyendo su perfil anterior y
+               exigiendo un nuevo inicio de sesión, sin restablecer las sesiones cerradas al
+               desactivarla.
+        •      Criterio de verificación: 3 cuentas reactivadas: estado 'Activa' con el mismo perfil,
+               inicio de sesión con la contraseña vigente, sesión cerrada sigue en 401, acciones
+               anteriores conservan su usuario. Gestor denegado.
+        •      Entregable asociado: Panel o mecanismo de actualización de la base documental.
+     4.7.1.8      RF-C3-AD-08
+        •      Hito: H6-C3
+        •      Prioridad: Esencial
+        •      Descripción: El sistema deberá impedir la desactivación de una cuenta, o el
+               cambio de su perfil a Gestor documental, cuando esa acción deje al sistema sin
+               ninguna cuenta activa con perfil de administrador técnico, y deberá informar al
+               usuario que realiza la acción el motivo del rechazo.
+        •      Criterio de verificación: Con 1 administrador técnico activo: desactivarse,
+               cambiarse el perfil y repetirlo desde otra sesión se rechazan con motivo y sin
+               cambios. Con 2 activos, desactivar uno funciona; al volver a 1 se rechaza otra vez.
+        •      Entregable asociado: Panel o mecanismo de actualización de la base documental.
+     4.7.1.9      RF-C3-AD-09
+        •      Hito: H6-C3
+        •      Prioridad: Esencial
+        •      Descripción: El sistema deberá permitir a todo usuario autenticado cambiar su
+               propia contraseña desde el panel, solicitando la contraseña actual y la nueva, y
+               deberá rechazar el cambio, sin modificar la contraseña vigente, cuando la
+               contraseña actual sea incorrecta o la nueva incumpla la longitud mínima de RNF-
+               C3-AD-02.
+        •      Criterio de verificación: 6 intentos (3 por perfil): 2 válidos (entra con la nueva, la
+               anterior se rechaza) y 4 inválidos (actual incorrecta, actual vacía, nueva de 11
+               caracteres, nueva vacía) con motivo y contraseña vigente intacta.
+        •      Entregable asociado: Panel o mecanismo de actualización de la base documental.
+     4.7.1.10     RF-C3-AD-10
+        •      Hito: H6-C3
+        •      Prioridad: Esencial
+        •      Descripción: El sistema deberá exigir al usuario que cambie su contraseña en el
+               primer inicio de sesión posterior a la creación de su cuenta o a la asignación de
+               una contraseña temporal por el administrador técnico, y deberá rechazar, hasta
+               que la cambie, cualquier acceso a otra pantalla o servicio del panel, aceptando
+               solo una contraseña nueva que cumpla RNF-C3-AD-02 y sea distinta de la
+               temporal.
+         •      Criterio de verificación: 4 recorridos (2 cuentas nuevas, 2 con temporal): solo se
+                ve la pantalla de cambio, 4 URL directas y 4 servicios rechazados, nueva de 11
+                caracteres o igual a la temporal rechazada, con válida acceso normal, segundo
+                inicio sin pedir cambio.
+         •      Entregable asociado: Panel o mecanismo de actualización de la base documental.
+     4.7.1.11      RF-C3-AD-11
+         •      Hito: H6-C3
+         •      Prioridad: Esencial
+         •      Descripción: El sistema deberá permitir al administrador técnico asignar, desde el
+                panel, una contraseña temporal a la cuenta de otro usuario, y deberá rechazar la
+                asignación, indicando el motivo, cuando la contraseña temporal incumpla la
+                longitud mínima de RNF-C3-AD-02, y deberá marcar la cuenta para el cambio
+                obligatorio de RF-C3-AD-10.
+         •      Criterio de verificación: 2 asignaciones válidas (a un Gestor y a otro administrador
+                técnico, temporal de 12 caracteres): inicio con la temporal y cambio obligatorio. 2
+                rechazos (11 caracteres, vacía). 2 con Gestor denegados. Contraseña vigente
+                intacta en los 4 restantes.
+         •      Entregable asociado: Panel o mecanismo de actualización de la base documental.
+     4.7.1.12      RF-C3-AD-12
+         •      Hito: H6-C3
+         •      Prioridad: Esencial
+         •      Descripción: El sistema deberá entregarse con una cuenta de perfil administrador
+                técnico asignada al contratista (Geotrends), que permita asignar contraseñas
+                temporales a cualquier otra cuenta conforme a RF-C3-AD-11, y que pueda ser
+                desactivada por un administrador técnico del Municipio conforme a RF-C3-AD-06
+                y RF-C3-AD-08.
+         •      Criterio de verificación: En producción: (1) la cuenta de Geotrends existe con perfil
+                administrador técnico; (2) asigna temporal a un administrador del Municipio, que
+                queda obligado a cambiarla; (3) el administrador del Municipio la desactiva y recibe
+                401; se rechaza si fuera el último administrador activo.
+         •      Entregable asociado: Panel o mecanismo de actualización de la base documental.
+     4.7.1.13      RF-C3-AD-13
+         •      Hito: H6-C3
+         •      Prioridad: Importante
+        •      Descripción: El sistema deberá incluir un procedimiento almacenado en la base de
+               datos que, al recibir como únicos parámetros el correo de una cuenta y una
+               contraseña temporal ya cifrada, actualice la contraseña solo de esa cuenta y active
+               su indicador de cambio obligatorio de RF-C3-AD-10, y que termine con error, sin
+               modificar ninguna cuenta, cuando el correo no exista, y deberá poder ser
+               ejecutado únicamente por un rol de base de datos reservado al contratista, no por
+               el usuario de la aplicación.
+        •      Criterio de verificación: En producción con 3 cuentas: (1) con el rol del contratista,
+               login con temporal y cambio obligatorio, otras 2 cuentas sin cambios; (2) correo
+               inexistente: error y 0 filas modificadas; (3) usuario de la aplicación: denegado; (4)
+               columna de contraseña con valor cifrado.
+        •      Entregable asociado: Panel o mecanismo de actualización de la base documental.
+     4.7.1.14     RF-C3-AD-14
+        •      Hito: H6-C3
+        •      Prioridad: Importante
+        •      Descripción: El sistema deberá permitir al Gestor documental registrar desde el
+               panel una propuesta para agregar o quitar un enlace del scraper, exigiendo el tipo
+               de solicitud, la URL completa con protocolo https, la dirección responsable y una
+               justificación de texto, y deberá guardar la propuesta con estado 'Pendiente de
+               validación' sin modificar la lista de enlaces vigente, rechazándola, con indicación
+               del campo, si falta alguno de esos datos o la URL no es válida.
+        •      Criterio de verificación: 8 propuestas: 3 válidas guardadas 'Pendiente de
+               validación' con la lista de enlaces idéntica; 5 inválidas (sin justificación, sin
+               dirección, sin tipo, URL http, URL sin dominio) rechazadas con campo y sin
+               guardar.
+        •      Entregable asociado: Panel o mecanismo de actualización de la base documental.
+     4.7.1.15     RF-C3-AD-15
+        •      Hito: H6-C3
+        •      Prioridad: Esencial
+        •      Descripción: El sistema deberá rechazar, indicando el motivo, el registro de toda
+               propuesta de enlace y todo enlace configurado para el scraper que no use el
+               protocolo https o cuyo host no coincida con una entrada de la lista de entradas
+               permitidas definida en la configuración del scraper, donde una entrada de tipo
+               'dominio con subdominios' acepta el dominio y todo host que termine en un punto
+               seguido del dominio, y una de tipo 'host exacto' acepta solo ese host, con las
+               entradas    iniciales  envigado.gov.co     (dominio    con    subdominios)      y
+                www.concejoenvigado.gov.co,           observatorioenvigado.geotrends.co       y
+                ambientometroenvigado.com (hosts exactos), y no deberá existir ninguna función
+                del panel que agregue, modifique o elimine entradas de esa lista.
+         •      Criterio de verificación: 14 enlaces con cuentas de Gestor (propuesta) y
+                administrador técnico (directo): 6 permitidos aceptados (gmas2.envigado.gov.co,
+                envigado.gov.co,      www.envigado.gov.co,         www.concejoenvigado.gov.co,
+                observatorioenvigado.geotrends.co,      ambientometroenvigado.com);     8    no
+                permitidos rechazados con motivo; ninguna función del panel edita la lista; una
+                entrada nueva en el código solo se acepta tras desplegar versión.
+         •      Entregable asociado: Panel o mecanismo de actualización de la base documental;
+                Base de conocimiento institucional estructurada.
+     4.7.1.16      RF-C3-AD-16
+         •      Hito: H6-C3
+         •      Prioridad: Importante
+         •      Descripción: El sistema deberá permitir al administrador técnico aprobar o
+                rechazar desde el panel cada propuesta de enlace en estado 'Pendiente de
+                validación', exigiendo un motivo de texto para rechazarla, registrando usuario,
+                fecha y hora de la decisión, y modificando la lista de enlaces del scraper solo al
+                aprobarla, de modo que la siguiente ejecución del scraper incluya el enlace
+                agregado o excluya el enlace quitado. Los estados de la propuesta son 'Pendiente
+                de validación', 'Aprobada', 'Rechazada' y 'Retirada'.
+         •      Criterio de verificación: 6 propuestas y 6 decisiones: lista sin cambios hasta
+                aprobar; tras aprobar, la siguiente ejecución incluye o excluye el enlace; 2
+                rechazos con motivo visible al Gestor y lista intacta; rechazo sin motivo no se
+                acepta; decisión del Gestor denegada; usuario, fecha y hora en cada decisión.
+         •      Entregable asociado: Panel o mecanismo de actualización de la base documental.
+     4.7.1.17      RF-C3-AD-17
+         •      Hito: H6-C3
+         •      Prioridad: Esencial
+         •      Descripción: El sistema deberá permitir al administrador técnico agregar o quitar
+                directamente un enlace de la lista del scraper desde el panel, sin propuesta previa,
+                exigiendo la URL completa con protocolo https, la dirección responsable y una
+                justificación de texto, y deberá rechazar la acción, indicando el motivo, cuando
+                falte alguno de esos datos o la URL incumpla RF-C3-AD-15, registrando usuario,
+                fecha y hora de cada cambio aceptado y aplicándolo desde la siguiente ejecución
+                del scraper.
+        •      Criterio de verificación: 8 acciones: 2 válidas con usuario, fecha y hora y efecto
+               en la siguiente ejecución; 4 rechazadas (sin justificación, sin dirección, host no
+               permitido, URL http); 2 con Gestor denegadas; lista intacta en las 6.
+        •      Entregable asociado: Panel o mecanismo de actualización de la base documental.
+     4.7.1.18     RF-C3-AD-18
+        •      Hito: H6-C3
+        •      Prioridad: Esencial
+        •      Descripción: El sistema deberá, cuando se quite un enlace de la lista del scraper
+               por RF-C3-AD-16 o RF-C3-AD-17 y existan documentos publicados cuyo enlace
+               de origen sea ese, mantenerlos publicados y generar una notificación para el
+               administrador técnico en el panel que indique el enlace quitado, la fecha y hora, el
+               usuario que lo quitó y la lista de esos documentos, y deberá dejar de verificarlos y
+               actualizarlos desde la siguiente ejecución del scraper.
+        •      Criterio de verificación: 4 casos: enlace con 3 documentos quitado por el
+               administrador; con 2 por aprobación de propuesta; enlace sin documentos;
+               registro del scraper tras la siguiente ejecución. Documentos siguen publicados y
+               recuperables, notificación con los 5 datos, sin notificación en el caso sin
+               documentos, 0 verificaciones de enlaces quitados, invisible al Gestor.
+        •      Entregable asociado: Panel o mecanismo de actualización de la base documental;
+               Base de conocimiento institucional estructurada.
+     4.7.1.19     RF-C3-AD-19
+        •      Hito: H6-C3
+        •      Prioridad: Importante
+        •      Descripción: El sistema deberá mostrar en la matriz documental la indicación 'Sin
+               actualización automática' en todo documento publicado cuyo enlace de origen
+               haya sido quitado de la lista del scraper, y deberá retirar esa indicación cuando el
+               enlace vuelva a agregarse, cuando el documento se retire o cuando se reemplace
+               por una versión nueva.
+        •      Criterio de verificación: 5 documentos de RF-C3-AD-18 con la marca y 3 de
+               enlaces no tocados sin ella; la marca sigue tras revisar la notificación; desaparece
+               al reagregar el enlace, retirar o reemplazar; un documento manual nunca la
+               muestra.
+        •      Entregable asociado: Matriz documental de trámites ambientales; Panel o
+               mecanismo de actualización de la base documental.
+     4.7.1.20     RF-C3-AD-20
+        •      Hito: H6-C3
+        •      Prioridad: Esencial
+        •      Descripción: El sistema deberá, al publicar un documento pendiente que
+               corresponda a una versión nueva de un documento ya publicado (mismo código o
+               mismo enlace de origen), eliminar de la base de conocimiento y de Qdrant el
+               contenido y los vectores de la versión anterior una vez que la indexación de la
+               versión nueva haya terminado correctamente, y no deberá conservar copia del
+               contenido anterior.
+        •      Criterio de verificación: 3 reemplazos (scraper, manual, con tablas) con un dato
+               único por versión: 5 consultas por documento recuperan solo el dato nuevo; 0
+               coincidencias del dato anterior en base y Qdrant; una fila por documento con
+               versión y fecha nuevas; durante la indexación responde la versión anterior.
+        •      Entregable asociado: Base de conocimiento institucional estructurada; Panel o
+               mecanismo de actualización de la base documental.
+     4.7.1.21     RF-C3-AD-21
+        •      Hito: H6-C3
+        •      Prioridad: Esencial
+        •      Descripción: El sistema deberá registrar en la matriz documental, con estado
+               'Pendiente de aprobación' y origen 'scraper', todo documento o página nuevos o
+               con contenido modificado que detecte el scraper en un enlace configurado, y
+               deberá mantener en uso, mientras tanto, la última versión validada de ese
+               documento, con la misma regla de RF-C3-IV-04.
+        •      Criterio de verificación: 3 enlaces de prueba (nuevo, modificado, sin cambios):
+               tras una ejecución, nuevo y modificado quedan 'Pendiente de aprobación' con
+               origen 'scraper'; el sin cambios no genera fila; 5 consultas recuperan solo la
+               versión publicada; la fila pendiente conserva el hash.
+        •      Entregable asociado: Base de conocimiento institucional estructurada; Lógica de
+               consulta automatizada.
+     4.7.1.22     RF-C3-AD-22
+        •      Hito: H6-C3
+        •      Prioridad: Esencial
+        •      Descripción: El sistema deberá permitir al administrador técnico rechazar desde
+               el panel un documento en estado 'Pendiente de aprobación', exigiendo un motivo
+               de texto, y deberá eliminar su contenido de la base de conocimiento y conservar
+               únicamente un registro del rechazo con documento, origen, hash del contenido
+               rechazado, motivo, usuario, fecha y hora.
+        •      Criterio de verificación: 6 intentos: 4 rechazos válidos (2 manuales, 2 del scraper)
+               con documento fuera de matriz y base, 0 coincidencias y registro con los 7 datos;
+               sin motivo rechazado; Gestor denegado. Si era versión nueva, la publicada sigue
+               respondiendo.
+        •      Entregable asociado: Panel o mecanismo de actualización de la base documental;
+               Base de conocimiento institucional estructurada.
+     4.7.1.23     RF-C3-AD-23
+        •      Hito: H6-C3
+        •      Prioridad: Importante
+        •      Descripción: El sistema deberá omitir, en las ejecuciones posteriores del scraper,
+               el registro como 'Pendiente de aprobación' de todo contenido cuyo enlace de
+               origen y hash coincidan con los de un rechazo registrado conforme a RF-C3-AD-
+               22, y deberá registrar como pendiente el contenido de ese mismo enlace cuyo
+               hash sea distinto.
+        •      Criterio de verificación: 3 documentos rechazados y 2 ejecuciones sin cambios:
+               0 filas pendientes nuevas y registro 'omitido por rechazo previo'. Modificado uno
+               de los enlaces, su contenido aparece pendiente y los otros 2 siguen omitidos.
+        •      Entregable asociado: Lógica de consulta automatizada; Panel o mecanismo de
+               actualización de la base documental.
+     4.7.1.24     RF-C3-AD-24
+        •      Hito: H6-C3
+        •      Prioridad: Esencial
+        •      Descripción: El sistema deberá permitir al administrador técnico retirar desde el
+               panel un documento publicado, mostrando antes un diálogo de confirmación con
+               el nombre del documento y exigiendo un motivo de texto, y deberá, tras la
+               confirmación, eliminar su contenido y sus vectores de la base de conocimiento y
+               de Qdrant, excluirlo de la recuperación y conservar únicamente un registro del
+               retiro con documento, origen, hash del contenido, motivo, usuario, fecha y hora.
+        •      Criterio de verificación: 6 intentos: 4 retiros válidos (2 manuales, 2 del scraper,
+               uno con tablas) con diálogo y motivo obligatorio; desaparece de matriz y base, 0
+               coincidencias en base y Qdrant, 5 consultas ya no lo recuperan, registro con 7
+               datos; diálogo cancelado sin cambios; Gestor denegado.
+        •      Entregable asociado: Panel o mecanismo de actualización de la base documental;
+               Base de conocimiento institucional estructurada.
+     4.7.1.25     RF-C3-AD-25
+        •      Hito: H6-C3
+        •      Prioridad: Importante
+        •      Descripción: El sistema deberá omitir, en las ejecuciones posteriores del scraper,
+               el registro como 'Pendiente de aprobación' de todo contenido cuyo enlace de
+               origen y hash coincidan con los de un retiro registrado conforme a RF-C3-AD-24,
+               y deberá registrar como pendiente el contenido de ese mismo enlace cuyo hash
+               sea distinto.
+        •      Criterio de verificación: 3 documentos retirados con enlaces aún en la lista y 2
+               ejecuciones sin cambios: 0 pendientes nuevos y registro 'omitido por retiro previo'.
+               Modificado uno, aparece pendiente; los otros 2 siguen omitidos.
+        •      Entregable asociado: Lógica de consulta automatizada; Panel o mecanismo de
+               actualización de la base documental.
+     4.7.1.26     RF-C3-AD-26
+        •      Hito: H6-C3
+        •      Prioridad: Esencial
+        •      Descripción: El sistema deberá, cuando falle la indexación de un documento al
+               publicarlo conforme a RF-C3-AD-04, reintentar la indexación una vez de forma
+               automática y, si el reintento también falla, mantener el documento en estado
+               'Pendiente de aprobación', eliminar los fragmentos parciales generados en Qdrant
+               y generar una notificación para el administrador técnico con el documento, la
+               fecha y hora y el tipo de error, sin rutas, trazas ni detalles técnicos.
+        •      Criterio de verificación: 4 pruebas con fallo forzado: reintento exitoso queda
+               'Publicado' sin notificación; fallan ambos: queda pendiente, 0 fragmentos en
+               Qdrant, 5 consultas no lo recuperan, notificación con los 3 datos; republicar tras
+               corregir; notificación sin rutas ni mensajes del proveedor.
+        •      Entregable asociado: Panel o mecanismo de actualización de la base documental;
+               Base de conocimiento institucional estructurada.
+     4.7.1.27     RF-C3-AD-27
+        •      Hito: H6-C3
+        •      Prioridad: Esencial
+        •      Descripción: El sistema deberá, cuando falle la indexación de una versión nueva
+               de un documento ya publicado tras el reintento de RF-C3-AD-26, mantener en uso
+               la versión anterior conforme a RF-C3-IV-04, sin eliminar su contenido ni sus
+               vectores, y mantener la versión nueva en 'Pendiente de aprobación' sin que sus
+               fragmentos parciales sean recuperables.
+        •      Criterio de verificación: 3 reemplazos con fallo en ambos intentos: 5 consultas
+               recuperan solo el dato anterior, Qdrant conserva los vectores anteriores y la nueva
+               tiene 0 fragmentos, matriz con fila publicada intacta y fila pendiente; tras corregir
+               y republicar, la anterior se elimina (RF-C3-AD-20).
+        •      Entregable asociado: Base de conocimiento institucional estructurada; Panel o
+               mecanismo de actualización de la base documental.
+     4.7.1.28     RF-C3-AD-28
+        •      Hito: H6-C3
+        •      Prioridad: Esencial
+        •      Descripción: El sistema deberá mostrar al administrador técnico, en una sección
+               del panel, la lista de las notificaciones del sistema ordenadas de la más reciente a
+               la más antigua, con tipo, fecha y hora, descripción y estado ('No revisada' o
+               'Revisada'), y un contador de las 'No revisadas' en todas las pantallas, sin enviarlas
+               por correo ni por ningún canal externo al panel.
+        •      Criterio de verificación: 8 notificaciones de 8 tipos: lista ordenada con los 4 datos;
+               contador 8 en 3 pantallas; baja a 7 al revisar una; 0 envíos de correo; invisible al
+               Gestor.
+        •      Entregable asociado: Panel o mecanismo de actualización de la base documental.
+     4.7.1.29     RF-C3-AD-29
+        •      Hito: H6-C3
+        •      Prioridad: Esencial
+        •      Descripción: El sistema deberá permitir al administrador técnico marcar como
+               'Revisada' una notificación del sistema desde la sección de notificaciones,
+               registrando su usuario, fecha y hora, y deberá conservarla en la lista con ese
+               estado y descontarla del contador de 'No revisadas'.
+        •      Criterio de verificación: 5 notificaciones del sistema: el administrador marca 4
+               (una por vez) con usuario, fecha y hora, contador de 5 a 1, siguen en la lista; Gestor
+               denegado para las del sistema (puede marcar las suyas, RF-C3-AD-31).
+        •      Entregable asociado: Panel o mecanismo de actualización de la base documental.
+     4.7.1.30     RF-C3-AD-30
+        •      Hito: H6-C3
+        •      Prioridad: Importante
+        •      Descripción: El sistema deberá agrupar en una sola notificación 'No revisada' las
+               repetidas del mismo tipo y objeto (enlace, documento o cuenta), incrementando
+               un contador de repeticiones y actualizando la fecha y hora de la última ocurrencia,
+               y deberá crear una notificación nueva con contador en 1 cuando el mismo evento
+               ocurra después de que la anterior haya sido marcada 'Revisada'.
+        •      Criterio de verificación: 4 fallas del scraper sobre un enlace: 1 notificación con
+               contador 4; segundo enlace: notificación aparte; tras revisar la primera y nueva
+               falla: nueva con contador 1; el contador de 'No revisadas' cuenta cada agrupada
+               una vez.
+        •      Entregable asociado: Panel o mecanismo de actualización de la base documental.
+     4.7.1.31     RF-C3-AD-31
+        •      Hito: H6-C3
+        •      Prioridad: Importante
+        •      Descripción: El sistema deberá mostrar al Gestor documental, en una sección del
+               panel, únicamente las notificaciones generadas por sus propias cargas (rechazo
+               del documento con su motivo, descarte por OCR bajo el umbral y falla de
+               indexación), con tipo, fecha y hora, documento, descripción y estado, junto con
+               un contador de las 'No revisadas', y deberá permitirle marcarlas 'Revisada'
+               conforme a RF-C3-AD-29 y RF-C3-AD-30, sin mostrarle las demás notificaciones
+               del sistema ni las de otros usuarios.
+        •      Criterio de verificación: Gestores A y B con 3 eventos de A, 1 de B y 2 del sistema:
+               A ve sus 3 con contador 3; B solo la suya; ninguno ve las del sistema; A marca una
+               y baja a 2; marcar ajena o del sistema denegado; rechazo muestra el motivo;
+               segundo descarte por OCR se agrupa con contador 2.
+        •      Entregable asociado: Panel o mecanismo de actualización de la base documental.
+     4.7.1.32     RF-C3-AD-32
+        •      Hito: H6-C3
+        •      Prioridad: Importante
+        •      Descripción: El sistema deberá mostrar al Gestor documental, en el panel, la matriz
+               documental completa en solo lectura, con un filtro que limite la lista a los
+               documentos cargados por su propio usuario, y no deberá ofrecerle en esa vista
+               ninguna acción de publicar, rechazar, retirar ni editar documentos.
+        •      Criterio de verificación: Matriz de 10 documentos (4 propios, 3 de otro Gestor, 3
+               del scraper): ve las 10 filas; el filtro deja 4 con su estado; sin controles de publicar,
+               rechazar, retirar ni editar; 4 llamadas directas denegadas; el administrador técnico
+               sí tiene esas acciones.
+        •      Entregable asociado: Matriz documental de trámites ambientales; Panel o
+               mecanismo de actualización de la base documental.
+     4.7.1.33     RF-C3-AD-33
+        •      Hito: H6-C3
+        •      Prioridad: Importante
+        •      Descripción: El sistema deberá mostrar al Gestor documental, en el panel, la lista
+               de sus propias propuestas de enlace con tipo de solicitud, URL, fecha y hora y
+               estado ('Pendiente de validación', 'Aprobada', 'Rechazada' o 'Retirada'), y deberá
+               mostrar el motivo escrito por el administrador técnico en las rechazadas, sin
+               mostrarle las de otros usuarios.
+        •      Criterio de verificación: A registra 3 propuestas y B 1; el administrador aprueba 1,
+               rechaza 1 con motivo y deja 1 pendiente: A ve sus 3 con los 5 datos y estados
+               correctos, el motivo coincide, B solo la suya, llamada directa a las de B denegada.
+        •      Entregable asociado: Panel o mecanismo de actualización de la base documental.
+     4.7.1.34     RF-C3-AD-34
+        •      Hito: H6-C3
+        •      Prioridad: Importante
+        •      Descripción: El sistema deberá permitir al Gestor documental retirar desde el panel
+               una propuesta de enlace propia en estado 'Pendiente de validación', cambiando
+               su estado a 'Retirada' y excluyéndola de las propuestas por validar del
+               administrador técnico, y deberá rechazar el retiro de una propuesta que no esté
+               pendiente o que sea de otro usuario.
+        •      Criterio de verificación: A con 4 propuestas (pendiente, aprobada, rechazada,
+               pendiente) y B con 1: A retira su pendiente y pasa a 'Retirada'; el administrador ya
+               no la ve; lista de enlaces sin cambios; retirar aprobada, rechazada o ajena se
+               rechaza; la otra pendiente sigue pendiente.
+        •      Entregable asociado: Panel o mecanismo de actualización de la base documental.
+     4.7.1.35     RF-C3-AD-35
+        •      Hito: H6-C3
+        •      Prioridad: Esencial
+        •      Descripción: El sistema deberá permitir al administrador técnico modificar desde
+               el panel el valor de cada uno de los canales oficiales de recepción (PQRSD,
+               WhatsApp y correo electrónico), validando que PQRSD sea una URL https,
+               WhatsApp un número con solo dígitos y símbolos permitidos y el correo una
+               dirección válida, y deberá rechazar el guardado, indicando el campo y el motivo,
+               cuando el valor esté vacío o incumpla ese formato, sin permitir quitar ninguno de
+               los tres canales.
+        •      Criterio de verificación: 8 intentos: 3 válidos (uno por canal) con valor nuevo en
+               la siguiente respuesta sin redespliegue (RF-C3-DI-24); 4 inválidos (PQRSD con
+               http, WhatsApp con letras, correo sin dominio, campo vacío) rechazados; sin
+               función para quitar un canal; Gestor denegado.
+        •      Entregable asociado: Panel o mecanismo de actualización de la base documental;
+               Orientación sobre requisitos, procedimientos y rutas de atención.
+     4.7.1.36     RF-C3-AD-36
+        •      Hito: H6-C3
+        •      Prioridad: Esencial
+        •      Descripción: El sistema deberá permitir al administrador técnico modificar desde
+               el panel los tres datos del contacto general (teléfono, correo electrónico y enlace
+               a la página oficial de contacto), validando que el teléfono contenga solo dígitos y
+               símbolos permitidos, que el correo sea válido y que el enlace use https, y deberá
+               rechazar el guardado, indicando el campo y el motivo, cuando algún valor esté
+               vacío o incumpla ese formato.
+        •      Criterio de verificación: 7 intentos: 3 válidos con valor nuevo en el servicio de RF-
+               C3-IN-10 y en una consulta ajena a las 3 Direcciones (RF-C3-DI-20) sin
+               redespliegue; 4 inválidos (teléfono con letras, correo sin dominio, enlace http,
+               campo vacío) rechazados; Gestor denegado.
+        •      Entregable asociado: Panel o mecanismo de actualización de la base documental;
+               Definición de alcance y límites del ChatBot.
+     4.7.1.37     RF-C3-AD-37
+        •      Hito: H6-C3
+        •      Prioridad: Esencial
+        •      Descripción: El sistema deberá permitir al administrador técnico agregar,
+               modificar, quitar y reordenar desde el panel los canales de atención inmediata,
+               cada uno con nombre, descripción de máximo 120 caracteres y valor (teléfono,
+               correo o URL https) validado por formato, y deberá rechazar el guardado,
+               indicando el campo y el motivo, cuando falte un dato, el valor incumpla el formato
+               o la acción deje la lista sin ningún canal.
+        •      Criterio de verificación: 10 acciones: 6 válidas (3 altas, 1 modificación, 1 reorden,
+               1 baja que deja al menos un canal) con la opción 'Emergencia' y RF-C3-DI-19
+               reflejando orden y valores sin redespliegue; 4 inválidas (descripción de 121
+               caracteres, formato errado, campo vacío, quitar el último canal) rechazadas;
+               Gestor denegado.
+        •      Entregable asociado: Panel o mecanismo de actualización de la base documental;
+               Orientación sobre requisitos, procedimientos y rutas de atención.
+     4.7.1.38     RF-C3-AD-38
+        •      Hito: H6-C3
+        •      Prioridad: Esencial
+        •      Descripción: El sistema deberá cambiar a estado 'Vencido' en la matriz, al fin del
+               día de su fecha de validez (zona horaria America/Bogotá), todo documento
+               publicado con fecha de validez diligenciada, excluyéndolo de la recuperación
+               conforme a RF-C3-AD-03, y generar una notificación única para el administrador
+               técnico con el documento y la fecha de vencimiento.
+        •      Criterio de verificación: Reloj simulado y 4 documentos con validez ayer, hoy,
+               mañana y sin fecha: el de ayer no se recupera, queda 'Vencido' y genera 1
+               notificación; el de hoy se recupera hasta las 23:59:59; mañana y sin fecha se
+               recuperan.
+        •      Entregable asociado: Base de conocimiento institucional estructurada.
+     4.7.1.39     RF-C3-AD-39
+        •      Hito: H6-C3
+        •      Prioridad: Importante
+        •      Descripción: El sistema deberá permitir al administrador técnico editar desde el
+               panel el título, tipo, dirección, enlace, procedimiento asociado, versión, fecha de
+               última actualización y fecha de validez de un documento publicado, pendiente o
+               vencido, sin cargar un archivo nuevo, aplicando las validaciones de RF-C3-AD-01,
+               y deberá reflejar el cambio en la matriz y en las citas desde la siguiente consulta,
+               sin modificar el contenido del documento.
+        •      Criterio de verificación: 6 ediciones: 3 válidas (título, enlace, fecha de validez
+               futura en un 'Vencido') y 3 inválidas (título vacío, enlace http, dirección fuera de
+               lista). Matriz y cita reflejan el cambio, el 'Vencido' vuelve a 'Publicado', hash sin
+               cambio, inválidas rechazadas, Gestor denegado.
+        •      Entregable asociado: Matriz documental de trámites ambientales; Panel o
+               mecanismo de actualización de la base documental.
+     4.7.1.40     RF-C3-AD-40
+        •      Hito: H6-C3
+        •      Prioridad: Esencial
+        •      Descripción: El sistema deberá mostrar al administrador técnico, en una sección
+               del panel, la bandeja de elementos pendientes (documentos 'Pendiente de
+               aprobación' y propuestas 'Pendiente de validación') con tipo, nombre o URL,
+               origen, fecha y días transcurridos, ordenada del más antiguo al más reciente, y un
+               contador de pendientes visible en todas las pantallas.
+        •      Criterio de verificación: 3 documentos pendientes (uno de 40 días) y 2
+               propuestas: bandeja con 5 ordenados del más antiguo y días correctos; contador
+               5 en 3 pantallas; baja a 4 al publicar uno; invisible al Gestor.
+        •      Entregable asociado: Panel o mecanismo de actualización de la base documental.
+     4.7.1.41     RF-C3-AD-41
+        •      Hito: H6-C3
+        •      Prioridad: Esencial
+        •      Descripción: El sistema deberá registrar, por cada acción del panel que modifique
+               datos (cargas, publicaciones, rechazos, retiros, ediciones, cambios de enlaces,
+               gestión de cuentas, cambios de contacto) y por cada ejecución del procedimiento
+               de RF-C3-AD-13, el usuario o rol de base de datos, la acción, el objeto afectado,
+               la fecha y hora y el resultado, sin registrar contraseñas ni contenido de
+               documentos, y deberá permitir al administrador técnico consultarlo filtrado por
+               usuario, acción y rango de fechas, sin función para editarlo o borrarlo.
+        •      Criterio de verificación: 12 acciones de tipos distintos y 1 ejecución del
+               procedimiento: 13 filas con los 5 datos; 0 coincidencias de contraseñas y
+               contenido; 3 filtros correctos; sin edición ni borrado; invisible al Gestor.
+        •      Entregable asociado: Panel o mecanismo de actualización de la base documental.
+     4.7.1.42     RF-C3-AD-42
+        •      Hito: H6-C3
+        •      Prioridad: Importante
+        •      Descripción: El sistema deberá permitir al administrador técnico modificar desde
+               el panel la tarifa en USD por millón de tokens de entrada y de salida de cada uno
+               de los dos modelos habilitados, validando que sea un número positivo con hasta 4
+               decimales, aplicándola solo a las consultas posteriores al guardado, sin recalcular
+               registros anteriores.
+        •      Criterio de verificación: 4 cambios válidos y 3 inválidos (cero, negativo, texto); 4
+               consultas (2 por modelo): costo coincide con el cálculo a mano; registros
+               anteriores sin cambio; inválidos rechazados; Gestor denegado.
+        •      Entregable asociado: Panel o mecanismo de actualización de la base documental.
+     4.7.1.43     RF-C3-AD-43
+        •      Hito: H6-C3
+        •      Prioridad: Importante
+        •      Descripción: El sistema deberá mostrar al administrador técnico, en un tablero y
+               para un rango de fechas (por defecto 30 días), el total de consultas, las de cada
+               día, las de cada categoría enviada y las de cada tipo de resultado, indicando que
+               las dos últimas cifras provienen solo de conversaciones con 'Autorizo' y
+               mostrando aparte las consultas anónimas.
+        •      Criterio de verificación: 40 consultas (25 en conversación, 15 anónimas): total 40;
+               por categoría y por tipo suman 25; anónimas aparte con 15; coinciden con conteo
+               en PostgreSQL; filtro de fechas correcto; invisible al Gestor.
+        •      Entregable asociado: Registro básico de interacciones; Panel o mecanismo de
+               actualización de la base documental.
+     4.7.1.44     RF-C3-AD-44
+        •      Hito: H6-C3
+        •      Prioridad: Importante
+        •      Descripción: El sistema deberá mostrar al administrador técnico, para el mismo
+               rango de fechas, el ranking de los 10 documentos más citados en las respuestas,
+               con nombre, dirección responsable y número de citas, de mayor a menor y, en
+               empate, por nombre.
+        •      Criterio de verificación: 20 respuestas con 12 documentos y un empate: ranking
+               de 10 con citas correctas, empate por nombre, coincide con conteo directo; el
+               modo anónimo lo indica.
+        •      Entregable asociado: Registro básico de interacciones; Panel o mecanismo de
+               actualización de la base documental.
+     4.7.1.45     RF-C3-AD-45
+        •      Hito: H6-C3
+        •      Prioridad: Importante
+        •      Descripción: El sistema deberá mostrar al administrador técnico, para el mismo
+               rango de fechas, el número de valoraciones 'Útil' y 'No útil', el porcentaje de cada
+               una y el número de 'No útil' por cada uno de los 5 motivos.
+        •      Criterio de verificación: 10 valoraciones (5 'Útil', 5 'No útil', una por motivo): 5 y 5,
+               50 % y 50 % , 1 por motivo; coincide con conteo directo; el modo anónimo no
+               aporta.
+        •      Entregable asociado: Registro básico de interacciones; Registro de preguntas sin
+               respuesta o casos de mejora.
+     4.7.1.46     RF-C3-AD-46
+        •      Hito: H6-C3
+        •      Prioridad: Importante
+        •      Descripción: El sistema deberá mostrar al administrador técnico, para el mismo
+               rango de fechas, por cada modelo habilitado, el número de consultas atendidas,
+               los tokens de entrada y de salida y el costo estimado, y el costo estimado total, a
+               partir de los registros de RF-C3-DI-16.
+        •      Criterio de verificación: 20 consultas (10 por modelo; 5 en conversación y 5
+               anónimas por modelo): cifras por modelo y total coinciden con los registros y con
+               el recálculo a mano; incluyen las anónimas.
+        •      Entregable asociado: Panel o mecanismo de actualización de la base documental.
+     4.7.1.47     RF-C3-AD-47
+        •      Hito: H6-C3
+        •      Prioridad: Importante
+        •      Descripción: El sistema deberá permitir al administrador técnico iniciar desde el
+               panel una reindexación completa de los documentos publicados, mostrar su
+               estado ('En curso', 'Terminada' o 'Fallida') con hora de inicio y de fin, rechazar el
+               inicio de otra mientras haya una en curso, y mantener las consultas conforme a
+               RNF-C3-IV-02.
+        •      Criterio de verificación: 3 pruebas: reindexación con consulta cada 30 s, 0 errores
+               y 'Terminada' con las dos horas; fallo a mitad: 'Fallida', notificación y la base
+               anterior responde; segundo inicio durante una en curso rechazado; Gestor
+               denegado.
+        •      Entregable asociado: Panel o mecanismo de actualización de la base documental.
+     4.7.1.48     RF-C3-AD-48
+        •      Hito: H6-C3
+        •      Prioridad: Importante
+        •      Descripción: El sistema deberá mostrar al administrador técnico, en una pantalla
+               de estado del panel, la disponibilidad de cada uno de los dos modelos habilitados
+               con fecha y hora de su último fallo, el estado del reranker y si se aplica el umbral
+               de relevancia, la fecha, hora y resultado de la última ejecución del scraper, y el
+               estado de escritura del registro de interacciones.
+        •      Criterio de verificación: 5 estados forzados (modelo principal caído, ambos
+               caídos, reranker apagado, scraper con error, escritura del registro fallando): cada
+               uno visible en menos de 60 s; con todo normal lo indica; invisible al Gestor.
+        •      Entregable asociado: Panel o mecanismo de actualización de la base documental.
+     4.7.1.49     RF-C4-AD-01
+        •      Hito: H5-C4
+        •      Prioridad: Esencial
+        •      Descripción: El sistema deberá permitir al administrador técnico consultar en el
+               panel las interacciones registradas en modo conversación, con fecha y hora,
+               categoría, texto de la pregunta, texto de la respuesta, tipo de resultado,
+               documentos citados, modelo y valoración, filtradas por rango de fechas, categoría,
+               tipo de resultado y valoración, con paginación, mostrando los datos personales
+               como están enmascarados en el registro (RF-C3-IN-06) y sin función para editar
+               o borrar interacciones.
+        •      Criterio de verificación: 30 interacciones (20 en conversación, con cédula,
+               teléfono y correo en 5; 10 anónimas): lista solo las 20 con los 9 datos y datos
+               personales enmascarados; 4 filtros correctos; sin edición ni borrado; el Gestor no
+               ve la sección.
+        •      Entregable asociado: Registro básico de interacciones; Panel administrativo o
+               mecanismo de actualización.
+     4.7.1.50     RF-C4-AD-02
+        •      Hito: H5-C4
+        •      Prioridad: Importante
+        •      Descripción: El sistema deberá permitir al administrador técnico exportar en
+               formato .xlsx las interacciones que resulten del filtro aplicado en RF-C4-AD-01,
+               con las mismas columnas y sin identificadores de conversación ni de respuesta.
+        •      Criterio de verificación: Filtro de 12 de las 20: .xlsx abre en Excel o LibreOffice
+               con 12 filas y columnas de RF-C4-AD-01, sin identificadores y con datos
+               personales enmascarados; el Gestor no puede exportar.
+        •      Entregable asociado: Registro básico de interacciones.
+     4.7.1.51     RF-C4-AD-03
+        •      Hito: H5-C4
+        •      Prioridad: Esencial
+        •      Descripción: El sistema deberá crear automáticamente un caso de mejora, en
+               estado 'Registrada', por cada interacción en modo conversación cuyo tipo de
+               resultado sea 'sin información' o cuya valoración sea 'No útil', registrando fecha y
+               hora, categoría, texto de la pregunta, origen y motivo de la valoración cuando
+               exista, y no deberá crear casos a partir de interacciones anónimas.
+        •      Criterio de verificación: 8 interacciones (2 'sin información', 2 'No útil' con
+               motivos distintos, 1 con ambas, 2 respondidas, 1 anónima 'sin información'): 5
+               casos con los datos pedidos, el de ambas con los dos orígenes y un solo caso; 0
+               casos de las otras 3.
+        •      Entregable asociado: Registro de preguntas sin respuesta o casos de mejora.
+     4.7.1.52     RF-C4-AD-04
+        •      Hito: H5-C4
+        •      Prioridad: Esencial
+        •      Descripción: El sistema deberá permitir al administrador técnico avanzar un caso
+               de mejora por los estados 'Registrada', 'En análisis', 'En ajuste', 'Ajustada',
+               'Validada' y 'Cerrada', en ese orden y sin saltar ni retroceder, asignarle el tipo de
+               fallo (clasificación de RF-C3-VA-04), y deberá exigir el tipo de fallo para pasar a
+               'En ajuste' y una nota de texto para pasar a 'Cerrada', registrando usuario, fecha
+               y hora de cada cambio.
+        •      Criterio de verificación: 3 casos recorridos hasta 'Cerrada' con usuario, fecha y
+               hora en cada estado; 6 intentos inválidos (saltar estado, retroceder, 'En ajuste' sin
+               tipo de fallo, cerrar sin nota, 2 con Gestor) rechazados sin cambios.
+        •      Entregable asociado: Registro de preguntas sin respuesta o casos de mejora.
+     4.7.1.53     RF-C4-AD-05
+        •      Hito: H5-C4
+        •      Prioridad: Importante
+        •      Descripción: El sistema deberá mostrar al administrador técnico la lista de casos
+               de mejora con fecha, categoría, origen, tipo de fallo, estado y antigüedad en días,
+               filtrable por estado, tipo de fallo y rango de fechas, y un contador de casos no
+               cerrados visible en todas las pantallas del panel.
+        •      Criterio de verificación: 6 casos (2 cerrados, uno de 45 días): lista con 6; 3 filtros
+               correctos; contador 4 en 3 pantallas; baja a 3 al cerrar uno; el Gestor no ve la
+               sección.
+        •      Entregable asociado: Registro de preguntas sin respuesta o casos de mejora;
+               Panel administrativo o mecanismo de actualización.
+     4.7.2 Requisitos No Funcionales.
+     4.7.2.1      RNF-C3-AD-01
+        •      Componente: C3
+        •      Categoría: Seguridad (autenticidad).
+        •      Descripción: Exigir autenticación con usuario y contraseña para acceder a
+               cualquier pantalla o servicio del panel, y rechazar con respuesta 401, sin devolver
+               datos, toda solicitud sin sesión válida.
+        •      Métrica o umbral: 0 pantallas o servicios accesibles sin sesión válida.
+        •      Criterio de verificación: 8 accesos sin sesión (4 rutas por URL y 4 servicios), 1 con
+               sesión expirada y 1 tras cerrar sesión: los 10 reciben 401 o redirección sin datos;
+               con sesión válida funciona.
+     4.7.2.2      RNF-C3-AD-02
+        •      Componente: C3
+        •      Categoría: Seguridad (autenticidad).
+        •      Descripción: Rechazar toda contraseña de menos de 12 caracteres al crear una
+               cuenta o al cambiarla, sin exigir mayúsculas, números ni símbolos, e informar la
+               longitud mínima.
+        •      Métrica o umbral: Mínimo 12 caracteres; 0 contraseñas menores aceptadas.
+        •      Criterio de verificación: 6 intentos (3 al crear, 3 al cambiar): una de 11 caracteres,
+               una de 12 solo en minúsculas y una de 12 con mayúsculas y números; las de 11 se
+               rechazan, las de 12 se aceptan.
+     4.7.2.3      RNF-C3-AD-03
+        •      Componente: C3
+        •      Categoría: Seguridad (confidencialidad).
+        •      Descripción: Almacenar las contraseñas únicamente como resultado de un cifrado
+               unidireccional con sal única por cuenta, con argon2id y parámetros documentados
+               en el manual técnico, sin guardar ni registrar contraseñas en texto plano en la base,
+               los registros técnicos, las notificaciones ni las respuestas del servicio.
+        •      Métrica o umbral: 0 contraseñas en texto plano; 100 % de cuentas con valor
+               cifrado y sal distinta.
+        •      Criterio de verificación: 3 cuentas con la misma contraseña: 3 valores distintos
+               con formato argon2id; búsqueda en toda la base; 8 operaciones (inicios, cambio,
+               temporal, procedimiento de RF-C3-AD-13, error forzado) revisando registros,
+               notificaciones y respuestas: 0 coincidencias.
+     4.7.2.4      RNF-C3-AD-04
+        •      Componente: C3
+        •      Categoría: Seguridad (resistencia a ataques).
+        •      Descripción: Bloquear el inicio de sesión de una cuenta durante 15 minutos tras 5
+               intentos fallidos consecutivos, rechazando en ese lapso todo intento con esa
+               cuenta, incluido uno con la contraseña correcta, y reiniciar el contador con cada
+               inicio exitoso. El bloqueo genera la notificación de cuenta bloqueada (cuenta,
+               fecha y hora) de RF-C3-AD-28.
+        •      Métrica o umbral: 5 intentos; 15 minutos; 0 inicios aceptados durante el bloqueo.
+        •      Criterio de verificación: Reloj simulado: 5 fallidos y un 6.º correcto rechazado (14
+               min rechazado, 16 min aceptado); 4 fallidos, 1 exitoso y 4 fallidos sin bloqueo;
+               mensajes idénticos para contraseña errónea, cuenta bloqueada y correo
+               inexistente; aparece la notificación.
+     4.7.2.5      RNF-C3-AD-05
+        •      Componente: C3
+        •      Categoría: Seguridad (autenticidad).
+        •      Descripción: Cerrar la sesión de un usuario del panel tras 30 minutos sin ninguna
+               solicitud suya al servidor, y rechazar con 401, sin devolver datos, toda solicitud
+               posterior con esa sesión.
+        •      Métrica o umbral: 30 minutos; 0 solicitudes aceptadas con sesión vencida.
+        •      Criterio de verificación: Reloj simulado: a 29 min se acepta; a 31 min 401; una
+               solicitud cada 20 min durante 90 min mantiene la sesión.
+     4.7.2.6      RNF-C3-AD-06
+        •      Componente: C3
+        •      Categoría: Seguridad (resistencia a ataques).
+        •      Descripción: Bloquear durante 15 minutos las solicitudes de inicio de sesión del
+               panel provenientes de una IP que acumule 20 intentos fallidos en una ventana
+               deslizante de 15 minutos, contando cualquier cuenta, rechazándolas con 429 y
+               Retry-After sin verificar credenciales, e identificando la IP por el encabezado del
+               proxy, ignorando el del cliente.
+        •      Métrica o umbral: 20 intentos fallidos por IP en 15 min; bloqueo de 15 min; 0
+               intentos procesados desde una IP bloqueada.
+        •      Criterio de verificación: 4 recorridos: 20 fallidos sobre 5 cuentas y un 21.º
+               correcto con 429 (14 min bloqueado, 16 aceptado); 19 fallidos, 1 exitoso y 5 más
+               sin bloqueo; otra IP entra con normalidad; encabezado falsificado no evita el
+               bloqueo.
+     4.7.2.7      RNF-C3-AD-07
+        •      Componente: C3
+        •      Categoría: Seguridad (confidencialidad).
+        •      Descripción: Entregar a los tableros de RF-C3-AD-43 a RF-C3-AD-46 únicamente
+               cifras agregadas, sin el texto de preguntas ni de respuestas ni identificadores de
+               conversación o de respuesta.
+        •      Métrica o umbral: 0 textos y 0 identificadores en los servicios de los tableros.
+        •      Criterio de verificación: 10 consultas con textos e identificadores conocidos;
+               inspección de las respuestas de los 4 tableros y de la pantalla: 0 coincidencias.
+     4.7.2.8      RNF-C3-AD-08
+        •      Componente: C3
+        •      Categoría: Eficiencia de desempeño.
+        •      Descripción: Cargar cada pantalla del panel (bandeja, matriz, notificaciones,
+               auditoría y los cuatro tableros) con un percentil 95 de 3 segundos o menos, con
+               1.000 documentos en la matriz, 100.000 registros de interacciones y 10.000
+               registros de auditoría.
+        •      Métrica o umbral: p95 de 3 s o menos por pantalla.
+        •      Criterio de verificación: En producción (C6) con esos volúmenes simulados: 20
+               cargas por pantalla, repetidas en 2 días.
+     4.7.2.9      RNF-C3-AD-09
+        •      Componente: C3
+        •      Categoría: Usabilidad (accesibilidad).
+        •      Descripción: Cumplir en todas las pantallas del panel el mismo nivel de
+               accesibilidad de RNF-C4-UI-02 (WCAG 2.1, niveles A y AA).
+        •      Métrica o umbral: 0 incumplimientos A o AA y 100 % de la lista manual.
+        •      Criterio de verificación: axe-core en cada pantalla, recorrido completo solo con
+               teclado y revisión con un lector de pantalla.

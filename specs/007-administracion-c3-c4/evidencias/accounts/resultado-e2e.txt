@@ -1,0 +1,7 @@
+  ✓  1 [chromium] › test/admin/accounts.spec.ts:7:5 › el técnico crea una cuenta, ve errores por campo y confirma o cancela la desactivación (2.3s)
+  ✓  2 [chromium] › test/admin/accounts.spec.ts:46:5 › el último técnico no puede desactivarse ni cambiarse a Gestor: el motivo se muestra y no cambia nada (741ms)
+  ✓  3 [chromium] › test/admin/accounts.spec.ts:62:5 › cuenta con contraseña temporal: solo puede cambiarla; la URL directa a otra pantalla vuelve a la de cambio (933ms)
+  ✓  4 [chromium] › test/admin/accounts.spec.ts:86:5 › el Gestor no ve enlaces técnicos y la URL directa de cuentas no revela datos (377ms)
+  ✓  5 [chromium] › test/admin/accounts.spec.ts:98:5 › sin sesión, las pantallas protegidas llevan al inicio de sesión sin mostrar contenido (90ms)
+  ✓  6 [chromium] › test/admin/accounts.spec.ts:104:5 › la pantalla abierta e ignorada deja de consultar y cierra la sesión a los 30 minutos sin interacción (617ms)
+  6 passed (7.4s)

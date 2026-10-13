@@ -1,0 +1,9 @@
+backend r-unit: ℹ tests 359 ℹ pass 359 ℹ fail 0 
+backend r-admin-unit: ℹ tests 7 ℹ pass 7 ℹ fail 0 
+backend r-admin-int: ℹ tests 76 ℹ pass 76 ℹ fail 0 
+backend r-kb: ℹ tests 57 ℹ pass 57 ℹ fail 0 
+backend r-di: ℹ tests 75 ℹ pass 74 ℹ fail 1 
+backend r-ui: ℹ tests 21 ℹ pass 21 ℹ fail 0 
+backend r-in: ℹ tests 75 ℹ pass 75 ℹ fail 0 
+nota: r-di tuvo 1 fallo (admin-operations «8 tipos de aviso…») bajo carga concurrente; aislado pasa 3/3 veces.
+scraper: Ran 89 tests in 0.804s  OK 

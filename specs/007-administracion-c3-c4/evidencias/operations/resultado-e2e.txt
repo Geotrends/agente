@@ -1,0 +1,4 @@
+  ✓  1 [chromium] › test/admin/operations.spec.ts:7:5 › el técnico revisa avisos del sistema; el contador del menú baja y los revisados siguen en la lista (1.4s)
+  ✓  2 [chromium] › test/admin/operations.spec.ts:29:5 › el Gestor ve únicamente los avisos de carga propios, no los del sistema, y no accede a auditoría ni pendientes (518ms)
+  ✓  3 [chromium] › test/admin/operations.spec.ts:47:5 › el técnico consulta la auditoría con filtros y la bandeja de pendientes (459ms)
+  3 passed (3.8s)

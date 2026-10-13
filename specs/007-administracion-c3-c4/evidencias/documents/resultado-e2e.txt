@@ -1,0 +1,3 @@
+  ✓  1 [chromium] › test/admin/documents.spec.ts:19:5 › el Gestor carga un documento, ve N/A y filtra sus cargas; no tiene acciones técnicas (1.6s)
+  ✓  2 [chromium] › test/admin/documents.spec.ts:49:5 › el técnico publica (202 → En curso → Terminada) y retira con motivo; cancelar no cambia nada (2.3s)
+  2 passed (5.6s)

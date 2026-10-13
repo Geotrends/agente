@@ -1,0 +1,28 @@
+✔ AD01/02/32: 6 cargas (3 válidas con ambos perfiles, 3 inválidas) y matriz con N/A (804.015541ms)
+✔ carga: formato por estructura, orden metadata→archivo, tamaño, claves desconocidas y desconexión (251.767458ms)
+✔ AD32: el Gestor ve toda la matriz (10 filas), filtra las propias (4) y no puede ejecutar acciones directas (28.667333ms)
+✔ AD03/AD04: lo pendiente no se recupera; publicado se recupera y cita; sin errores durante la indexación (2080.875166ms)
+✔ AD20: 3 reemplazos (manual, scraper, con tablas) dejan solo el dato nuevo y 0 copias del anterior (4301.0685ms)
+✔ AD22: rechazos (2 manuales, 2 scraper) con motivo; sin motivo y Gestor denegados; la publicada sigue respondiendo (531.023167ms)
+✔ AD23: lo rechazado no reaparece tras 2 ejecuciones; una huella nueva vuelve a pendiente y las demás siguen omitidas (30.509625ms)
+✔ AD24/25: retiros (2 manuales, 2 scraper, uno con tablas) con motivo y confirmación; luego el scraper no los repone (3527.608042ms)
+✔ AD26/27: reintento exitoso sin aviso; dos fallos dejan pendiente, anterior intacto y aviso seguro; se republica tras corregir (3029.673791ms)
+✔ AD38: vigencia civil de Bogotá (ayer/hoy/mañana/sin fecha), un solo aviso y 23:59:59 aún disponible (1436.373542ms)
+✔ AD39: 3 ediciones válidas y 3 inválidas; la cita refleja el cambio, el vencido vuelve a Publicado y el hash no cambia (692.382333ms)
+✔ AD47: reindexación con consultas continuas, 'Terminada' con inicio/fin; fallo a mitad → 'Fallida' y la base anterior responde; segunda activa → 409 (3526.11925ms)
+✔ la generación activa y el manifiesto son la autoridad; el alias es un espejo reconciliable (1719.819ms)
+✔ reinicio durante la preparación: la candidata parcial se elimina y se verifica antes del reintento (344.88025ms)
+✔ reinicio después del commit: reconcilia el alias, limpia la colección anterior y termina sin repetir la indexación (383.037458ms)
+✔ idempotencia: misma clave y cuerpo → misma operación; otro cuerpo → 409; dos reindexaciones simultáneas → una 202 y una 409 (561.238458ms)
+✔ una revisión obsoleta o un documento sin candidata no encola nada (24.788625ms)
+✔ lo retirado o vencido que quedó en la colección no se recupera (validación SQL por consulta) (441.464542ms)
+✔ sin poder validar en SQL la consulta falla (indisponibilidad), nunca responde «sin información» (1.418667ms)
+✔ revalidación antes de entregar: si la evidencia cambió se busca una vez más; si vuelve a cambiar, error seguro (346.815833ms)
+ℹ tests 20
+ℹ suites 0
+ℹ pass 20
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 26052.904209

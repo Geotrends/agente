@@ -1,0 +1,84 @@
+{
+  "requisito": "RNF-C3-AD-08",
+  "entorno": "aislado-local",
+  "release": "local-spec007",
+  "fechaBogota": "2026-10-11",
+  "dia": "1",
+  "acreditaAceptacion": false,
+  "volumen": {
+    "documentos": 1000,
+    "interacciones": 100000,
+    "auditorias": 10001
+  },
+  "volumenFaltante": [],
+  "muestrasPorPantalla": 20,
+  "umbralMs": 3000,
+  "pantallas": [
+    {
+      "pantalla": "bandeja",
+      "muestras": 20,
+      "errores": 0,
+      "p95Ms": 1.8657079999998132,
+      "maxMs": 2.094500000000153,
+      "cumple": true
+    },
+    {
+      "pantalla": "matriz",
+      "muestras": 20,
+      "errores": 0,
+      "p95Ms": 2.19275000000016,
+      "maxMs": 2.2444579999996677,
+      "cumple": true
+    },
+    {
+      "pantalla": "notificaciones",
+      "muestras": 20,
+      "errores": 0,
+      "p95Ms": 1.7038330000000315,
+      "maxMs": 2.0130420000000413,
+      "cumple": true
+    },
+    {
+      "pantalla": "auditoria",
+      "muestras": 20,
+      "errores": 0,
+      "p95Ms": 1.1714999999999236,
+      "maxMs": 1.2201669999999467,
+      "cumple": true
+    },
+    {
+      "pantalla": "tablero-uso",
+      "muestras": 20,
+      "errores": 0,
+      "p95Ms": 54.60145900000043,
+      "maxMs": 55.007208999999875,
+      "cumple": true
+    },
+    {
+      "pantalla": "tablero-documentos",
+      "muestras": 20,
+      "errores": 0,
+      "p95Ms": 37.357334000000264,
+      "maxMs": 38.25575000000026,
+      "cumple": true
+    },
+    {
+      "pantalla": "tablero-valoraciones",
+      "muestras": 20,
+      "errores": 0,
+      "p95Ms": 0.7062919999998485,
+      "maxMs": 1.0471669999997175,
+      "cumple": true
+    },
+    {
+      "pantalla": "tablero-consumo",
+      "muestras": 20,
+      "errores": 0,
+      "p95Ms": 15.054000000000087,
+      "maxMs": 15.112291999999798,
+      "cumple": true
+    }
+  ],
+  "cumpleTodas": true,
+  "nota": "Medición CONTROLADA sobre datos sintéticos aislados: no acredita el requisito del cliente."
+}

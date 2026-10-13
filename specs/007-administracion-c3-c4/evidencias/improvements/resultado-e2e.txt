@@ -1,0 +1,3 @@
+  ✓  1 [chromium] › test/admin/improvements.spec.ts:7:5 › el técnico avanza un caso: tipo de fallo para En ajuste y nota para Cerrada; no hay saltos (1.5s)
+  ✓  2 [chromium] › test/admin/improvements.spec.ts:28:5 › el Gestor no ve la sección de mejoras ni su contador (394ms)
+  2 passed (3.3s)

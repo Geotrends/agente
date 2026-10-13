@@ -1,0 +1,7 @@
+# Regresión KB/DI tras US2 (controlada, 2026-10-11)
+kb-integracion: ℹ tests 57
+kb-integracion: ℹ pass 57
+kb-integracion: ℹ fail 0
+di-integracion: ℹ tests 75
+di-integracion: ℹ pass 75
+di-integracion: ℹ fail 0

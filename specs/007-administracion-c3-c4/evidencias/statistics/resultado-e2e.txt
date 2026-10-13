@@ -1,0 +1,4 @@
+  ✓  1 [chromium] › test/admin/statistics.spec.ts:7:5 › el técnico ve los cuatro tableros con tablas equivalentes y rango validado (1.2s)
+  ✓  2 [chromium] › test/admin/statistics.spec.ts:35:5 › tarifas: guarda USD con cuatro decimales y rechaza cinco decimales, cero y texto con error de campo (1.3s)
+  ✓  3 [chromium] › test/admin/statistics.spec.ts:55:5 › el Gestor no ve tableros ni tarifas: la API responde 403 (688ms)
+  3 passed (4.7s)

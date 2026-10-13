@@ -1,0 +1,3 @@
+  ✓  1 [chromium] › test/admin/links.spec.ts:15:5 › el Gestor registra, ve solo las suyas con el motivo del rechazo y retira una pendiente (2.3s)
+  ✓  2 [chromium] › test/admin/links.spec.ts:58:5 › el técnico agrega y quita enlaces con justificación; quitar muestra los documentos afectados (890ms)
+  2 passed (4.8s)

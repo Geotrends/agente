@@ -1,0 +1,18 @@
+✔ AD08: el último técnico no se desactiva ni cambia a Gestor; dos técnicos admiten desactivar uno; concurrencia segura (523.564459ms)
+✔ AD08: dos desactivaciones simultáneas en la base nunca dejan cero técnicos activos (102.863833ms)
+✔ AD05: alta válida sin secretos; faltantes y correo repetido indican el campo; nombre repetible (612.986334ms)
+✔ AD05: contraseña inicial menor de 12 puntos de código se rechaza con el mínimo; 12 emojis se aceptan (270.938167ms)
+✔ el Gestor recibe 403 sin datos en todas las rutas de cuentas (179.114292ms)
+✔ AD06/07: desactivar cierra sesiones y rechaza inicio; reactivar exige nuevo inicio; historia intacta (629.772583ms)
+✔ revisión obsoleta → 409 sin cambios; cuenta inexistente → 404; sin cambio permitido → 422 (181.864792ms)
+✔ AD10/11: temporal para otra cuenta; propia, corta o de Gestor se rechazan; el cambio obligatorio limita el acceso (1074.233125ms)
+✔ AD09: cambio propio exige contraseña actual; si es incorrecta no se modifica nada (443.633042ms)
+✔ AD12/13: recuperación reservada — solo el correo indicado, cambio forzado, auditoría y rol real; el runtime no puede ejecutarla (973.474417ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6343.552333

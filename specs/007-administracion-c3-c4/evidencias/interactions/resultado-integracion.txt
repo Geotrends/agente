@@ -1,0 +1,12 @@
+✔ AD-C4-01: 30 interacciones (20 autorizadas, 10 anónimas) → solo las 20 con los datos, enmascarados y sin identificadores; 4 filtros (550.41175ms)
+✔ AD-C4-02: exporta las filas del filtro en .xlsx con las 9 columnas, sin identificadores, con texto tipado y sin fórmulas (125.013542ms)
+✔ retención: lo depurado o con 12 meses cumplidos no expone texto aunque la purga se retrase; tampoco en la exportación (12.88775ms)
+✔ una sesión revocada o vencida cancela la exportación y no deja temporales (1.892959ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1357.81725

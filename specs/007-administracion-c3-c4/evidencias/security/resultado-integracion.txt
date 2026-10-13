@@ -1,0 +1,16 @@
+✔ RNF01: sin sesión → 401 sin datos en rutas protegidas (145.391667ms)
+✔ RNF03: tres cuentas con la misma contraseña → PHC distintos argon2id; ninguna contraseña legible en la base ni en respuestas (1469.987459ms)
+✔ RNF02: 11 vs 12 puntos de código al cambiar contraseña (557.215042ms)
+✔ RNF04: cinco fallos bloquean 15 min (incluida la contraseña correcta), éxito reinicia y se genera un solo aviso (1965.63575ms)
+✔ RNF06: 20 fallos por IP en 15 min → 429 + Retry-After sin verificar credenciales; ventana deslizante; cabecera falsificada no cambia la IP (2067.768875ms)
+✔ RNF06: la ventana es deslizante (19 fallos + 16 min + 1 no bloquea) y un éxito reinicia el conteo (1990.392083ms)
+✔ RNF04/06: contadores correctos con intentos concurrentes y persistentes (sin IP en claro) (2990.731416ms)
+✔ RNF05: sesión vence a los 30 min sin solicitudes; solicitudes cada 20 min por 90 min la mantienen (296.438958ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 11942.011417

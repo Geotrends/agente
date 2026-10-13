@@ -1,0 +1,13 @@
+✔ AD-C4-03: 8 interacciones → 5 casos (uno con dos orígenes), 0 de las respondidas y de la anónima; sin copia del texto (526.407792ms)
+✔ concurrencia: «sin información» y «No útil» de la misma interacción fusionan sus orígenes en un solo caso (3.756625ms)
+✔ AD-C4-04: 3 casos recorren los 6 estados con usuario y fecha; 6 intentos inválidos se rechazan sin cambios (46.218708ms)
+✔ evidencia: sin índice, huella ajena o corrida anterior al ajuste se rechazan; el cierre exige nota y no cierra hallazgos (13.688958ms)
+✔ AD-C4-05: 6 casos (2 cerrados, uno de 45 días): lista con 6, 3 filtros, contador 4 → 3 al cerrar uno; sin texto depurado (14.383917ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1138.582875

@@ -1,0 +1,15 @@
+✔ las semillas iniciales se siembran una sola vez desde la configuración desplegada (787.325417ms)
+✔ AD14: 8 propuestas — 3 válidas quedan pendientes con la lista idéntica; 5 inválidas indican el campo y no se guardan (13.965917ms)
+✔ AD15: hosts permitidos (6 aceptados, 8 rechazados con motivo) y la lista de hosts no es editable desde el panel (39.290833ms)
+✔ AD16: la lista cambia solo al aprobar; 2 rechazos con motivo visibles al Gestor; rechazo sin motivo y decisión del Gestor denegados (22.24875ms)
+✔ AD17: 2 acciones directas válidas con usuario/fecha; 4 inválidas, 2 con Gestor denegadas y la lista intacta (14.920041ms)
+✔ AD18/19: quitar un enlace conserva lo publicado, avisa con 5 datos solo al técnico y marca; reagregar la retira (242.299334ms)
+✔ AD33/34: cada Gestor ve solo sus propuestas con los 5 datos; retirar solo la pendiente propia; lo ajeno no se revela (17.86ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1957.568708

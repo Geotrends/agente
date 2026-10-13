@@ -1,0 +1,14 @@
+✔ AD43: 40 consultas (25 autorizadas, 15 anónimas): total 40, categorías y tipos suman 25, anónimas aparte; filtro de fechas; invisible al Gestor (527.14325ms)
+✔ AD44: 20 respuestas con 12 documentos y un empate → ranking de 10 con citas correctas, desempate por nombre; el modo anónimo lo indica (12.704875ms)
+✔ AD45: 10 valoraciones (5 Útil, 5 No útil, una por motivo) → 5 y 5, 50 % y 50 %, 1 por motivo; sin valoraciones → 0 % (7.953ms)
+✔ AD46: 20 consultas (10 por modelo; 5 autorizadas y 5 anónimas) → cifras por modelo y total exactas con costo recalculado a mano; NULL no es 0 (8.269667ms)
+✔ AD42: 4 cambios de tarifa válidos y 3 inválidos; costo a mano; los registros anteriores no cambian; Gestor denegado (52.567ms)
+✔ tarifas: dos ediciones simultáneas con la misma revisión → una aplica y la otra 409; nunca dos vigentes (3.631541ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1309.410666

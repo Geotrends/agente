@@ -1,0 +1,20 @@
+✔ AD28/29: 8 avisos de 8 tipos ordenados, contador 8 (y 7 al revisar uno), 0 correos; el Gestor no los ve y marcarlos se rechaza (731.447541ms)
+✔ AD30: 4 fallas del scraper sobre un enlace → 1 aviso con contador 4; otro enlace aparte; revisar y nueva falla → nuevo con 1 (9.963792ms)
+✔ AD31: cada Gestor ve solo los avisos de carga propios; marcar uno ajeno o del sistema se rechaza; el rechazo muestra el motivo; el segundo descarte OCR se agrupa (538.56675ms)
+✔ AD40: bandeja de 5 pendientes (3 documentos, uno de 40 días, y 2 propuestas) del más antiguo al más reciente; contador 5 → 4 al publicar (772.960833ms)
+✔ AD41: 12 acciones de modificación y 1 recuperación → 13 filas con 5 datos, sin contraseñas ni contenido; 3 filtros; solo lectura; invisible al Gestor (682.070125ms)
+✔ AD48 + reinicio: 5 estados visibles al instante, normalidad explícita, persistencia tras reiniciar y reindexación visible (196.058917ms)
+✔ 5 estados forzados se ven de inmediato (<60 s) y la normalidad se restablece (547.008042ms)
+✔ 8 tipos de aviso, agrupación, contador, 4 revisiones de 5 → 1 y nueva ocurrencia tras revisar (523.725875ms)
+✔ avisos de la KB se integran con permisos precisos y se revisan con actor y fecha (503.342542ms)
+✔ Gestor documental: 403 sin datos en estado; en avisos solo ve los propios (ninguno del sistema) (492.117417ms)
+✔ base de datos caída: 503 sin datos para ambos perfiles, sin login ni mutaciones; los avisos volátiles no abren acceso (501.466084ms)
+✔ al volver la base se persisten los avisos volátiles, sin ningún texto de consulta (567.250416ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 36062.91675

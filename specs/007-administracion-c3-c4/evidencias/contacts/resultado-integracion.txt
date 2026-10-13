@@ -1,0 +1,12 @@
+✔ AD35: 3 recepciones válidas se ven en la siguiente respuesta sin redespliegue; 4 inválidas se rechazan; no hay forma de quitar un canal (629.054333ms)
+✔ AD36: contacto general válido llega al servicio de errores y a una consulta ajena a las 3 Direcciones; 4 inválidos rechazados (20.313875ms)
+✔ AD37: 10 acciones — 6 válidas reflejadas en orden y valores (Emergencia/DI-19); 4 inválidas; el último canal no se quita; 120/121 (28.16775ms)
+✔ AD37: quitar el último canal se rechaza también con bajas simultáneas; revisión obsoleta → 409 sin perder la otra edición (174.242875ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1476.195666
