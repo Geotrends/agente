@@ -17,8 +17,10 @@ import "dotenv/config";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { EMBEDDING_DIMENSIONS, prepareIndex } from "../src/services/search.js";
+import { aliasKb, qdrant } from "../src/services/qdrant.js";
+import { vectorConsulta } from "../src/kb/sparse.js";
 import { embed, disposeEmbeddings } from "../src/services/embeddings.js";
-import { reciprocalRankFusion, topKByDot } from "../src/services/retrievalMath.js";
+import { reciprocalRankFusion } from "../src/services/retrievalMath.js";
 import { disposeReranker, rerank } from "../src/services/reranker.js";
 import type { BaselineQuerySet } from "./lib/baseline.js";
 
@@ -58,13 +60,23 @@ for (const query of [queries[0], ...queries]) {
   const [raw] = await embed([query], "query");
   const vector = unitVector(raw);
   const t1 = now();
-  const lexical = index.bm25.search(query, 0, index.count, 40);
+  // Etapas sobre Qdrant (research R17): las dos búsquedas van por red local.
+  const filtro = { must: [{ key: "estado", match: { value: "publicado" } }] };
+  const ids = new Map<string, number>();
+  const textos: string[] = [];
+  const aRanking = (points: Array<{ id: string | number; score: number; payload?: Record<string, unknown> | null }>) =>
+    points.map(p => {
+      const clave = String(p.id);
+      if (!ids.has(clave)) { ids.set(clave, textos.length); textos.push(String(p.payload?.texto ?? "")); }
+      return { id: ids.get(clave)!, score: p.score };
+    });
+  const lexical = aRanking((await qdrant().query(aliasKb(), { query: vectorConsulta(query), using: "bm25", limit: 40, filter: filtro, with_payload: ["texto"] })).points);
   const t2 = now();
-  const semantic = topKByDot(index.vectors, EMBEDDING_DIMENSIONS, 0, index.count, vector, 40);
+  const semantic = aRanking((await qdrant().query(aliasKb(), { query: Array.from(vector), using: "dense", limit: 40, filter: filtro, with_payload: ["texto"] })).points);
   const t3 = now();
   const candidates = reciprocalRankFusion([lexical, semantic]).slice(0, 16);
   const t4 = now();
-  await rerank(query, candidates.map(c => ({ id: c.id, snippet: index.snippets[c.id] })));
+  await rerank(query, candidates.map(c => ({ id: c.id, snippet: textos[c.id] })));
   const t5 = now();
   if (!measure) continue;
   stages.embed.push(t1 - t0); stages.bm25.push(t2 - t1); stages.vector.push(t3 - t2);
@@ -74,8 +86,8 @@ for (const query of [queries[0], ...queries]) {
 const mean = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
 const total = Object.values(stages).reduce((sum, xs) => sum + mean(xs), 0);
 const LABEL: Record<string, string> = {
-  embed: "embedding de la consulta", bm25: "BM25 (índice invertido)",
-  vector: "escaneo vectorial (exhaustivo)", rrf: "fusión RRF", rerank: "reranker (cross-encoder)",
+  embed: "embedding de la consulta", bm25: "BM25 disperso (Qdrant)",
+  vector: "vectorial denso (Qdrant)", rrf: "fusión RRF", rerank: "reranker (cross-encoder)",
 };
 console.log("  etapa                            media      p50      máx    parte");
 for (const [name, xs] of Object.entries(stages)) {

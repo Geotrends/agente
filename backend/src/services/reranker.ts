@@ -35,6 +35,7 @@ import path from 'node:path';
 import { retrievalCacheDir } from './embeddings.js';
 import { availableCores } from './workerEntry.js';
 import { setting } from './settings.js';
+import { safeErrorCode } from "./safeLog.js";
 
 export const rerankerModel = 'Xenova/ms-marco-MiniLM-L-6-v2';
 
@@ -138,7 +139,7 @@ export async function warmUpReranker(): Promise<void> {
   try {
     await rerank('calentamiento', [{ id: 0, snippet: 'calentamiento' }]);
   } catch (error) {
-    console.warn('[rerank] No se pudo precargar el modelo:', error);
+    console.warn(`[rerank] No se pudo precargar el modelo: ${safeErrorCode(error)}`);
   }
 }
 

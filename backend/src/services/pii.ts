@@ -134,3 +134,72 @@ export function maskPersonalData(text: string): string {
 export function containsPersonalData(text: string): boolean {
   return maskPersonalData(text) !== text;
 }
+
+// ── Saneamiento hacia el proveedor (RF-C3-DI-23, RNF-C3-DI-01) ──────────────
+//
+// Lo anterior enmascara para el REGISTRO con etiquetas minúsculas. Aquí las etiquetas
+// son las del contrato de salida a Bedrock y se aplican a la pregunta, al historial y a
+// los fragmentos recuperados antes de salir. Mismo criterio de ancla: nunca se enmascara
+// un número solo por su longitud, para no destruir normas, códigos ni fechas.
+
+export type PiiKind = "cédula" | "teléfono" | "correo" | "dirección" | "nombre de tercero";
+
+export type Sanitized = { texto: string; tipos: PiiKind[] };
+
+const PROVIDER_LABEL = { cédula: "[CÉDULA]", teléfono: "[TELÉFONO]", correo: "[CORREO]", dirección: "[DIRECCIÓN]", nombre: "[NOMBRE]" } as const;
+
+const CEDULA_ANCLADA = new RegExp(`\\b(?:${ID_KEYWORD}|identificad[oa]\\s+con)${GAP}\\d[\\d.\\s]{4,}\\d`, "gi");
+const CORREO = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g;
+const TELEFONO = /(?:\+\s?57[\s-]?)?\b3\d{2}[\s.-]?\d{3}[\s.-]?\d{4}\b|\(\s?60\d\s?\)\s?\d{3}[\s.-]?\d{2}[\s.-]?\d{2}\b|\+\s?57[\s-]?\(?60\d\)?[\s-]?\d{3}[\s.-]?\d{2}[\s.-]?\d{2}\b/g;
+const DIRECCION = /\b(?:calle|carrera|cra\.?|kra\.?|cr\.?|diagonal|diag\.?|transversal|trans\.?|tv\.?|avenida|av\.?|circular|autopista)\s+\d+\s?[A-Za-z]{0,2}(?:\s+(?:bis|sur|norte|este|oeste))?\s*(?:#|n[°ºo]\.?|no\.?|nro\.?)?\s*\d+\s?[A-Za-z]{0,2}(?:\s+(?:bis|sur|norte|este|oeste))?\s*[-–]\s*\d+\b/gi;
+const NOMBRE_TERCERO = /\b((?:se\s+llama|llamad[oa]|a\s+nombre\s+de|de\s+nombre|el\s+se[ñn]or|la\s+se[ñn]ora|se[ñn]or|se[ñn]ora|don|do[ñn]a|vecin[oa]|propietari[oa]|due[ñn][oa]|esposo|esposa|hermano|hermana)\s+)((?:[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)(?:\s+(?:de\s+|del\s+|la\s+)?[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+){0,3})/g;
+
+function apply(text: string, re: RegExp, kind: PiiKind, label: string, found: Set<PiiKind>, keepAnchor = false): string {
+  return text.replace(re, (match: string, ...groups: unknown[]) => {
+    found.add(kind);
+    if (!keepAnchor) return label;
+    const anchor = /^[^\d]*/.exec(match)?.[0] ?? (typeof groups[0] === "string" ? groups[0] : "");
+    return `${anchor}${label}`;
+  });
+}
+
+function sanitize(text: string, kinds: { direccion: boolean; nombre: boolean }): Sanitized {
+  const found = new Set<PiiKind>();
+  let out = text;
+  out = apply(out, CORREO, "correo", PROVIDER_LABEL.correo, found);
+  out = apply(out, CEDULA_ANCLADA, "cédula", PROVIDER_LABEL.cédula, found, true);
+  out = apply(out, TELEFONO, "teléfono", PROVIDER_LABEL.teléfono, found);
+  if (kinds.direccion) out = apply(out, DIRECCION, "dirección", PROVIDER_LABEL.dirección, found);
+  if (kinds.nombre) {
+    out = out.replace(NOMBRE_TERCERO, (_m: string, anchor: string) => { found.add("nombre de tercero"); return `${anchor}${PROVIDER_LABEL.nombre}`; });
+  }
+  return { texto: out, tipos: [...found] };
+}
+
+/** Pregunta o pregunta del historial: los cinco tipos de dato. */
+export function sanitizeCitizenText(text: string): Sanitized {
+  return sanitize(text, { direccion: true, nombre: true });
+}
+
+/**
+ * Fragmentos y respuestas previas: solo cédula, teléfono y correo. Las direcciones de
+ * oficinas públicas y los nombres de funcionarios del corpus son contenido legítimo.
+ */
+export function sanitizeFragment(text: string): Sanitized {
+  return sanitize(text, { direccion: false, nombre: false });
+}
+
+/**
+ * Copia saneada para el REGISTRO (RF-C3-IN-06): cédulas, teléfonos y correos del texto pasan a
+ * `[CÉDULA]`, `[TELÉFONO]` y `[CORREO]`. Los valores oficiales de contacto (canales de recepción
+ * y atención inmediata) NO son datos ciudadanos y se conservan tal cual. Lo que se entrega al
+ * ChatBot nunca pasa por aquí.
+ */
+export function sanitizeForRecord(text: string, preserve: readonly string[] = []): string {
+  const protegidos = preserve.filter(v => v.length > 0 && text.includes(v)).sort((a, b) => b.length - a.length);
+  const guardados: string[] = [];
+  let out = text;
+  for (const v of protegidos) out = out.split(v).join(`\u0000${guardados.push(v) - 1}\u0000`);
+  out = sanitizeFragment(out).texto;
+  return out.replace(/\u0000(\d+)\u0000/g, (_m, i: string) => guardados[Number(i)] ?? "");
+}

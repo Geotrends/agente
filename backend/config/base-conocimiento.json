@@ -1,0 +1,84 @@
+{
+  "$comentario": "Configuración versionada de la base de conocimiento (bloque 1, research R11). Solo cambia con un despliegue (RF-C3-AD-15). La lista hosts_permitidos debe ser idéntica a HOSTS_PERMITIDOS de web_scraper/scraper/sources.py (lo verifica una prueba).",
+  "version": 1,
+  "procedimientos": {
+    "GT-P-004": "gestion_ambiental",
+    "GT-P-011": "bienestar_animal",
+    "GT-P-020": "bienestar_animal",
+    "GT-P-021": "bienestar_animal",
+    "GT-P-027": "bienestar_animal",
+    "GT-P-029": "ecosistemas"
+  },
+  "fuentes_observatorio": {
+    "ambientometro": "Ambientómetro",
+    "envigado_com": "Envigado.gov.co",
+    "observatorio_geotrends": "Observatorio Geotrends"
+  },
+  "boletines": {
+    "$comentario": "Nombres descriptivos de las páginas de boletines: /docs/<boletín>/<categoría>[/<mes>] → '<Categoría> – <Mes> <Año>' (src/kb/nombres.ts).",
+    "host": "ambientometroenvigado.com",
+    "prefijo": "/docs",
+    "categorias": {
+      "calidad-de-aire": "Calidad del aire",
+      "calidad-del-aire": "Calidad del aire",
+      "meteorologia": "Meteorología",
+      "ruido": "Ruido"
+    }
+  },
+  "enlaces_iniciales": [
+    { "$comentario": "Semillas del scraper al instalar (idénticas a start_urls/related_seed_urls de web_scraper/scraper/sources.py). Después las administra el panel (RF-C3-AD-14..19)." ,
+      "url": "https://ambientometroenvigado.com/observatorio/", "fuente": "ambientometro", "direccion": "secretaria_general" },
+    { "url": "https://ambientometroenvigado.com/biblioteca-boletines/", "fuente": "ambientometro", "direccion": "gestion_ambiental" },
+    { "url": "https://www.envigado.gov.co/politicas-y-lineamientos/servicio-al-ciudadano", "fuente": "envigado_com", "direccion": "secretaria_general" },
+    { "url": "https://www.envigado.gov.co/contactenos", "fuente": "envigado_com", "direccion": "secretaria_general" },
+    { "url": "https://www.envigado.gov.co/peticiones-quejas-reclamos", "fuente": "envigado_com", "direccion": "secretaria_general" },
+    { "url": "https://envigado.gov.co/tema/tramites-y-servicios/secretaria-de-medio-ambiente-y-desarrollo-agropecuario", "fuente": "envigado_com", "direccion": "secretaria_general" },
+    { "url": "https://gmas2.envigado.gov.co/gmas/VisualizacionDocumento.public?documento=0000010207", "fuente": "gmas2_envigado", "direccion": "gestion_ambiental" },
+    { "url": "https://gmas2.envigado.gov.co/gmas/VisualizacionDocumento.public?documento=0000010446", "fuente": "gmas2_envigado", "direccion": "bienestar_animal" },
+    { "url": "https://gmas2.envigado.gov.co/gmas/VisualizacionDocumento.public?documento=0000002145", "fuente": "gmas2_envigado", "direccion": "bienestar_animal" },
+    { "url": "https://gmas2.envigado.gov.co/gmas/VisualizacionDocumento.public?documento=0000010445", "fuente": "gmas2_envigado", "direccion": "bienestar_animal" },
+    { "url": "https://gmas2.envigado.gov.co/gmas/VisualizacionDocumento.public?documento=0000002147", "fuente": "gmas2_envigado", "direccion": "bienestar_animal" },
+    { "url": "https://gmas2.envigado.gov.co/gmas/VisualizacionDocumento.public?documento=0000004622", "fuente": "gmas2_envigado", "direccion": "ecosistemas" },
+    { "url": "https://observatorioenvigado.geotrends.co/observatorio", "fuente": "observatorio_geotrends", "direccion": "secretaria_general" }
+  ],
+  "secciones": [
+    { "host": "ambientometroenvigado.com", "prefijo": "/campana-de-adopcion", "direccion": "bienestar_animal" },
+    { "host": "ambientometroenvigado.com", "prefijo": "/campana-de-esterilizacion-de-caninos-y-felinos", "direccion": "bienestar_animal" },
+    { "host": "ambientometroenvigado.com", "prefijo": "/registro-de-mascotas", "direccion": "bienestar_animal" },
+    { "host": "ambientometroenvigado.com", "prefijo": "/fauna-domestica", "direccion": "bienestar_animal" },
+    { "host": "ambientometroenvigado.com", "prefijo": "/secreatria-de-medio-ambiente-y-desarrollo-rural/informacion-ambiental/bienestar-animal", "direccion": "bienestar_animal" },
+
+    { "host": "ambientometroenvigado.com", "prefijo": "/calidad-de-aire", "direccion": "gestion_ambiental" },
+    { "host": "ambientometroenvigado.com", "prefijo": "/calidad-del-aire", "direccion": "gestion_ambiental" },
+    { "host": "ambientometroenvigado.com", "prefijo": "/campanas-de-calidad-de-aire", "direccion": "gestion_ambiental" },
+    { "host": "ambientometroenvigado.com", "prefijo": "/campanas-de-calidad-del-aire", "direccion": "gestion_ambiental" },
+    { "host": "ambientometroenvigado.com", "prefijo": "/sensor-de-calidad-de-aire-indoor", "direccion": "gestion_ambiental" },
+    { "host": "ambientometroenvigado.com", "prefijo": "/observatorio/monitoreo-de-fuentes-moviles", "direccion": "gestion_ambiental" },
+    { "host": "ambientometroenvigado.com", "prefijo": "/ruido-ambiental", "direccion": "gestion_ambiental" },
+    { "host": "ambientometroenvigado.com", "prefijo": "/presion-sonora", "direccion": "gestion_ambiental" },
+    { "host": "ambientometroenvigado.com", "prefijo": "/cambio-climatico", "direccion": "gestion_ambiental" },
+    { "host": "ambientometroenvigado.com", "prefijo": "/plan-local-de-cambio-climatico", "direccion": "gestion_ambiental" },
+    { "host": "ambientometroenvigado.com", "prefijo": "/observatorio/disposicion-de-residuos-solidos", "direccion": "gestion_ambiental" },
+    { "host": "ambientometroenvigado.com", "prefijo": "/gestion-energetica", "direccion": "gestion_ambiental" },
+    { "host": "ambientometroenvigado.com", "prefijo": "/observatorio/indicadores-en-tiempo-real", "direccion": "gestion_ambiental" },
+    { "host": "ambientometroenvigado.com", "prefijo": "/variables-ambientales", "direccion": "gestion_ambiental" },
+    { "host": "ambientometroenvigado.com", "prefijo": "/autoridad-ambiental", "direccion": "gestion_ambiental" },
+    { "host": "ambientometroenvigado.com", "prefijo": "/docs/boletines-", "direccion": "gestion_ambiental" },
+    { "host": "ambientometroenvigado.com", "prefijo": "/docs/2022-2", "direccion": "gestion_ambiental" },
+    { "host": "ambientometroenvigado.com", "prefijo": "/secreatria-de-medio-ambiente-y-desarrollo-rural/informacion-ambiental/gestion-ambiental", "direccion": "gestion_ambiental" },
+
+    { "host": "ambientometroenvigado.com", "prefijo": "/ecozona-", "direccion": "ecosistemas" },
+    { "host": "ambientometroenvigado.com", "prefijo": "/observatorio/indicadores-recurso-natural", "direccion": "ecosistemas" },
+    { "host": "ambientometroenvigado.com", "prefijo": "/registro-de-siembras", "direccion": "ecosistemas" },
+    { "host": "ambientometroenvigado.com", "prefijo": "/fauna-silvestre", "direccion": "ecosistemas" },
+    { "host": "ambientometroenvigado.com", "prefijo": "/monitoreo-de-biodiversidad", "direccion": "ecosistemas" },
+    { "host": "ambientometroenvigado.com", "prefijo": "/recurso-hidrico", "direccion": "ecosistemas" },
+    { "host": "ambientometroenvigado.com", "prefijo": "/secreatria-de-medio-ambiente-y-desarrollo-rural/informacion-ambiental/ecosistemas-y-biodiversidad", "direccion": "ecosistemas" }
+  ],
+  "hosts_permitidos": [
+    { "host": "envigado.gov.co", "tipo": "dominio_con_subdominios" },
+    { "host": "www.concejoenvigado.gov.co", "tipo": "host_exacto" },
+    { "host": "observatorioenvigado.geotrends.co", "tipo": "host_exacto" },
+    { "host": "ambientometroenvigado.com", "tipo": "host_exacto" }
+  ]
+}

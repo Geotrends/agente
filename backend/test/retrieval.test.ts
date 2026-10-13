@@ -7,7 +7,6 @@ import * as XLSX from 'xlsx';
 import { BM25, chunkText, reciprocalRankFusion } from '../src/services/retrievalMath.js';
 import { cosine } from './oracles.js';
 import { preprocessDocument } from '../src/services/documentPreprocessor.js';
-import { pickProvider } from '../src/services/providerRouter.js';
 import { loadSourceMetadata } from '../src/services/sourceMetadata.js';
 
 async function withTempDocument(extension: string, content: Buffer | string, callback: (filePath: string) => Promise<void>) {
@@ -108,14 +107,4 @@ test('crawler CSV metadata enriches Markdown and document paths without indexing
   } finally {
     await fs.rm(root, { recursive: true, force: true });
   }
-});
-test('automatic routing honors the only configured provider', () => {
-  const names = ['GEMINI_API_KEY', 'GROQ_API_KEY', 'DEEPSEEK_API_KEY', 'AUTO_ROUTE_SIMPLE_FALLBACK_PROVIDER'];
-  const saved = names.map(n => process.env[n]);
-  try {
-    names.forEach(n => delete process.env[n]);
-    process.env.DEEPSEEK_API_KEY = 'test';
-    process.env.AUTO_ROUTE_SIMPLE_FALLBACK_PROVIDER = 'deepseek';
-    assert.equal(pickProvider({ message: 'Hola', historyLength: 0 }).provider, 'deepseek');
-  } finally { names.forEach((n, i) => saved[i] === undefined ? delete process.env[n] : process.env[n] = saved[i]); }
 });

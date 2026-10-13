@@ -46,9 +46,8 @@ env.cacheDir = path.join(retrievalCacheDir, 'models');
 let extractor: Promise<FeatureExtractionPipeline> | undefined;
 
 // El servidor en vivo deja esto en 2 para no acaparar CPU mientras atiende
-// chats; el script de indexado offline (indexDocuments.ts) lo sube antes de
-// llamar a embed() por primera vez, ya que en ese momento no compite con
-// ninguna otra peticion.
+// chats; el kb-worker (kb/worker.ts), que indexa fuera del chat, lo sube antes
+// de llamar a embed() por primera vez, ya que no compite con ninguna petición.
 const intraOpNumThreads = setting('embeddingIntraOpThreads');
 
 export async function embed(texts: string[], kind: 'query' | 'passage'): Promise<number[][]> {

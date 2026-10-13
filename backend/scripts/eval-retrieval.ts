@@ -27,7 +27,7 @@ import path from "node:path";
 import { disposeEmbeddings } from "../src/services/embeddings.js";
 import { disposeReranker } from "../src/services/reranker.js";
 import { hybridSearch, prepareIndex } from "../src/services/search.js";
-import { aggregate, scoreCase, type CaseScore, type GoldenSet } from "./lib/goldenSet.js";
+import { aggregate, normalizarUrl, scoreCase, type CaseScore, type GoldenSet } from "./lib/goldenSet.js";
 
 const positionalArgs = process.argv.slice(2).filter(a => !a.startsWith("--"));
 
@@ -77,9 +77,21 @@ let lastRunMsPerQuery = 0;
 async function runOnce(): Promise<ReturnType<typeof aggregate>> {
   const scores: CaseScore[] = [];
   const started = performance.now();
+  const porUrl = goldenSet.identificador === "url";
   for (const goldenCase of goldenSet.cases) {
     const result = await hybridSearch(goldenCase.query);
-    scores.push(scoreCase(goldenCase, result.hits));
+    if (!porUrl) {
+      scores.push(scoreCase(goldenCase, result.hits));
+      continue;
+    }
+    // Identificación por URL de origen (R17): igual antes y después de Qdrant.
+    // Varios fragmentos del mismo documento comparten URL: cuenta la primera
+    // aparición, como un documento, o el nDCG pasaría de 1.
+    const vistos = new Set<string>();
+    const hits = result.hits
+      .map(h => ({ path: normalizarUrl((h as { sourceUrl?: string }).sourceUrl ?? h.path) }))
+      .filter(h => !vistos.has(h.path) && vistos.add(h.path));
+    scores.push(scoreCase({ ...goldenCase, relevantPaths: goldenCase.relevantPaths.map(normalizarUrl) }, hits));
   }
   lastRunMsPerQuery = (performance.now() - started) / (goldenSet.cases.length || 1);
   return aggregate(scores, goldenSet.cases);
@@ -118,7 +130,42 @@ function printReport(report: ReturnType<typeof aggregate>): void {
   console.log("");
 }
 
-if (sweepValues?.length) {
+if (process.argv.includes("--calibrar")) {
+  // RF-C3-DI-05: barrido de TODOS los umbrales finitos con la selección final; elige el mayor con cero
+  // falsas abstenciones sobre las respondibles. `--informe=<dir>` guarda el informe completo;
+  // `--guardar` lo registra en kb.kb_calibracion (rol kb_writer) junto a la colección servida.
+  const flag = (nombre: string) => process.argv.slice(2).find(a => a.startsWith(`--${nombre}=`))?.slice(nombre.length + 3);
+  const { createHash } = await import("node:crypto");
+  const { calibrateCollection } = await import("../src/kb/calibrateCollection.js");
+  const { CalibrationError, saveCalibration } = await import("../src/kb/calibration.js");
+  const { coleccionDelAlias, qdrant } = await import("../src/services/qdrant.js");
+  const coleccion = await coleccionDelAlias();
+  if (!coleccion) { console.error("El alias no apunta a ninguna colección."); process.exit(1); }
+  const { count } = await qdrant().count(coleccion, { exact: true });
+  const oro = JSON.parse(await fs.readFile(GOLDEN_SET_PATH, "utf8")) as Parameters<typeof calibrateCollection>[1];
+  const oroHash = createHash("sha256").update(await fs.readFile(GOLDEN_SET_PATH)).digest("hex");
+  const corpusHash = createHash("sha256").update(`${coleccion}:${count}`).digest("hex");
+  try {
+    const informe = await calibrateCollection(coleccion, oro, oroHash, { corpusHash });
+    console.log(`Umbral elegido: ${informe.selectedThreshold} (${informe.valores.length} valores barridos; ${informe.respondibles.length} respondibles, ${informe.ausentes.length} ausentes)`);
+    const dir = flag("informe");
+    if (dir) {
+      await fs.mkdir(path.resolve(dir), { recursive: true });
+      const archivo = path.resolve(dir, `${informe.id}.json`);
+      await fs.writeFile(archivo, JSON.stringify(informe, null, 2) + "\n");
+      console.log(`Informe completo en ${archivo}`);
+    }
+    if (process.argv.includes("--guardar")) {
+      const { kbPool, cerrarPool } = await import("../src/kb/db.js");
+      await saveCalibration(kbPool(), informe);
+      await cerrarPool();
+      console.log("Calibración registrada junto a la colección.");
+    }
+  } catch (error) {
+    if (error instanceof CalibrationError) { console.error(`ERROR DE CALIBRACIÓN (hallazgo REAL): ${error.message}`); process.exitCode = 1; }
+    else throw error;
+  }
+} else if (sweepValues?.length) {
   console.log(`═══ BARRIDO DE MIN_RERANK_SCORE (hallazgo A-5) ═══`);
   console.log(`valores: ${sweepValues.join(", ")}\n`);
   const rows: Array<{ minScore: number; recall: number; mrr: number; ndcg: number; abstained: number; abstentionCount: number }> = [];
@@ -163,6 +210,35 @@ if (sweepValues?.length) {
 } else {
   const report = await runOnce();
   printReport(report);
+
+  // Línea base de la migración a Qdrant (research R17, T021/T077):
+  //   --guardar-baseline=<ruta>  guarda recall@8, MRR y nDCG@8 de esta corrida
+  //   --baseline=<ruta>          compara contra una guardada; sale con 1 si
+  //                              recall@8 baja más de 2 puntos porcentuales
+  const flag = (nombre: string) => process.argv.slice(2).find(a => a.startsWith(`--${nombre}=`))?.slice(nombre.length + 3);
+  const destino = flag("guardar-baseline");
+  if (destino) {
+    await fs.writeFile(path.resolve(destino), JSON.stringify({
+      generadaEn: new Date().toISOString(),
+      conjunto: path.relative(process.cwd(), GOLDEN_SET_PATH),
+      recallAt8: report.meanRecallAt8, mrr: report.meanMrr, ndcgAt8: report.meanNdcgAt8,
+      abstenciones: `${report.abstainedCount}/${report.abstentionCount}`,
+      recallCero: report.zeroRecallIds,
+    }, null, 2) + "\n");
+    console.log(`Línea base guardada en ${destino}`);
+  }
+  const contra = flag("baseline");
+  if (contra) {
+    const base = JSON.parse(await fs.readFile(path.resolve(contra), "utf8")) as { recallAt8: number; mrr: number; ndcgAt8: number };
+    const delta = (report.meanRecallAt8 - base.recallAt8) * 100;
+    console.log(`Frente a la línea base: recall@8 ${delta >= 0 ? "+" : ""}${delta.toFixed(1)} pts · MRR ${(report.meanMrr - base.mrr).toFixed(4)} · nDCG@8 ${(report.meanNdcgAt8 - base.ndcgAt8).toFixed(4)}`);
+    if (delta < -2) {
+      console.error("✗ recall@8 bajó más de 2 puntos frente a la línea base: la migración queda bloqueada (R17).");
+      process.exitCode = 1;
+    } else {
+      console.log("✓ Sin regresión de recall@8 mayor a 2 puntos.");
+    }
+  }
 }
 
 await disposeReranker();

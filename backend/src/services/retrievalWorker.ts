@@ -27,8 +27,9 @@
 // indice vacio silencioso, que es dificil de diagnosticar.
 import "dotenv/config";
 import { parentPort } from "node:worker_threads";
-import { hybridSearch, prepareIndex, retrievalStatus } from "./search.js";
+import { hybridSearch, prepareIndex, retrievalStatus, vigilarIndice } from "./search.js";
 import { warmUpReranker } from "./reranker.js";
+import { safeErrorCode } from "./safeLog.js";
 
 export type WorkerRequest =
   | { kind: "search"; id: number; query: string; context?: string }
@@ -69,7 +70,7 @@ port.on("message", (request: WorkerRequest) => {
         await Promise.all([prepareIndex(), warmUpReranker()]);
         port.postMessage({
           kind: "result", id: request.id, ok: true,
-          value: { hits: [], documents: 0, chunks: 0, method: "warmup" },
+          value: { hits: [], documents: 0, chunks: 0, method: "warmup", degraded: false, thresholdApplied: false, collection: "" },
         } satisfies WorkerMessage);
       } else {
         const value = await hybridSearch(request.query, request.context);
@@ -86,12 +87,14 @@ port.on("message", (request: WorkerRequest) => {
   })();
 });
 
-// Cargar el índice y los modelos del pool nada más arrancar: entre el snapshot
-// y el cross-encoder son unos segundos que la primera consulta real no debe
-// pagar. Van en paralelo porque compiten por cosas distintas —disco y CPU—.
+// Comprobar la colección de Qdrant y cargar los modelos nada más arrancar: el
+// cross-encoder son unos segundos que la primera consulta real no debe pagar.
+// Después, la vigilancia periódica saca al chat del estado de error en cuanto
+// la base tiene contenido publicado o Qdrant vuelve (research R17).
+vigilarIndice();
 void Promise.all([prepareIndex(), warmUpReranker()])
   .then(postStatus)
   .catch(error => {
-    console.error("[retrieval:worker] No se pudo preparar el índice:", error);
+    console.error(`[retrieval:worker] No se pudo preparar el índice: ${safeErrorCode(error)}`);
     postStatus();
   });

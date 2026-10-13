@@ -1,0 +1,13 @@
+{
+  "generadaEn": "2026-10-07T21:36:40.279Z",
+  "conjunto": "test/fixtures/golden-set-acotado.json",
+  "recallAt8": 0.7857142857142857,
+  "mrr": 0.7142857142857143,
+  "ndcgAt8": 0.7329899647959225,
+  "abstenciones": "0/24",
+  "recallCero": [
+    "ac09",
+    "ac10",
+    "ac13"
+  ]
+}

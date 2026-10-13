@@ -5,7 +5,7 @@
  * `check-baseline.ts` (que lo compara contra esa referencia): las dos rutas deben
  * ejercitar exactamente el mismo camino, o la comparación no significa nada.
  */
-import { prepareIndex, hybridSearch } from "../../src/services/search.js";
+import { prepareIndex, hybridSearch, retrievalStatus } from "../../src/services/search.js";
 import { BASELINE_FORMAT_VERSION, type Baseline, type BaselineEntry, type BaselineQuerySet } from "./baseline.js";
 
 export type RunProgress = {
@@ -61,7 +61,8 @@ export async function runBaseline(
       formatVersion: BASELINE_FORMAT_VERSION,
       capturedAt: new Date().toISOString(),
       node: process.version,
-      signature: index.signature,
+      // La "firma" del índice es ahora la colección física servida por el alias.
+      signature: retrievalStatus.coleccion,
       corpus: { documents: index.documents, chunks: index.count },
       entries,
     },

@@ -14,6 +14,7 @@ import { setting } from "./settings.js";
 import { hybridSearch, retrievalStatus as inProcessStatus } from "./search.js";
 import { workerEntry, workerExecArgv, type WithoutId } from "./workerEntry.js";
 import type { RetrievalStatusSnapshot, WorkerMessage, WorkerRequest } from "./retrievalWorker.js";
+import { safeErrorCode } from "./safeLog.js";
 
 export type SearchResult = Awaited<ReturnType<typeof hybridSearch>>;
 
@@ -112,7 +113,7 @@ function startWorker(): Worker | undefined {
       else waiting.reject(new Error(message.error));
     });
     started.on("error", error => {
-      console.error("[retrieval] El worker falló:", error);
+      console.error(`[retrieval] El worker falló: ${safeErrorCode(error)}`);
       failPending("El worker de recuperación falló.");
     });
     started.on("exit", code => {
@@ -135,7 +136,7 @@ function startWorker(): Worker | undefined {
     return started;
   } catch (error) {
     degraded = true;
-    console.error("[retrieval] No se pudo arrancar el worker; se busca en el hilo principal:", error);
+    console.error(`[retrieval] No se pudo arrancar el worker; se busca en el hilo principal: ${safeErrorCode(error)}`);
     return undefined;
   }
 }
@@ -167,7 +168,8 @@ function ask(target: Worker, request: WithoutId<WorkerRequest>): Promise<SearchR
 export async function warmUpRetrieval(): Promise<void> {
   const target = ensureWorker();
   if (!target) {
-    const { prepareIndex } = await import("./search.js");
+    const { prepareIndex, vigilarIndice } = await import("./search.js");
+    vigilarIndice();
     await prepareIndex();
     return;
   }
@@ -192,7 +194,7 @@ export async function search(query: string, context?: string): Promise<SearchRes
       // Un worker que murió a media consulta no debe traducirse en un error para
       // el usuario si el hilo principal puede responder.
       if (degraded || !worker) {
-        console.warn("[retrieval] Consulta reintentada en el hilo principal:", error);
+        console.warn(`[retrieval] Consulta reintentada en el hilo principal: ${safeErrorCode(error)}`);
         return await hybridSearch(query, context);
       }
       throw error;

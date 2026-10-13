@@ -101,3 +101,15 @@ test("códigos con guion no separable (U+2011) o en dash también se enlazan", (
   assert.equal(linkDocumentCodes("el GT‑F‑0076", index), `el [GT‑F‑0076](${URL_0076})`);
   assert.equal(linkDocumentCodes("(GT–P–011)", index), `([GT–P–011](${PAGE_P011}))`);
 });
+
+test("el índice desde la vista de códigos publicados normaliza códigos y exige https", async () => {
+  const { indiceDesdeFilas } = await import("../src/services/documentLinks.js");
+  const indice = indiceDesdeFilas([
+    { codigo: "GT-F-0076", url: URL_0076 },
+    { codigo: "GT-P-011", url: PAGE_P011 },
+    { codigo: "GT-F-012", url: "http://inseguro/x" },
+  ]);
+  assert.equal(linkDocumentCodes("el GT-F-076", indice), `el [GT-F-076](${URL_0076})`);
+  assert.equal(linkDocumentCodes("GT-P-011", indice), `[GT-P-011](${PAGE_P011})`);
+  assert.equal(linkDocumentCodes("GT-F-012", indice), "GT-F-012", "sin https no se enlaza");
+});

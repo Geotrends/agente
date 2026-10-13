@@ -1,117 +1,92 @@
 /**
- * Contrato de la diversificación del top-k (hallazgo A-6).
+ * Contrato de la selección final (RF-C3-DI-12/14, contracts/retrieval.md), antes la
+ * «diversificación» de A-6. Cambió una regla central: lo descartado por duplicado o por el tope
+ * por documento YA NO vuelve por relleno; si faltan alternativas se entregan menos fragmentos.
  *
- * Los casos son sintéticos y con el resultado calculado a mano, igual que el
- * arnés de A-12: así no dependen de que el corpus real no cambie. La
- * calibración del umbral contra el corpus real está documentada en
- * .env.example (RETRIEVAL_NEAR_DUPLICATE_JACCARD).
+ * Casos sintéticos con el resultado calculado a mano.
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { diversify } from '../src/services/search.js';
-import { jaccard, shingles } from '../src/services/retrievalMath.js';
+import { selectFragments } from '../src/services/selection.js';
 
-type Hit = { id: number; doc: string; text: string };
+type Hit = { id: number; doc: string; text: string; rerank: number };
 
-const run = (items: Hit[], options?: Partial<{ limit: number; maxPerDocument: number; nearDuplicateJaccard: number }>) =>
-  diversify(items, i => i.doc, i => i.text, {
-    limit: 8, maxPerDocument: 3, nearDuplicateJaccard: 0.6, ...options,
+const run = (items: Hit[], threshold = -Infinity, extra: Record<string, number> = {}) =>
+  selectFragments(items, {
+    threshold, scoreOf: i => i.rerank, idOf: i => i.id, documentOf: i => i.doc, textOf: i => i.text, ...extra,
   });
 
 /** Texto con suficientes palabras distintas para producir 3-gramas útiles. */
-const prose = (seed: string, words = 60) =>
-  Array.from({ length: words }, (_, i) => `${seed}${i}`).join(' ');
+const prose = (seed: string, words = 60) => Array.from({ length: words }, (_, i) => `${seed}${i}`).join(' ');
 
-test('diversify: respeta el tope por documento cuando hay alternativas de sobra', () => {
-  // Seis fragmentos del mismo documento compiten con ocho documentos
-  // distintos: hay con qué llenar el cupo sin volver al repetido.
+test('varias fuentes útiles: ≤3 por documento y la selección es menor de 8 si faltan alternativas', () => {
   const items: Hit[] = [
-    ...Array.from({ length: 6 }, (_, i) => ({ id: i, doc: 'A.pdf', text: prose(`a${i}`) })),
-    ...Array.from({ length: 8 }, (_, i) => ({ id: 10 + i, doc: `B${i}.pdf`, text: prose(`b${i}`) })),
+    ...Array.from({ length: 6 }, (_, i) => ({ id: i, doc: 'A.pdf', text: prose(`a${i}`), rerank: 10 - i })),
+    ...Array.from({ length: 2 }, (_, i) => ({ id: 10 + i, doc: `B${i}.pdf`, text: prose(`b${i}`), rerank: 4 - i })),
   ];
-  const result = run(items, { maxPerDocument: 2 });
-  assert.equal(result.length, 8, 'sigue devolviendo el cupo completo');
-  assert.equal(result.filter(r => r.doc === 'A.pdf').length, 2, 'solo dos del documento repetido');
-  assert.equal(new Set(result.map(r => r.doc)).size, 7, 'siete documentos distintos representados');
+  const r = run(items);
+  assert.equal(r.filter(x => x.doc === 'A.pdf').length, 3, 'tope de 3 por documento');
+  assert.equal(r.length, 5, '3 + 2: no se rellena con lo descartado por el tope');
+  assert.deepEqual(r.map(x => x.id), [0, 1, 2, 10, 11], 'en orden de puntaje');
 });
 
-test('diversify: el tope cede antes que el cupo cuando no hay alternativas suficientes', () => {
-  // Seis del mismo documento y solo cinco alternativas: 2 + 5 = 7, así que el
-  // octavo puesto tiene que volver al documento repetido. Se prefiere un
-  // fragmento de más del mismo archivo antes que devolver menos contexto.
+test('varias fuentes con alternativas de sobra: llega a 8 repartiendo entre documentos', () => {
   const items: Hit[] = [
-    ...Array.from({ length: 6 }, (_, i) => ({ id: i, doc: 'A.pdf', text: prose(`a${i}`) })),
-    ...Array.from({ length: 5 }, (_, i) => ({ id: 10 + i, doc: `B${i}.pdf`, text: prose(`b${i}`) })),
+    ...Array.from({ length: 6 }, (_, i) => ({ id: i, doc: 'A.pdf', text: prose(`a${i}`), rerank: 20 - i })),
+    ...Array.from({ length: 8 }, (_, i) => ({ id: 10 + i, doc: `B${i}.pdf`, text: prose(`b${i}`), rerank: 10 - i })),
   ];
-  const result = run(items, { maxPerDocument: 2 });
-  assert.equal(result.length, 8, 'el cupo manda sobre el tope por documento');
-  assert.equal(result.filter(r => r.doc === 'A.pdf').length, 3, 'el octavo puesto vuelve al repetido');
-  // Y el que vuelve es el de mejor puntaje de los descartados, no uno al azar.
-  assert.equal(result.at(-1)!.id, 2);
+  const r = run(items);
+  assert.equal(r.length, 8);
+  assert.equal(r.filter(x => x.doc === 'A.pdf').length, 3);
 });
 
-test('diversify: si NO hay alternativas, rellena y devuelve lo mismo que sin diversificar', () => {
-  // Diez fragmentos, todos del mismo documento y todos distintos entre sí.
-  const items: Hit[] = Array.from({ length: 10 }, (_, i) => ({ id: i, doc: 'unico.pdf', text: prose(`x${i}`) }));
-  const result = run(items, { maxPerDocument: 2 });
-  assert.equal(result.length, 8, 'no se devuelven menos resultados por el tope');
-  // Y en el orden de relevancia original: los dos primeros por diversidad, el
-  // resto por relleno, que respeta el orden en que venían.
-  assert.deepEqual(result.map(r => r.id), [0, 1, 2, 3, 4, 5, 6, 7]);
+test('única fuente útil: hasta 8 fragmentos distintos del mismo documento', () => {
+  const items: Hit[] = Array.from({ length: 10 }, (_, i) => ({ id: i, doc: 'unico.pdf', text: prose(`x${i}`), rerank: 10 - i }));
+  const r = run(items);
+  assert.equal(r.length, 8);
+  assert.deepEqual(r.map(x => x.id), [0, 1, 2, 3, 4, 5, 6, 7]);
 });
 
-test('diversify: descarta un casi-duplicado cuando hay con qué reemplazarlo', () => {
-  const repetido = prose('repetido');
+test('la «única fuente» se mide DESPUÉS del umbral: si los demás documentos no lo superan, vale la excepción', () => {
   const items: Hit[] = [
-    { id: 1, doc: 'A.pdf', text: repetido },
-    { id: 2, doc: 'B.pdf', text: repetido },            // mismo contenido, otro archivo
-    ...Array.from({ length: 8 }, (_, i) => ({ id: 10 + i, doc: `C${i}.pdf`, text: prose(`c${i}`) })),
+    ...Array.from({ length: 6 }, (_, i) => ({ id: i, doc: 'A.pdf', text: prose(`a${i}`), rerank: 5 - i * 0.1 })),
+    { id: 20, doc: 'B.pdf', text: prose('b'), rerank: -4 },
   ];
-  const result = run(items);
-  assert.equal(result.length, 8);
-  const posicionDelDuplicado = result.findIndex(r => r.id === 2);
-  assert.equal(posicionDelDuplicado, -1, 'el casi-duplicado no entra habiendo alternativas');
-  assert.ok(result.some(r => r.id === 1), 'pero el primero de los dos sí');
+  assert.equal(run(items, 0).length, 6);
+  assert.equal(run(items).length, 4, 'sin umbral B es útil: aplica el tope de 3 (A) + 1 (B)');
 });
 
-test('diversify: un casi-duplicado SÍ entra si no hay nada más con que llenar el cupo', () => {
-  const repetido = prose('repetido');
+test('casi duplicado: se conserva el de mayor puntaje y NUNCA vuelve por relleno', () => {
+  const base = prose('dup', 80);
   const items: Hit[] = [
-    { id: 1, doc: 'A.pdf', text: repetido },
-    { id: 2, doc: 'B.pdf', text: repetido },
+    { id: 0, doc: 'A.pdf', text: base, rerank: 9 },
+    { id: 1, doc: 'B.pdf', text: base + ' extra', rerank: 8 },
+    { id: 2, doc: 'C.pdf', text: prose('otro'), rerank: 1 },
   ];
-  const result = run(items);
-  assert.equal(result.length, 2, 'no se recorta el contexto por deduplicar');
+  const r = run(items);
+  assert.deepEqual(r.map(x => x.id), [0, 2]);
+  const solo: Hit[] = [items[0], items[1]];
+  assert.deepEqual(run(solo).map(x => x.id), [0], 'aunque falte cupo, el duplicado no se reintegra');
 });
 
-test('diversify: funciona sobre candidatos sin logit del reranker (ruta de reserva RRF)', () => {
-  // En la ruta de reserva los candidatos no traen `rerank`: diversify no debe
-  // asumir que ese campo existe, solo respetar el orden en que llegan.
-  const items = [
-    { id: 1, doc: 'A.pdf', text: prose('uno') },
-    { id: 2, doc: 'A.pdf', text: prose('dos') },
-    { id: 3, doc: 'B.pdf', text: prose('tres') },
+test('umbral estricto: la igualdad queda fuera y no se rellena bajo el umbral', () => {
+  const items: Hit[] = [
+    { id: 1, doc: 'A', text: prose('a'), rerank: -3 },
+    { id: 2, doc: 'B', text: prose('b'), rerank: 5 },
+    { id: 3, doc: 'C', text: prose('c'), rerank: 0 },
+    { id: 4, doc: 'D', text: prose('d'), rerank: -0.5 },
   ];
-  const result = run(items, { maxPerDocument: 1 });
-  assert.deepEqual(result.map(r => r.id), [1, 3, 2], 'primero los diversos, el resto de relleno');
+  assert.deepEqual(run(items, 0).map(x => x.id), [2], 'el puntaje 0 con umbral 0 no pasa');
+  assert.deepEqual(run(items, -0.5).map(x => x.id), [2, 3]);
+  assert.deepEqual(run(items, 99), [], 'umbral muy alto → cero resultados (abstención)');
 });
 
-test('diversify: lista vacía no revienta', () => {
+test('orden estable: empates de puntaje se resuelven por id y el resultado no depende del orden de entrada', () => {
+  const items: Hit[] = [3, 1, 2].map(id => ({ id, doc: `D${id}`, text: prose(`t${id}`), rerank: 7 }));
+  assert.deepEqual(run(items).map(x => x.id), [1, 2, 3]);
+  assert.deepEqual(run([...items].reverse()).map(x => x.id), [1, 2, 3]);
+});
+
+test('lista vacía no revienta', () => {
   assert.deepEqual(run([]), []);
-});
-
-test('shingles/jaccard: identidad, disyunción y solapamiento parcial', () => {
-  const a = shingles('el concejo municipal aprueba el acuerdo de presupuesto anual');
-  assert.equal(jaccard(a, a), 1, 'idéntico consigo mismo');
-  assert.equal(jaccard(a, shingles('receta de ensalada con tomate lechuga y aceite')), 0, 'sin nada en común');
-  // Comparte una frase de cuatro palabras con el primero, pero sigue el resto
-  // por su cuenta: parecido parcial, no duplicado.
-  const parcial = jaccard(a, shingles('el concejo municipal aprueba otras cosas distintas cada semana'));
-  assert.ok(parcial > 0 && parcial < 0.5, `solapamiento parcial fuera de rango: ${parcial}`);
-});
-
-test('shingles: ignora tildes y palabras vacías, para que dos copias del mismo texto coincidan', () => {
-  const conTildes = shingles('la resolución técnica del área metropolitana define la política');
-  const sinTildes = shingles('la resolucion tecnica del area metropolitana define la politica');
-  assert.equal(jaccard(conTildes, sinTildes), 1);
 });

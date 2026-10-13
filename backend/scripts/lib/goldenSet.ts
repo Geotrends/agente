@@ -42,6 +42,13 @@ export type GoldenCase = {
 export type GoldenSet = {
   formatVersion: number;
   generatedAt: string;
+  /**
+   * Cómo se identifica un documento en `relevantPaths`. "path" (defecto) es la
+   * ruta local del corpus; "url" es la URL de origen, que es lo que sobrevive a
+   * la migración del índice en memoria a Qdrant (research R17, T021).
+   */
+  identificador?: "path" | "url";
+  nota?: string;
   /** Cuántas filas de golden-candidates.csv se revisaron para llegar aquí. */
   reviewedCases: number;
   /** Cuántas quedaron fuera por no tener todavía relevante=s/n en cada fila. */
@@ -167,4 +174,16 @@ export function aggregate(scores: CaseScore[], cases: GoldenCase[]): AggregateRe
     unanswerableCount: unanswerable.length,
     unanswerableIds: unanswerable.map(s => s.id),
   };
+}
+
+/** URL normalizada para comparar: sin barra final, host en minúsculas. */
+export function normalizarUrl(url: string): string {
+  try {
+    const u = new URL(url);
+    u.hostname = u.hostname.toLowerCase();
+    u.hash = "";
+    return u.toString().replace(/\/(?=$|\?)/, "");
+  } catch {
+    return url.replace(/\/$/, "");
+  }
 }

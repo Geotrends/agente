@@ -1,54 +1,56 @@
 /**
- * Fragmentación consciente de la estructura del documento (hallazgos M-3 y M-4).
+ * Fragmentación del documento publicado (RF-C3-DI-13, RNF-C3-IV-02).
  *
- * `chunkText` corta cada 1.000 caracteres sobre un flujo plano, retrocediendo
- * al espacio más cercano. Funciona, pero tira TODA la estructura que el
- * preprocesador ya se había tomado el trabajo de producir:
+ * Reglas del contrato (contracts/retrieval.md):
  *
- *   - `documentPreprocessor` genera `## Hoja: <nombre>` y tablas Markdown para
- *     las hojas de cálculo. Cortar a mitad de tabla deja filas huérfanas sin
- *     encabezado: ilegibles para el modelo y para el ciudadano que lee la cita.
- *   - El scraper escribe frontmatter YAML más encabezados `#`. El frontmatter
- *     acababa siendo el fragmento nº 1 de cada página scrapeada — puro ruido
- *     con su propio vector de 384 dimensiones compitiendo en la búsqueda.
- *   - El corpus es normativo: leyes, decretos, acuerdos y resoluciones se leen
- *     por ARTÍCULO. Cortar a mitad de inciso parte justo la unidad de sentido
- *     que la gente pregunta y que la respuesta tiene que citar.
+ *   - El texto REALMENTE embebido —contexto de título/encabezado incluido— mide ≤ 1000
+ *     caracteres.
+ *   - La prosa se corta solo entre palabras y los fragmentos contiguos del mismo flujo
+ *     comparten 150 caracteres de solapamiento, con la tolerancia de una palabra: el
+ *     solapamiento es el sufijo MÁS CORTO de palabras completas que llega a 150.
+ *   - Una tabla Markdown es un bloque indivisible, aunque conviva con prosa: se emite íntegra
+ *     en un solo fragmento. Una tabla o una palabra de más de 1000 caracteres hace NO
+ *     publicable al documento (`ChunkingError`): el hallazgo es REAL y se resuelve en la
+ *     fuente, no partiendo la tabla ni aceptando una excepción.
+ *   - Las páginas ("-- N of M --") y los encabezados/artículos son metadata del fragmento;
+ *     no inician flujos nuevos ni autorizan perder prosa o solapamiento.
  *
- * Y de paso resuelve M-4: `pdf-parse` une las páginas con "-- N of M --", que
- * hasta ahora solo se borraba. Ese separador dice en qué página empieza cada
- * fragmento, y con eso la cita pasa de "este PDF de 180 páginas" a "Acuerdo
- * 034 de 2019, p. 12" — la diferencia entre una cita verificable y una nominal.
+ * Se descartó dividir las tablas repitiendo su encabezado: producía varios fragmentos
+ * por tabla, lo contrario de lo que exige el criterio de aceptación.
  */
-import { chunkText } from "./retrievalMath.js";
-
-export type DocumentChunk = {
-  text: string;
-  /** Página del PDF donde EMPIEZA el fragmento. Ausente si el formato no las tiene. */
-  page?: number;
-  /** Encabezado o artículo bajo el que cae, para dar contexto al fragmento. */
-  heading?: string;
-};
-
 /** Separador que `pdf-parse` intercala entre páginas. */
 const PAGE_SEPARATOR = /--\s*(\d+)\s*of\s*(\d+)\s*--/g;
 
-/**
- * Encabezados que abren una sección. El orden de alternativas importa poco
- * porque son mutuamente excluyentes en la práctica, pero sí importa exigir
- * inicio de línea: "el artículo 5 dice" en mitad de un párrafo no abre nada.
- */
+/** Encabezados que abren una sección: solo al inicio de línea. */
 const HEADING = /^(?:#{1,6}\s+.+|(?:ART[ÍI]CULO|Art[íi]culo)\s+(?:\d+|[IVXLCDM]+)\.?(?:\s*[°º])?.*|CAP[ÍI]TULO\s+(?:\d+|[IVXLCDM]+).*|T[ÍI]TULO\s+(?:\d+|[IVXLCDM]+).*)$/;
 
 /** Una línea de tabla Markdown. */
 const TABLE_ROW = /^\s*\|.*\|\s*$/;
 
+/** Contexto máximo que se antepone a un fragmento; más largo se omite para no comerse el límite. */
+const MAX_CONTEXT = 200;
+
+export type DocumentChunk = {
+  text: string;
+  /** Página del PDF donde EMPIEZA el fragmento. Ausente si el formato no las tiene. */
+  page?: number;
+  /** Encabezado o artículo vigente donde empieza el fragmento. */
+  heading?: string;
+};
+
+export type ChunkingFinding = { kind: "tabla_excede" | "palabra_excede"; length: number; limit: number; excerpt: string };
+
+/** El documento no se puede publicar tal cual: tabla o palabra indivisible mayor que el límite. */
+export class ChunkingError extends Error {
+  constructor(readonly finding: ChunkingFinding) {
+    super(`${finding.kind}: ${finding.length} > ${finding.limit} caracteres`);
+    this.name = "ChunkingError";
+  }
+}
+
 /**
- * Quita el frontmatter YAML y devuelve el título si lo trae.
- *
- * El frontmatter no es contenido buscable: es metadata que ya vive en
- * `sourceMetadata`. Lo único aprovechable es el título, que sí sirve como
- * contexto de los fragmentos.
+ * Quita el frontmatter YAML y devuelve el título si lo trae. Lo único aprovechable es el
+ * título, que sí sirve como contexto de los fragmentos.
  */
 export function stripFrontmatter(text: string): { body: string; title?: string } {
   const match = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?/.exec(text);
@@ -57,111 +59,123 @@ export function stripFrontmatter(text: string): { body: string; title?: string }
   return { body: text.slice(match[0].length), title: title || undefined };
 }
 
-/** Parte el texto por los separadores de página, conservando el número. */
-function splitPages(text: string): Array<{ text: string; page?: number }> {
-  const parts: Array<{ text: string; page?: number }> = [];
+/** Quita los separadores de página y devuelve, por desplazamiento, la página que empieza allí. */
+function flatten(text: string): { flow: string; pageAt: Array<{ offset: number; page: number }> } {
+  let flow = "";
   let last = 0;
-  let page: number | undefined;
+  const pageAt: Array<{ offset: number; page: number }> = [];
   for (const match of text.matchAll(PAGE_SEPARATOR)) {
-    const slice = text.slice(last, match.index);
-    if (slice.trim()) parts.push({ text: slice, page });
+    flow += text.slice(last, match.index);
     // El separador "-- 3 of 20 --" PRECEDE al contenido de la página 3.
-    page = Number(match[1]);
+    pageAt.push({ offset: flow.length, page: Number(match[1]) });
     last = match.index + match[0].length;
   }
-  const tail = text.slice(last);
-  if (tail.trim()) parts.push({ text: tail, page });
-  return parts.length ? parts : [{ text, page: undefined }];
+  flow += text.slice(last);
+  return { flow, pageAt };
 }
 
-/** Parte por encabezados/artículos, conservando el encabezado con su sección. */
-function splitSections(text: string): Array<{ text: string; heading?: string }> {
-  const lines = text.split("\n");
-  const sections: Array<{ text: string; heading?: string }> = [];
-  let current: string[] = [];
-  let heading: string | undefined;
-  const flush = () => {
-    if (current.join("\n").trim()) sections.push({ text: current.join("\n"), heading });
-    current = [];
-  };
-  for (const line of lines) {
-    if (HEADING.test(line.trim()) && line.trim().length <= 200) {
-      flush();
-      heading = line.trim().replace(/^#{1,6}\s+/, "");
-      current = [line];
-    } else {
-      current.push(line);
-    }
+type Block = { kind: "prose" | "table"; start: number; end: number };
+
+/** Parte el flujo en prosa y tablas (bloques contiguos de filas `| … |`), con sus desplazamientos. */
+function blocksOf(flow: string): Block[] {
+  const blocks: Block[] = [];
+  let offset = 0;
+  let current: Block | undefined;
+  for (const line of flow.split("\n")) {
+    const kind = TABLE_ROW.test(line) ? "table" : "prose";
+    const lineEnd = offset + line.length;
+    // Las líneas en blanco no cortan una tabla ni una prosa: solo las filas de tabla definen el bloque.
+    if (!line.trim() && current) { current.end = lineEnd; }
+    else if (current && current.kind === kind) current.end = lineEnd;
+    else { current = { kind, start: offset, end: lineEnd }; blocks.push(current); }
+    offset = lineEnd + 1;
   }
-  flush();
-  return sections.length ? sections : [{ text }];
+  return blocks;
+}
+
+function lookup<T extends { offset: number }>(list: T[], offset: number): T | undefined {
+  let found: T | undefined;
+  for (const item of list) { if (item.offset <= offset) found = item; else break; }
+  return found;
 }
 
 /**
- * Fragmenta una tabla Markdown repitiendo su encabezado en cada trozo.
- *
- * Sin esto, el segundo trozo de una tabla de presupuesto son filas de cifras
- * sin nombres de columna: el modelo no puede decir qué significa cada número,
- * y el reranker tampoco. Con el encabezado repetido, cada fragmento se
- * sostiene solo.
- */
-function chunkTable(lines: string[], size: number): string[] {
-  const header = lines.slice(0, 2).join("\n");   // fila de títulos + separador
-  const body = lines.slice(2);
-  if (!body.length) return [lines.join("\n")];
-  const out: string[] = [];
-  let buffer: string[] = [];
-  for (const row of body) {
-    // +1 por el salto de línea que unirá las filas.
-    const projected = header.length + buffer.join("\n").length + row.length + 1;
-    if (buffer.length && projected > size) {
-      out.push(`${header}\n${buffer.join("\n")}`);
-      buffer = [];
-    }
-    buffer.push(row);
-  }
-  if (buffer.length) out.push(`${header}\n${buffer.join("\n")}`);
-  return out;
-}
-
-/** ¿La sección es mayoritariamente una tabla Markdown? */
-function isTable(text: string): boolean {
-  const lines = text.split("\n").filter(l => l.trim());
-  if (lines.length < 3) return false;
-  return lines.filter(l => TABLE_ROW.test(l)).length >= lines.length * 0.8;
-}
-
-/**
- * Fragmenta un documento respetando su estructura.
- *
- * `size` y `overlap` siguen acotando el tamaño: la estructura decide DÓNDE
- * cortar, no elimina el límite. Una sección más larga que `size` se sigue
- * partiendo por caracteres, que es lo correcto — un artículo de diez páginas
- * no cabe en un fragmento.
+ * Fragmenta un documento. `size` es el tope del texto final (contexto incluido) y `overlap` el
+ * solapamiento objetivo entre fragmentos de prosa contiguos.
  */
 export function chunkDocument(text: string, size = 1000, overlap = 150): DocumentChunk[] {
+  if (overlap < 0 || overlap >= size / 2) throw new Error("Invalid chunk size: overlap debe estar entre 0 y size/2");
   const { body, title } = stripFrontmatter(text);
+  const { flow, pageAt } = flatten(body);
+
+  const headings: Array<{ offset: number; text: string }> = [];
+  let offset = 0;
+  for (const line of flow.split("\n")) {
+    const t = line.trim();
+    if (HEADING.test(t)) {
+      // En normas, "ARTÍCULO 2. Ámbito. Aplica…" ocupa una sola línea larga: el encabezado es solo su inicio.
+      const label = t.length <= 200 ? t : (/^(.{1,100}?[.:])\s/.exec(t)?.[1] ?? t.slice(0, 100).replace(/\s\S*$/, ""));
+      headings.push({ offset, text: label.replace(/^#{1,6}\s+/, "") });
+    }
+    offset += line.length + 1;
+  }
+
   const chunks: DocumentChunk[] = [];
-  for (const { text: pageText, page } of splitPages(body)) {
-    for (const { text: sectionText, heading } of splitSections(pageText)) {
-      const trimmed = sectionText.trim();
-      if (!trimmed) continue;
-      // El encabezado de contexto se antepone al fragmento, pero NO se cuenta
-      // dentro del límite de la sección: es contexto añadido, no contenido.
-      const context = [title, heading].filter(Boolean).filter((v, i, a) => a.indexOf(v) === i).join(" — ");
-      const lines = trimmed.split("\n");
-      const pieces = isTable(trimmed)
-        ? chunkTable(lines, size)
-        : trimmed.length <= size ? [trimmed] : chunkText(trimmed, size, overlap);
-      for (const piece of pieces) {
-        // Si el trozo ya empieza por su propio encabezado, no se repite.
-        const needsContext = context && !piece.trimStart().startsWith(context.split(" — ").at(-1) ?? "");
-        chunks.push({
-          text: needsContext ? `${context}\n${piece}` : piece,
-          ...(page === undefined ? {} : { page }),
-          ...(heading ? { heading } : {}),
-        });
+  const emit = (pieceStart: number, piece: string): void => {
+    const heading = lookup(headings, pieceStart)?.text;
+    const page = lookup(pageAt, pieceStart)?.page;
+    const context = [title, heading].filter(Boolean).filter((v, i, a) => a.indexOf(v) === i).join(" — ");
+    // El contexto cuenta dentro del límite; si no cabe, se omite en vez de partir el contenido.
+    const useContext = context && context.length <= MAX_CONTEXT
+      && !piece.trimStart().startsWith(context.split(" — ").at(-1) ?? "")
+      && context.length + 1 + piece.length <= size;
+    chunks.push({
+      text: useContext ? `${context}\n${piece}` : piece,
+      ...(page === undefined ? {} : { page }),
+      ...(heading ? { heading } : {}),
+    });
+  };
+
+  for (const block of blocksOf(flow)) {
+    const raw = flow.slice(block.start, block.end);
+    const content = raw.trim();
+    if (!content) continue;
+    const start = block.start + raw.indexOf(content);
+
+    if (block.kind === "table") {
+      if (content.length > size) {
+        throw new ChunkingError({ kind: "tabla_excede", length: content.length, limit: size, excerpt: content.slice(0, 80) });
       }
+      emit(start, content);
+      continue;
+    }
+
+    // Prosa: palabras con sus desplazamientos; los cortes caen siempre entre palabras.
+    const words = [...content.matchAll(/\S+/g)].map(m => ({ s: m.index!, e: m.index! + m[0].length }));
+    for (const w of words) {
+      if (w.e - w.s > size) {
+        throw new ChunkingError({ kind: "palabra_excede", length: w.e - w.s, limit: size, excerpt: content.slice(w.s, w.s + 80) });
+      }
+    }
+    const heading0 = (i: number) => lookup(headings, start + words[i].s)?.text;
+    const contextLen = (i: number) => {
+      const c = [title, heading0(i)].filter(Boolean).filter((v, k, a) => a.indexOf(v) === k).join(" — ");
+      return c && c.length <= MAX_CONTEXT ? c.length + 1 : 0;
+    };
+
+    let i = 0;
+    while (i < words.length) {
+      const budget = size - contextLen(i);
+      let j = i;
+      while (j + 1 < words.length && words[j + 1].e - words[i].s <= budget) j++;
+      // La primera palabra siempre cabe sin contexto (≤ size); con contexto puede no caber: se omite el contexto.
+      if (words[j].e - words[i].s > budget && contextLen(i)) { j = i; while (j + 1 < words.length && words[j + 1].e - words[i].s <= size) j++; }
+      emit(start + words[i].s, content.slice(words[i].s, words[j].e));
+      if (j === words.length - 1) break;
+      // Siguiente inicio: el sufijo más corto de palabras completas que alcanza el solapamiento.
+      let k = j;
+      while (k > i && words[j].e - words[k].s < overlap) k--;
+      i = k > i ? k : i + 1;
     }
   }
   return chunks.length ? chunks : [{ text: text.trim() }];

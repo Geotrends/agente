@@ -8,11 +8,15 @@
  * o `javascript:downloadFile(…)`— y el modelo los copia tal cual, así que el
  * frontend, que solo acepta http(s), los mostraba como texto.
  *
- * El catálogo del scraper sí tiene URLs absolutas. Aquí se construye un índice
- * código → URL y se reescribe la respuesta para que cada código lleve la suya.
+ * La matriz documental sí tiene URLs absolutas. El índice código → URL sale de
+ * la vista `kb.v_codigos_publicados` (research R17): solo códigos PUBLICADOS,
+ * con el archivo descargable cuando lo hay. El chat la lee con el rol de solo
+ * lectura `app_reader` (principio VII), y se reescribe la respuesta para que
+ * cada código lleve su enlace.
  */
-import { getDocumentsRootPath } from "./context.js";
-import { loadSourceMetadata, type SourceMetadataCatalog } from "./sourceMetadata.js";
+import pg from "pg";
+import type { SourceMetadataCatalog } from "./sourceMetadata.js";
+import { safeErrorCode } from "./safeLog.js";
 
 // Guiones que se aceptan dentro de un código. gpt-oss escribe "GT‑F‑058" con
 // el guion no separable (U+2011), no con "-": con solo "-" ningún código de
@@ -109,17 +113,63 @@ export function linkDocumentCodes(answer: string, index: DocumentCodeIndex): str
     .join("");
 }
 
-let memoized: { signature: string; index: DocumentCodeIndex } | undefined;
+/** Índice desde las filas de la vista: el primer código normalizado gana. */
+export function indiceDesdeFilas(filas: Array<{ codigo: string; url: string }>): DocumentCodeIndex {
+  const index: DocumentCodeIndex = new Map();
+  for (const { codigo, url } of filas) {
+    if (!codigo || !/^https:\/\//i.test(url)) continue;
+    const match = LEADING_CODE.exec(codigo.trim())?.[1];
+    if (!match) continue;
+    const key = normalizeCode(match);
+    if (!index.has(key)) index.set(key, url);
+  }
+  return index;
+}
+
+/** Cada cuánto se relee la vista: un retiro o vencimiento deja de enlazarse en segundos. */
+const TTL_MS = 30 * 1000;
+let memoized: { at: number; index: DocumentCodeIndex } | undefined;
+let pool: pg.Pool | undefined;
+let avisoSinBase = false;
+
+function poolLectura(): pg.Pool | undefined {
+  const connectionString = process.env.APP_DATABASE_URL;
+  if (!connectionString) {
+    if (!avisoSinBase) {
+      console.warn("[documentLinks] Sin APP_DATABASE_URL: los códigos GT-F/GT-P quedan como texto, sin enlace.");
+      avisoSinBase = true;
+    }
+    return undefined;
+  }
+  if (!pool) {
+    pool = new pg.Pool({ connectionString, max: 2, idleTimeoutMillis: 30_000, connectionTimeoutMillis: 3_000 });
+    pool.on("error", error => console.warn(`[documentLinks] Conexión de lectura perdida: ${safeErrorCode(error)}`));
+  }
+  return pool;
+}
 
 /**
- * Índice del corpus actual. `loadSourceMetadata` ya está memoizado por la
- * marca de tiempo de los CSV; aquí se reutiliza el índice mientras la firma
- * del catálogo no cambie.
+ * Índice de códigos publicados. Si PostgreSQL falla se conserva el último
+ * índice; sin índice, un mapa vacío: los códigos quedan como texto, pero la
+ * respuesta al ciudadano nunca falla por esto.
  */
 export async function loadDocumentCodeIndex(): Promise<DocumentCodeIndex> {
-  const catalog = await loadSourceMetadata(getDocumentsRootPath());
-  if (memoized?.signature !== catalog.signature) {
-    memoized = { signature: catalog.signature, index: buildDocumentCodeIndex(catalog) };
+  if (memoized && Date.now() - memoized.at < TTL_MS) return memoized.index;
+  const db = poolLectura();
+  if (!db) return memoized?.index ?? new Map();
+  try {
+    const { rows } = await db.query<{ codigo: string; url: string }>("SELECT codigo, url FROM kb.v_codigos_publicados");
+    memoized = { at: Date.now(), index: indiceDesdeFilas(rows) };
+  } catch (error) {
+    console.warn(`[documentLinks] No se pudo leer la vista de códigos: ${safeErrorCode(error)}`);
+    if (memoized) memoized.at = Date.now();   // no reintentar en cada respuesta
   }
-  return memoized.index;
+  return memoized?.index ?? new Map();
+}
+
+/** Solo para pruebas: olvida el índice memoizado y cierra el pool. */
+export async function reiniciarIndiceCodigos(): Promise<void> {
+  memoized = undefined;
+  await pool?.end();
+  pool = undefined;
 }

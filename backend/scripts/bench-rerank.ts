@@ -15,6 +15,7 @@
 import "dotenv/config";
 import os from "node:os";
 import { prepareIndex } from "../src/services/search.js";
+import { aliasKb, qdrant } from "../src/services/qdrant.js";
 import { disposeReranker, rerank } from "../src/services/reranker.js";
 
 const QUERY = "requisitos y plazos para el permiso de vertimientos de aguas residuales";
@@ -26,8 +27,12 @@ console.log(`  ${os.cpus().length} núcleos lógicos · ${os.cpus()[0]?.model ??
 const index = await prepareIndex();
 // 16 fragmentos reales repartidos por el corpus: es exactamente lo que recibe
 // el reranker en producción, y su largo manda en el coste de la inferencia.
-const step = Math.max(1, Math.floor(index.count / 17));
-const candidates = Array.from({ length: 16 }, (_, i) => ({ id: i, snippet: index.snippets[step * (i + 1)] }));
+if (index.count < 16) throw new Error("La colección publicada tiene menos de 16 fragmentos; publica la base antes de calibrar.");
+const { points } = await qdrant().scroll(aliasKb(), { limit: Math.min(index.count, 1024), with_payload: ["texto"], with_vector: false });
+const step = Math.max(1, Math.floor(points.length / 17));
+const candidates = Array.from({ length: 16 }, (_, i) => ({
+  id: i, snippet: String((points[Math.min(points.length - 1, step * (i + 1))].payload as { texto: string }).texto),
+}));
 const average = Math.round(candidates.reduce((sum, c) => sum + c.snippet.length, 0) / candidates.length);
 console.log(`  16 candidatos de ${average} caracteres de media\n`);
 
