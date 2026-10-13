@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "matriz": "specs/004-interfaz-plataforma/contracts/acceptance.md",
+  "casos": [
+    { "id": "U01", "requisito": "RF-C4-UI-01", "cantidades": { "entornos": 5, "consultas": 2, "ciclos": 5 }, "local": ["frontend/test/widget-launcher.spec.ts", "frontend/test/widget-startup.spec.ts"], "real": "Chrome/Firefox/Edge escritorio, Chrome Android y Safari iOS sobre el portal (T078/T079)" },
+    { "id": "U02", "requisito": "RF-C4-UI-02", "cantidades": { "anchos": 5 }, "local": ["frontend/test/widget-viewport.spec.ts"], "real": "Teclado virtual Android/iOS y orientación (T079)" },
+    { "id": "U03", "requisito": "RF-C4-UI-03", "cantidades": { "respuestas": 9 }, "local": ["frontend/test/markdown.test.tsx", "frontend/test/external-links.spec.ts"], "real": "Lector de pantalla (T080)" },
+    { "id": "U04", "requisito": "RF-C4-UI-04", "cantidades": { "respuestas": 10 }, "local": ["frontend/test/external-links.spec.ts"], "real": "Escritorio/móvil con toque (T079)" },
+    { "id": "U05", "requisito": "RF-C4-UI-05", "cantidades": { "recorridos": 6 }, "local": ["frontend/test/new-conversation.test.ts", "frontend/test/new-conversation.spec.ts", "frontend/test/new-conversation-races.spec.ts"], "real": "Lector real sobre el diálogo (T080)" },
+    { "id": "U06", "requisito": "RF-C4-UI-06", "cantidades": { "autorizadas": 10, "anonimas": 3 }, "local": ["frontend/test/feedback.test.tsx", "frontend/test/feedback.spec.ts", "backend/test/ui-integracion/feedback-api.test.ts"], "real": "Servicios reales y lector (T080/T081)" },
+    { "id": "U07", "requisito": "RF-C4-UI-07", "cantidades": { "consultas": 5, "indicadorMs": 500 }, "local": ["frontend/test/query-attempt.test.ts", "frontend/test/query-failures.spec.ts"], "real": "Cronología con servicio real (T081)" },
+    { "id": "U08", "requisito": "RF-C4-UI-08", "cantidades": { "fallas": 6 }, "local": ["frontend/test/query-failures.spec.ts", "frontend/test/contact-recovery.test.ts"], "real": "Causas reales de red/plazo (T081)" },
+    { "id": "N01", "requisito": "RNF-C4-UI-01", "cantidades": { "cargas": 3, "bytesMax": 10000 }, "local": ["frontend/test/widget-launcher.spec.ts", "frontend/scripts/build-widget.mjs"], "real": "HAR de la página real del portal (T079)" },
+    { "id": "N02", "requisito": "RNF-C4-UI-02", "cantidades": { "estados": "lista de estados de acceptance.md" }, "local": ["frontend/test/all-states-a11y.spec.ts", "frontend/test/reading-a11y.spec.ts", "frontend/test/feedback-a11y.spec.ts"], "real": "Revisión manual firmada, lectores y zoom 200 % (T080)" },
+    { "id": "N03", "requisito": "RNF-C4-UI-03", "cantidades": { "maliciosas": 10, "consultas": 3 }, "local": ["frontend/test/markdown-security.test.tsx"], "real": "Cargas del C3 real (T081)" },
+    { "id": "N04", "requisito": "RNF-C4-UI-04", "cantidades": { "elementos": 10 }, "local": ["frontend/test/brand.spec.ts"], "real": "Comparación con el portal con el widget instalado (T080)" },
+    { "id": "I01", "requisito": "RF-C4-IN-01", "cantidades": { "recorridos": 6 }, "local": ["frontend/test/startup.test.tsx", "frontend/test/storage.spec.ts", "backend/test/ui-integracion/privacy.test.ts"], "real": "Backend real con Bedrock (T081)" },
+    { "id": "I02", "requisito": "RF-C4-IN-02", "cantidades": { "recorridos": 3, "consultas": 12, "pares": 10 }, "local": ["frontend/test/history.test.ts", "backend/test/ui-integracion/prerequisites.test.ts"], "real": "Doce consultas con modelo real (T081)" },
+    { "id": "I03", "requisito": "RF-C4-IN-03", "cantidades": { "pruebas": 4 }, "local": ["frontend/test/query-attempt.test.ts", "frontend/test/query-integration.spec.ts"], "real": "Tiempo real de navegador/servicio (T081)" },
+    { "id": "I04", "requisito": "RF-C4-IN-04", "cantidades": { "pruebas": 6 }, "local": ["frontend/test/contact-recovery.test.ts", "frontend/test/query-integration.spec.ts"], "real": "Errores reales del proxy (T081)" },
+    { "id": "I05", "requisito": "RF-C4-IN-05", "cantidades": { "respuestas": 6 }, "local": ["frontend/test/feedback.test.tsx", "frontend/test/feedback.spec.ts"], "real": "Registro real (T081)" },
+    { "id": "I06", "requisito": "RF-C4-IN-06", "cantidades": { "pruebas": 4, "esperaMaxMs": 5000 }, "local": ["frontend/test/contact-recovery.test.ts", "frontend/test/query-integration.spec.ts"], "real": "Contactos reales editados en el panel (T081)" },
+    { "id": "P01", "requisito": "RNF-C4-IN-01", "cantidades": { "recorridos": 3 }, "local": ["frontend/test/storage.spec.ts", "frontend/test/startup.test.tsx"], "real": "Chrome y Firefox reales (T079)" },
+    { "id": "P02", "requisito": "RNF-C4-IN-02", "cantidades": { "pruebas": 6 }, "local": ["frontend/test/widget-csp.spec.ts"], "real": "Cabeceras de nginx con el origen oficial y bloqueos en Android/iOS (T079)" },
+    { "id": "B09", "requisito": "RF-C3-IN-09", "cantidades": { "envios": 12, "validos": 7, "invalidos": 5 }, "local": ["backend/test/ui-integracion/feedback-api.test.ts", "backend/test/ui-integracion/feedback-database.test.ts"], "real": "Base real de despliegue (T081)" },
+    { "id": "B10", "requisito": "RF-C3-IN-10", "cantidades": { "llamadas": 3, "maxMs": 2000 }, "local": ["backend/test/ui-integracion/contact-config.test.ts"], "real": "Panel y base de despliegue (T081)" }
+  ]
+}

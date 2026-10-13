@@ -1,0 +1,34 @@
+{
+  "pasos": [
+    "Para solicitar el permiso siga estos pasos:\n\n1. Diligencie el formulario **GT-F-01**.\n2. Adjunte la *cédula* del solicitante.\n3. Radique en la [ventanilla virtual](https://tramites.envigado.gov.co/ventanilla).\n\nRecuerde guardar el comprobante.",
+    "Requisitos:\n\n1. Documento de identidad\n   - Original\n   - Copia\n2. Certificado de tradición\n3. Plano del predio\n\nFuente: [Resolución 123](https://envigado.gov.co/res-123)",
+    "Pasos de la visita:\n\n1. Solicite la cita.\n2. Reciba la visita técnica.\n3. Consulte el concepto emitido por la **dirección responsable**."
+  ],
+  "tablas": [
+    "| Trámite | Plazo | Costo |\n| --- | --- | --- |\n| Permiso de aprovechamiento | 30 días hábiles | Sin costo |\n| Visita técnica | 15 días hábiles | Sin costo |",
+    "| Dirección | Canal |\n|---|---|\n| Ecosistemas | [PQRSD](https://pqrsd.envigado.gov.co) |\n| Bienestar Animal | WhatsApp |",
+    "| Código | Nombre | Versión | Vigencia | Responsable | Observaciones | Enlace |\n|---|---|---|---|---|---|---|\n| GT-P-01 | Procedimiento de aprovechamiento forestal con un nombre muy largo | 3 | 2026-03-15 | Dirección de Ecosistemas | Documento oficial vigente sin modificaciones recientes | [Ver](https://envigado.gov.co/gt-p-01) |"
+  ],
+  "prosa": [
+    "Geobot orienta sobre trámites de las tres direcciones. La decisión final corresponde a la **dirección responsable**. Esta orientación no reemplaza la asesoría técnica ni jurídica formal.",
+    "El plazo general es de *treinta días hábiles*, contados desde la radicación completa.\n\nSi falta información, la dirección solicitará el complemento.",
+    "## Resumen\n\nLos animales de compañía deben estar identificados. ### Detalle\n\nConsulte la norma aplicable en el [Decreto 456](https://envigado.gov.co/decreto-456) (versión 2026)."
+  ],
+  "maliciosas": [
+    "<script>window.__pwned = 1</script>Texto visible",
+    "Hola <img src=x onerror=\"window.__pwned=1\"> mundo",
+    "[clic aquí](javascript:window.__pwned=1)",
+    "[datos](data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg==)",
+    "<a href=\"https://ok.gov.co\" onclick=\"window.__pwned=1\" style=\"color:red\">enlace</a>",
+    "<iframe src=\"https://malo.example\"></iframe><style>body{display:none}</style>",
+    "![imagen](https://malo.example/track.png)",
+    "[ftp](ftp://malo.example/x) y [correo](mailto:a@b.co) y [tel](tel:123) y [http](http://malo.example)",
+    "<svg onload=\"window.__pwned=1\"><circle/></svg><details open ontoggle=\"window.__pwned=1\">x</details>",
+    "| a | b |\n|---|---|\n| <img src=x onerror=\"window.__pwned=1\"> | [x](javascript:alert(1)) |"
+  ],
+  "consultas": [
+    "<script>alert(1)</script> ¿cómo hago el trámite?",
+    "**negrita** y [enlace](https://x.co) en mi pregunta",
+    "| a | b |\n|---|---|\n| 1 | 2 |"
+  ]
+}

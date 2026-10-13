@@ -1,0 +1,22 @@
+<!doctype html>
+<!-- Fixture del Observatorio: mapa simulado con controles propios. No es el portal real. -->
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Observatorio (fixture de prueba)</title>
+  <style>
+    html, body { margin: 0; height: 100%; font-family: sans-serif; }
+    #mapa { position: absolute; inset: 0; background: #cfe3d4; }
+    #mapa .controles { position: absolute; right: 12px; bottom: 12px; display: flex; flex-direction: column; gap: 4px; }
+    #mapa button { width: 32px; height: 32px; }
+  </style>
+</head>
+<body>
+  <main id="mapa" data-camera="6.17,-75.58,12" data-capas="base,limites">
+    <h1>Observatorio Ambiental y Agropecuario</h1>
+    <div class="controles"><button id="zoom-in" aria-label="Acercar">+</button><button id="zoom-out" aria-label="Alejar">−</button></div>
+  </main>
+  <script src="/embed/geobot-launcher.js" data-geobot-origin="{{CHAT_ORIGIN}}" async></script>
+</body>
+</html>

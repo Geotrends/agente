@@ -1,0 +1,11 @@
+{
+  "causas": [
+    { "id": "validacion-1", "status": 400, "content": "application/json", "body": "{\"error\":{\"codigo\":\"VALIDACION\",\"mensaje\":\"campo inválido\",\"campo\":\"pregunta\"}}", "retry": false },
+    { "id": "validacion-2", "status": 400, "content": "application/json", "body": "{\"error\":{\"codigo\":\"VALIDACION\",\"mensaje\":\"x\",\"campo\":\"conversationId\"}}", "retry": false },
+    { "id": "interno-1", "status": 500, "content": "application/json", "body": "{\"error\":{\"codigo\":\"ERROR_INTERNO\",\"mensaje\":\"Fallo interno en modelo gpt-oss-20b\"}}", "retry": true },
+    { "id": "interno-2", "status": 503, "content": "application/json", "body": "{\"error\":{\"codigo\":\"SERVICIO_NO_DISPONIBLE\",\"mensaje\":\"SELECT * FROM chat.interaction\"}}", "retry": true },
+    { "id": "http-502-html", "status": 502, "content": "text/html", "body": "<html><body><h1>502 Bad Gateway</h1>nginx/1.27</body></html>", "retry": true },
+    { "id": "200-incompleto", "status": 200, "content": "application/json", "body": "{\"modo\":\"conversación\",\"tipo\":\"respondida\"}", "retry": true }
+  ],
+  "tecnicos": ["gpt-oss", "SELECT", "VALIDACION", "ERROR_INTERNO", "SERVICIO_NO_DISPONIBLE", "nginx", "502", "Bad Gateway", "campo inválido", "conversationId", "chat.interaction"]
+}
