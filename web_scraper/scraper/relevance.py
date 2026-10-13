@@ -64,18 +64,6 @@ _TYPE_NUMBER_RE = re.compile(
 )
 _YEAR_RE = re.compile(r"(?:19|20)\d{2}")
 
-CONCEJO_FOLDER_BY_TYPE: dict[str, str] = {
-    "acuerdo": "acuerdos", "decreto": "decretos", "resolucion": "resoluciones",
-    "circular": "circulares",
-}
-# Orden importa: se busca como subcadena en la ruta/slug (p.ej.
-# "/boletines/decreto-nro-20260000540-de-2026/" no tiene el segmento exacto
-# "/decretos/", pero si el stem "decreto").
-CONCEJO_PATH_TYPE_STEMS: tuple[tuple[str, str], ...] = (
-    ("acuerdo", "acuerdo"), ("decreto", "decreto"), ("resolucion", "resolucion"),
-    ("circular", "circular"),
-)
-
 
 def _fold(text: str) -> str:
     """minusculas + sin tildes, para comparar de forma robusta y determinista."""
@@ -254,29 +242,3 @@ def classify_document(*texts: str) -> DocumentClassification:
             return DocumentClassification(doc_type, "", "")
     return DocumentClassification()
 
-
-def infer_concejo_document_type(url: str, fallback_type: str = "") -> str:
-    """Para Concejo: prioriza la clasificacion por texto (titulo/H1 del propio
-    documento) y solo recurre a la ruta/slug cuando esta no identifico uno de
-    los tres tipos objetivo.
-
-    La ruta por si sola puede ser enganosa: p.ej. una Resolucion cuyo slug
-    dice "...-correccion-numeracion-de-acuerdos.pdf" contiene la palabra
-    "acuerdo" de forma incidental. Cuando la ruta es la unica senal
-    disponible (fallback_type vacio, tipico de una pagina de listado como
-    "/categoria_boletines/decretos/"), se usa el stem que aparece mas a la
-    izquierda en la ruta.
-    """
-    if fallback_type in CONCEJO_FOLDER_BY_TYPE:
-        return fallback_type
-    path = _fold(urlsplit(url).path)
-    best_type, best_pos = "", len(path) + 1
-    for stem, doc_type in CONCEJO_PATH_TYPE_STEMS:
-        pos = path.find(stem)
-        if pos != -1 and pos < best_pos:
-            best_type, best_pos = doc_type, pos
-    return best_type or fallback_type
-
-
-def concejo_folder_for_type(document_type: str) -> str:
-    return CONCEJO_FOLDER_BY_TYPE.get(document_type, "otros")

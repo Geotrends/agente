@@ -18,6 +18,15 @@ REMOVE_SELECTORS = (
     ".elementor-post-navigation", ".social-share", ".cookie-notice",
     "[role=navigation]", "[aria-label*=breadcrumb i]",
 )
+# Ruido de interfaz que no es contenido (research R8): el indicador de carga de
+# jqGrid, los botones de vista del visor de GMAS2 ("Vista Completa", "Acordeón",
+# "Pestañas") y las anclas de sus pestañas. Si entrara al texto, además de
+# ensuciar las tablas cambiaría la huella de la página sin que el contenido
+# cambie (RF-C3-IV-06).
+RUIDO_SELECTORS = (".loading", "div.button", "a[href^='#tab']")
+#: Columnas técnicas de jqGrid que no son contenido.
+COLUMNAS_TECNICAS = {"tiporegistro", "acciones", "relaciona", "id", "ítem", "item"}
+
 MAIN_SELECTORS = (
     "article .entry-content", "main article", "main .entry-content", "article",
     "main", "#content", ".site-content",
@@ -143,9 +152,10 @@ def parse_html(
             seen.add(normalized)
 
     content = BeautifulSoup(str(main), "lxml")
-    for selector in REMOVE_SELECTORS:
+    for selector in (*REMOVE_SELECTORS, *RUIDO_SELECTORS):
         for node in content.select(selector):
             node.decompose()
+    normalizar_tablas(content)
     for image in content.select("img"):
         if not image.get("alt"):
             image.decompose()
@@ -156,6 +166,9 @@ def parse_html(
     )
     markdown = re.sub(r"\n[ \t]+\n", "\n\n", markdown)
     markdown = re.sub(r"\n{3,}", "\n\n", markdown).strip()
+    # Espacios no separables (el visor de GMAS2 los usa en celdas como "20 días"):
+    # para el lector y para la búsqueda son espacios normales.
+    markdown = markdown.replace("\xa0", " ")
     plain_length = len(body.get_text(" ", strip=True))
     scripts = len(soup.select("script[src]"))
     # Una pagina breve cuyo unico proposito es enlazar un archivo no requiere JS.
@@ -179,6 +192,89 @@ def parse_html(
         dynamic_suspected=dynamic_suspected,
         meets_requirements=meets_requirements,
     )
+
+
+def _oculta(tag: Tag) -> bool:
+    return "display:none" in (tag.get("style") or "").replace(" ", "").lower()
+
+
+def _jqgrid_a_tabla(soup: BeautifulSoup, caja: Tag) -> Tag | None:
+    """Une la tabla de encabezados y la de cuerpo de una rejilla jqGrid en una
+    sola tabla con <thead>/<tbody>, sin columnas ocultas ni técnicas."""
+    encabezado = caja.select_one(".ui-jqgrid-htable")
+    cuerpo = caja.select_one(".ui-jqgrid-btable")
+    if encabezado is None or cuerpo is None:
+        return None
+    ths = encabezado.select("th")
+    columnas = [
+        i for i, th in enumerate(ths)
+        if not _oculta(th) and th.get_text(" ", strip=True).casefold() not in COLUMNAS_TECNICAS
+    ]
+    filas = cuerpo.select("tr.jqgrow")
+    if not columnas or not filas:
+        return None
+    tabla = soup.new_tag("table")
+    thead = soup.new_tag("thead")
+    tr = soup.new_tag("tr")
+    for i in columnas:
+        th = soup.new_tag("th")
+        th.string = ths[i].get_text(" ", strip=True)
+        tr.append(th)
+    thead.append(tr)
+    tabla.append(thead)
+    tbody = soup.new_tag("tbody")
+    for fila in filas:
+        celdas = fila.find_all("td", recursive=False)
+        tr = soup.new_tag("tr")
+        for i in columnas:
+            td = soup.new_tag("td")
+            if i < len(celdas):
+                for hijo in list(celdas[i].contents):
+                    td.append(hijo)
+            tr.append(td)
+        tbody.append(tr)
+    tabla.append(tbody)
+    return tabla
+
+
+def _celdas_propias(tabla: Tag) -> list[Tag]:
+    return [c for c in tabla.find_all(["td", "th"]) if c.find_parent("table") is tabla]
+
+
+def normalizar_tablas(soup: BeautifulSoup) -> None:
+    """Normaliza el HTML antes de markdownify para que las tablas lleguen
+    íntegras (RF-C3-IV-09, research R8):
+
+    1. cada rejilla jqGrid se convierte en UNA tabla limpia (o se elimina si
+       está vacía);
+    2. una tabla de maquetación que contiene otras tablas se desenvuelve: sus
+       celdas pasan a ser bloques y las tablas internas quedan sueltas —si no,
+       markdownify mete la tabla entera dentro de una celda—;
+    3. un <thead> escrito con <td> pasa a <th>, para que la tabla tenga
+       encabezado de columnas.
+    """
+    for caja in soup.select(".ui-jqgrid"):
+        tabla = _jqgrid_a_tabla(soup, caja)
+        if tabla is None:
+            caja.decompose()
+        else:
+            caja.replace_with(tabla)
+    while True:
+        exteriores = [t for t in soup.find_all("table") if t.find("table")]
+        if not exteriores:
+            break
+        # Primero las más internas, para no mover una tabla que aún contiene otra.
+        tabla = next(t for t in exteriores if not any(x.find("table") for x in t.find_all("table")))
+        bloque = soup.new_tag("div")
+        for celda in _celdas_propias(tabla):
+            contenedor = soup.new_tag("div")
+            for hijo in list(celda.contents):
+                contenedor.append(hijo)
+            bloque.append(contenedor)
+        tabla.replace_with(bloque)
+    for thead in soup.select("thead"):
+        for td in thead.find_all("td"):
+            td.name = "th"
 
 
 def markdown_document(page: ParsedPage, url: str, scraped_at: datetime) -> str:

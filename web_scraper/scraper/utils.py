@@ -14,14 +14,18 @@ IGNORED_PATH_PREFIXES = (
     "/wp-admin", "/wp-login", "/wp-json", "/xmlrpc.php", "/feed",
     "/comments", "/carrito", "/cart", "/checkout",
 )
+# Imágenes que se adquieren como documento (para OCR, RF-C3-IV-08) solo cuando
+# llegan como enlace explícito (<a href>) del contenido principal; las <img> de
+# una página nunca se descargan (html_parser solo recoge <a>, <embed>, <object>).
+IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".tif", ".tiff"}
 DOCUMENT_EXTENSIONS = {
     ".pdf", ".xlsx", ".xls", ".csv", ".docx", ".doc", ".pptx",
     ".ppt", ".txt",
-}
+} | IMAGE_EXTENSIONS
 NON_TARGET_ASSET_EXTENSIONS = {
-    ".7z", ".avi", ".bmp", ".css", ".eot", ".gif", ".ico", ".jpeg",
-    ".jpg", ".js", ".json", ".map", ".mkv", ".mov", ".mp3", ".mp4",
-    ".ogg", ".png", ".rar", ".svg", ".ttf", ".webm", ".webp", ".woff",
+    ".7z", ".avi", ".bmp", ".css", ".eot", ".gif", ".ico",
+    ".js", ".json", ".map", ".mkv", ".mov", ".mp3", ".mp4",
+    ".ogg", ".rar", ".svg", ".ttf", ".webm", ".webp", ".woff",
     ".woff2", ".xml", ".zip",
 }
 

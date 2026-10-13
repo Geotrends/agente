@@ -17,11 +17,16 @@ from .config import ScraperConfig
 from .downloader import (
     DocumentDownloader, document_extension, response_filename, response_is_document,
 )
+from bs4 import BeautifulSoup
+
+from .gmas2 import estructura_completa, extraer_metadatos
 from .html_parser import infer_category, markdown_document, parse_html
 from .metadata_store import MetadataStore
+from .run_report import Enlace, ErrorEnlace, RunReport
+from .enlaces import esta_quitada
+from .sources import host_permitido
 from .relevance import (
-    classify_document, concejo_folder_for_type, infer_concejo_document_type,
-    should_crawl_url, should_download_document,
+    classify_document, should_crawl_url, should_download_document,
 )
 from .utils import (
     looks_like_document_url, normalize_url, rehost, relative_posix, safe_destination,
@@ -46,8 +51,14 @@ class SourceCrawler:
     niveles de `scraper.relevance` y la organizacion de salida por fuente.
     """
 
-    def __init__(self, config: ScraperConfig, metadata: MetadataStore | None = None):
+    def __init__(
+        self, config: ScraperConfig, metadata: MetadataStore | None = None,
+        report: RunReport | None = None,
+    ):
         self.config = config
+        # Informe de corrida compartido por todas las fuentes de la ejecución
+        # (contracts/run-report.md). None en usos sueltos y en pruebas antiguas.
+        self.report = report
         self.config.create_directories()
         self.metadata = metadata or MetadataStore(config.output_dir)
         self.downloader = DocumentDownloader(config, self.metadata)
@@ -149,8 +160,53 @@ class SourceCrawler:
             self._playwright = sync_playwright().start()
             self._browser = self._playwright.chromium.launch()
             self._browser_page = self._browser.new_page(user_agent=self.config.user_agent)
-        self._browser_page.goto(url, wait_until="networkidle", timeout=self.config.request_timeout * 1000)
+        if self.config.render_wait == "load":
+            # Visores de mapas: nunca dejan la red inactiva (teselas sin fin).
+            self._browser_page.goto(url, wait_until="load", timeout=self.config.request_timeout * 1000)
+            if self.config.render_espera_ms:
+                self._browser_page.wait_for_timeout(self.config.render_espera_ms)
+        else:
+            self._browser_page.goto(url, wait_until="networkidle", timeout=self.config.request_timeout * 1000)
         return self._browser_page.content()
+
+    # ── Informe de corrida (contracts/run-report.md) ─────────────────────────
+
+    def _rol(self, item: CrawlItem, es_documento: bool) -> str:
+        if self.config.gmas2_recorrido:
+            if es_documento:
+                return "descarga"
+            return "procedimiento" if item.depth == 0 else "vinculado"
+        return "documento" if es_documento else "pagina"
+
+    def _resultado(self, url: str, hash_actual: str | None) -> str:
+        previo = self.metadata.hash_previo_por_url.get(url)
+        if previo is None:
+            return "nuevo"
+        return "sin_cambios" if previo == hash_actual else "cambio_detectado"
+
+    def _reportar(self, **campos: object) -> None:
+        if self.report is None or self.config.dry_run:
+            return
+        campos.setdefault("fuente", self.config.source_name)
+        campos.setdefault("fecha_hora", self._now().isoformat())
+        self.report.add(Enlace(**campos))  # type: ignore[arg-type]
+
+    def _reportar_error(self, item: CrawlItem, tipo: str, detalle: str, codigo_http: int | None = None) -> None:
+        es_documento = item.document_hint or looks_like_document_url(item.url)
+        self._reportar(
+            url=item.url, rol=self._rol(item, es_documento), padre=item.parent_url or None,
+            titulo=item.link_text or None, resultado="error",
+            error=ErrorEnlace(tipo, detalle, codigo_http),
+        )
+
+    def _reportar_no_alcanzados(self) -> None:
+        """Regla 6: las URLs que la fuente tenía y esta corrida no visitó."""
+        if self.report is None or self.config.dry_run:
+            return
+        vistas = self.report.urls()
+        for url in sorted(self.metadata.urls_previas_por_fuente.get(self.config.source_name, set()) - vistas):
+            item = CrawlItem(url, 1, "", document_hint=looks_like_document_url(url))
+            self._reportar_error(item, "inaccesible", "no alcanzado")
 
     def _close_browser(self) -> None:
         if self._browser_page is not None:
@@ -191,6 +247,27 @@ class SourceCrawler:
             url = rehost(raw_url, self.config.preferred_host)
             if should_ignore_url(url):
                 continue
+            # Enlace quitado desde el panel: no se verifica, no se encola y no se reporta
+            # (lo ya publicado se conserva; RF-C3-AD-18).
+            if self.config.urls_excluidas and esta_quitada(url, self.config.urls_excluidas):
+                continue
+            # GMAS2 (research R10): desde un vinculado solo se siguen sus
+            # descargas, nunca otros documentos del visor.
+            if self.config.gmas2_recorrido and item.depth >= 1 and "downloadFile.public" not in url:
+                continue
+            candidato = (
+                same_allowed_host(url, self.config.document_allowed_hosts)
+                or same_allowed_host(url, self.config.allowed_hosts)
+            )
+            if candidato and not host_permitido(url):
+                # Contrato, regla 5: lo que el crawler visitaría pero cae fuera
+                # de la lista cerrada de hosts se reporta y no se descarga.
+                self._reportar(
+                    url=url, rol=self._rol(item, True) if looks_like_document_url(url) else "pagina",
+                    padre=response_url, titulo=text or None, resultado="error",
+                    error=ErrorEnlace("fuera_de_alcance", "host fuera de la lista permitida"),
+                )
+                continue
             if same_allowed_host(url, self.config.document_allowed_hosts):
                 children.append(CrawlItem(
                     url, item.depth + 1, response_url, text, document_hint=True,
@@ -226,6 +303,25 @@ class SourceCrawler:
                 self.stats["pages_skipped_filter"] += 1
         return children
 
+    def _tamano_previo(self, ruta_relativa: str | None) -> int:
+        """Caracteres del cuerpo de la última versión guardada de una página (0 si no hay)."""
+        if not ruta_relativa:
+            return 0
+        try:
+            texto = safe_destination(self.config.output_dir, Path(ruta_relativa)).read_text(encoding="utf-8")
+        except (OSError, ValueError):
+            return 0
+        partes = texto.split("\n---\n", 1)
+        return len((partes[1] if texto.startswith("---") and len(partes) == 2 else texto).strip())
+
+    def _error_estructura(self, item: CrawlItem, url: str, titulo: str, detalle: str) -> None:
+        self.stats["errors"] += 1
+        self.logger.warning("[ESTRUCTURA] %s: %s", url, detalle)
+        self._reportar(
+            url=url, rol=self._rol(item, False), padre=item.parent_url or None, titulo=titulo or None,
+            resultado="error", error=ErrorEnlace("estructura_modificada", detalle),
+        )
+
     def _save_page(self, item: CrawlItem, response: requests.Response, html: str) -> list[CrawlItem]:
         page = parse_html(
             html, response.url, self.config.content_selectors,
@@ -234,9 +330,36 @@ class SourceCrawler:
             require_selector_text=self.config.require_selector_text,
             require_text_values=self.config.require_text_values,
         )
+        gmas = None
+        if self.config.gmas2_recorrido:
+            gmas = extraer_metadatos(BeautifulSoup(html, "lxml"), response.url)
+        if self.config.gmas2_recorrido and not (gmas and gmas.get("codigo") and gmas.get("estado")):
+            # Sin código o sin estado la página no es un documento de GMAS2 que
+            # podamos leer: el sitio cambió o devolvió otra cosa (RF-C3-IV-04).
+            # No se guarda nada: lo anterior sigue siendo lo validado.
+            self._error_estructura(item, response.url, page.title, "faltan el código o el estado del documento")
+            return []
         if not page.meets_requirements:
+            # Derogado (RF-C3-IV-03): no se guarda ni se siguen sus enlaces,
+            # pero queda en el informe para que el kb-worker lo marque y avise.
             self.stats["pages_skipped_filter"] += 1
-            self.logger.info("[SKIP] no cumple require_selector_text %s", response.url)
+            self.logger.info("[DEROGADO] %s", response.url)
+            self._reportar(
+                url=response.url, rol=self._rol(item, False), padre=item.parent_url or None,
+                titulo=page.title or None, estado_detectado="derogado",
+                resultado=self._resultado(response.url, None) if response.url not in self.metadata.hash_previo_por_url else "sin_cambios",
+                gmas=gmas,
+            )
+            return []
+        if self.config.gmas2_recorrido and not estructura_completa(gmas):
+            self._error_estructura(item, response.url, page.title, "falta la versión o la fecha del documento")
+            return []
+        previo = self._tamano_previo(self.metadata.known_page_urls.get(response.url))
+        if previo and len(page.markdown.strip()) < previo * self.config.umbral_estructura:
+            self._error_estructura(
+                item, response.url, page.title,
+                f"el contenido cayó a {len(page.markdown.strip())} de {previo} caracteres",
+            )
             return []
         self._page_titles[response.url] = page.title
         self._page_categories[response.url] = page.category
@@ -277,6 +400,20 @@ class SourceCrawler:
                 "content_sha256": page.content_hash, "scraped_at": scraped_at.isoformat(),
                 "dynamic_suspected": page.dynamic_suspected, "source": self.config.source_name,
             })
+            if local_path:
+                self._reportar(
+                    url=response.url, rol=self._rol(item, False), padre=item.parent_url or None,
+                    titulo=page.title or None,
+                    estado_detectado="vigente" if self.config.gmas2_recorrido else "no_aplica",
+                    resultado=self._resultado(response.url, page.content_hash),
+                    hash_contenido=page.content_hash, archivo=local_path, gmas=gmas,
+                )
+            else:
+                self._reportar(
+                    url=response.url, rol=self._rol(item, False), padre=item.parent_url or None,
+                    titulo=page.title or None, resultado="error",
+                    error=ErrorEnlace("estructura_modificada", "pagina sin contenido util"),
+                )
         if page.dynamic_suspected:
             self.logger.warning("[JS?] contenido escaso; revisar manualmente %s", response.url)
         return self._build_children(item, response.url, page.title, page.links)
@@ -312,20 +449,23 @@ class SourceCrawler:
 
         self.stats["documents_found"] += 1
         classification = classify_document(item.link_text, filename_guess, source_page_title)
-        folder_override = ""
-        if self.config.document_folder_mode == "document_type":
-            doc_type = infer_concejo_document_type(final_url, classification.document_type)
-            folder_override = concejo_folder_for_type(doc_type)
-            classification.document_type = doc_type
         result = self.downloader.save(
             response, final_url, item.parent_url, item.link_text,
             infer_category(item.parent_url or final_url), self._now().isoformat(),
-            source_name=self.config.source_name, folder_override=folder_override,
+            source_name=self.config.source_name,
             document_type=classification.document_type, document_number=classification.document_number,
             year=classification.year, title=item.link_text or Path(filename_guess).stem,
             topic=self._page_categories.get(item.parent_url, ""), relevance_score=score,
         )
         self.metadata.add("documentos", result.row)
+        self._reportar(
+            url=final_url, rol=self._rol(item, True), padre=item.parent_url or None,
+            titulo=item.link_text or Path(filename_guess).stem or None,
+            estado_detectado="no_aplica",
+            resultado=self._resultado(final_url, str(result.row["sha256"])),
+            hash_contenido=str(result.row["sha256"]),
+            archivo_original=str(result.row["local_path"]), hash_original=str(result.row["sha256"]),
+        )
         label = str(result.row["extension"]).upper() or "FILE"
         if result.duplicate:
             self.stats["duplicates_skipped"] += 1
@@ -382,15 +522,21 @@ class SourceCrawler:
             return self._save_page(item, response, html)
         except requests.Timeout as error:
             self._record_error(item.url, item.parent_url, "timeout", str(error))
+            self._reportar_error(item, "timeout", "tiempo de espera agotado")
         except requests.exceptions.SSLError as error:
             self._record_error(item.url, item.parent_url, "ssl_error", str(error))
+            self._reportar_error(item, "inaccesible", "error de certificado TLS")
         except requests.HTTPError as error:
             status = error.response.status_code if error.response is not None else "http"
             self._record_error(item.url, item.parent_url, f"http_{status}", str(error))
+            self._reportar_error(item, "http", f"HTTP {status}", status if isinstance(status, int) else None)
         except requests.RequestException as error:
             self._record_error(item.url, item.parent_url, "request_error", str(error))
+            self._reportar_error(item, "inaccesible", "la conexión falló")
         except (OSError, ValueError) as error:
             self._record_error(item.url, item.parent_url, type(error).__name__, str(error))
+            tipo = "fuera_de_alcance" if "Redirect externo" in str(error) else "inaccesible"
+            self._reportar_error(item, tipo, type(error).__name__)
         finally:
             if response is not None:
                 response.close()
@@ -465,6 +611,7 @@ class SourceCrawler:
         }
         if not self.config.dry_run:
             self.metadata.flush()
+        self._reportar_no_alcanzados()
         return manifest
 
 

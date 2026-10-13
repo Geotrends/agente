@@ -44,6 +44,19 @@ class MetadataStore:
         self._load_existing_pages()
         self._load_existing_urls_visitadas()
         self._load_existing_errores()
+        # Foto de la corrida ANTERIOR, tomada al cargar: el informe de corrida
+        # compara contra ella (nuevo / sin_cambios / cambio_detectado) y con
+        # ella sabe qué URLs de cada fuente no se alcanzaron (contrato, regla 6).
+        self.hash_previo_por_url: dict[str, str] = {}
+        self.urls_previas_por_fuente: dict[str, set[str]] = {}
+        for row in self.rows["paginas"]:
+            if row.get("url") and row.get("content_sha256"):
+                self.hash_previo_por_url[row["url"]] = row["content_sha256"]
+                self.urls_previas_por_fuente.setdefault(row.get("source", ""), set()).add(row["url"])
+        for row in self.rows["documentos"]:
+            if row.get("source_url") and row.get("sha256"):
+                self.hash_previo_por_url[row["source_url"]] = row["sha256"]
+                self.urls_previas_por_fuente.setdefault(row.get("source", ""), set()).add(row["source_url"])
 
     def _load_existing_documents(self) -> None:
         path = self.directory / "documentos.csv"

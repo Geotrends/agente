@@ -34,6 +34,7 @@ CATEGORY_BY_EXTENSION = {
     ".pdf": "pdf", ".xlsx": "excel", ".xls": "excel", ".csv": "csv",
     ".docx": "word", ".doc": "word", ".pptx": "powerpoint",
     ".ppt": "powerpoint", ".txt": "txt",
+    ".png": "imagen", ".jpg": "imagen", ".jpeg": "imagen", ".tif": "imagen", ".tiff": "imagen",
 }
 
 
@@ -90,7 +91,7 @@ class DocumentDownloader:
     def save(
         self, response: requests.Response, source_url: str, source_page_url: str,
         link_text: str, category: str, downloaded_at: str, *,
-        source_name: str = "ambientometro", folder_override: str = "",
+        source_name: str = "ambientometro",
         document_type: str = "", document_number: str = "", year: str = "",
         title: str = "", topic: str = "", relevance_score: int = 0,
     ) -> DownloadResult:
@@ -131,7 +132,7 @@ class DocumentDownloader:
             duplicate_of = str(duplicate_row.get("id", ""))
             filename = str(duplicate_row.get("filename", filename))
         else:
-            folder = folder_override or CATEGORY_BY_EXTENSION.get(extension, "otros")
+            folder = CATEGORY_BY_EXTENSION.get(extension, "otros")
             destination = safe_destination(self.config.content_dir, Path("documentos") / folder / filename)
             destination = unique_path(destination, digest)
             destination.parent.mkdir(parents=True, exist_ok=True)

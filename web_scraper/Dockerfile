@@ -1,5 +1,5 @@
-# Scraper del corpus. Solo se usa en la preparación de datos
-# (docker compose --profile setup run scraper), nunca en el arranque normal.
+# Scraper del corpus. Corre solo, según SCRAPER_CRON (entrypoint.sh + supercronic),
+# y también a mano: make scrape (RF-C3-IV-02).
 FROM python:3.12-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -19,7 +19,24 @@ RUN pip install --no-cache-dir -r requirements.txt
 # al usuario sin privilegios de abajo.
 RUN playwright install --with-deps chromium
 
-COPY main.py ./
+# supercronic: cron para contenedores (corre como usuario sin privilegios y
+# escribe en stdout). Versión fijada con su SHA-256, verificado al construir.
+ARG SUPERCRONIC_VERSION=v0.2.49
+ARG TARGETARCH=amd64
+RUN set -eu; \
+    case "$TARGETARCH" in \
+      amd64) sha=a53ae236602c7338aba3fbaff40bda6300eae3b9fedb8261eb06cfe3724430c1 ;; \
+      arm64) sha=02aa0cb229ba09050cba6638059dadb9eedc2276632ea43d6a57a2f8c1629dd5 ;; \
+      *) echo "arquitectura no soportada: $TARGETARCH" >&2; exit 1 ;; \
+    esac; \
+    apt-get update && apt-get install -y --no-install-recommends curl ca-certificates; \
+    curl -fsSLo /usr/local/bin/supercronic \
+      "https://github.com/aptible/supercronic/releases/download/${SUPERCRONIC_VERSION}/supercronic-linux-${TARGETARCH}"; \
+    echo "${sha}  /usr/local/bin/supercronic" | sha256sum -c -; \
+    chmod 0755 /usr/local/bin/supercronic; \
+    apt-get purge -y curl && rm -rf /var/lib/apt/lists/*
+
+COPY main.py entrypoint.sh ./
 COPY scraper ./scraper
 COPY scripts ./scripts
 COPY certs ./certs
@@ -35,11 +52,11 @@ COPY certs ./certs
 # para todos por defecto, y el proceso no escribe dentro de su propio
 # directorio de instalacion en tiempo de ejecucion.
 RUN useradd --system --uid 10001 geobot \
-    && mkdir -p /data \
-    && chown geobot:geobot /data
+    && mkdir -p /data /data/runs \
+    && chown geobot:geobot /data /data/runs
 USER geobot
 
 # /data es el volumen del corpus. Las fuentes salen de SCRAPER_SOURCES (ver
-# main.py); cualquier flag extra se agrega al final:
-#   docker compose --profile setup run --rm scraper --max-pages 50
-ENTRYPOINT ["python", "main.py", "--output", "/data"]
+# main.py). Para una corrida manual con flags:
+#   make scrape ARGS="--max-pages 50"
+ENTRYPOINT ["./entrypoint.sh"]

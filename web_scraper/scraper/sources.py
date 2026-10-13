@@ -1,86 +1,28 @@
-"""Registro de fuentes soportadas por el crawler multi-fuente.
+"""Registro de fuentes de la base de conocimiento (RF-C3-IV-01, research R16).
 
-Cada fuente declara sus semillas, dominios permitidos y el modo de filtrado que
-debe aplicar `scraper.relevance`. Los pesos y listas aqui son deterministicos
-(sin IA) y se pueden ajustar sin tocar la logica del crawler.
+Solo las cuatro fuentes autorizadas: GMAS2 (los 6 procedimientos y sus
+vinculados), Ambientómetro (páginas y documentos), las 4 páginas de
+envigado.gov.co y el Observatorio de Geotrends. Concejo, MinAmbiente y
+MinAgricultura salieron del alcance y se retiraron de aquí para que nadie pueda
+reactivarlas por configuración (sus definiciones viven en
+tests/fuentes_retiradas.py, solo para pruebas de lógica genérica).
+
+Cada fuente declara sus semillas, dominios y el modo de filtrado que aplica
+`scraper.relevance`. Además, todo enlace debe pasar `host_permitido`: la lista
+cerrada de hosts de la base, idéntica a la de backend/config/base-conocimiento.json
+(lo verifica tests/test_sources_scope.py) y que solo cambia con un despliegue
+(RF-C3-AD-15).
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass, field
 from pathlib import Path
+from urllib.parse import urlsplit
 
 # certs/ vive en la raiz de web_scraper/, un nivel arriba de scraper/.
 CERTS_DIR = Path(__file__).resolve().parent.parent / "certs"
 
-
-# --- Concejo Municipal de Envigado -----------------------------------------
-# Verificado en vivo (2026-09): el sitio es WordPress; "categoria_boletines/*"
-# son los listados (taxonomia) de decretos/resoluciones/circulares/boletines,
-# pero cada norma individual vive bajo "/boletines/<slug>/" (sin "categoria_"),
-# mezclando ahi decretos, resoluciones, circulares y boletines institucionales
-# bajo el mismo prefijo. Por eso "/boletines/" debe permitirse para poder
-# llegar a los documentos reales; el tipo exacto se resuelve despues via
-# clasificacion de texto (ver relevance.classify_document), no por la ruta.
-# Las 4 subcategorias deben estar todas permitidas: sin ellas el crawler nunca
-# visita esa pagina de listado y por lo tanto nunca descubre los enlaces a los
-# documentos individuales que solo aparecen ahi (verificado: omitir
-# "circulares" y "boletines" dejaba fuera 50 documentos que solo se enlazan
-# desde esas dos paginas).
-ALLOWED_PATHS_CONCEJO = (
-    "/corporacion/gaceta-del-concejo/",
-    "/corporacion/gaceta-del-concejo/acuerdos/",
-    "/categoria_boletines/decretos/",
-    "/categoria_boletines/resoluciones/",
-    "/categoria_boletines/circulares/",
-    "/categoria_boletines/boletines/",
-    "/boletines/",
-    # Las paginas principales enlazan los archivos por ano mediante taxonomias
-    # WordPress que viven fuera de /corporacion/gaceta-del-concejo/.
-    "/acuerdos_ano/",
-    "/actas_ano/",
-)
-
-# --- Ministerio de Ambiente --------------------------------------------------
-MINAMBIENTE_HIGH_PRIORITY: dict[str, int] = {
-    "decreto": 5, "resolucion": 5, "resolución": 5, "ley": 5,
-    "normatividad": 4, "normativa": 4, "ruido": 4, "calidad del aire": 4,
-    "contaminacion atmosferica": 4, "contaminación atmosférica": 4,
-    "cambio climatico": 4, "cambio climático": 4, "residuos": 4, "agua": 4,
-    "biodiversidad": 4, "suelo": 4, "licenciamiento": 4,
-    "ordenamiento ambiental": 4, "politica ambiental": 4, "política ambiental": 4,
-    "guia": 4, "guía": 4, "manual": 4, "protocolo": 4, "lineamiento": 4,
-    "conpes": 3, "circular": 3, "gestion ambiental": 3, "gestión ambiental": 3,
-    "autoridad ambiental": 3, "calidad ambiental": 4,
-}
-MINAMBIENTE_BLACKLIST: dict[str, int] = {
-    "noticia": -5, "prensa": -5, "evento": -5, "galeria": -5, "galería": -5,
-    "video": -5, "instagram": -5, "facebook": -5, "twitter": -5, "youtube": -5,
-    "convocatoria": -4, "campana": -3, "campaña": -3, "hoja de vida": -4,
-    "vacante": -4, "ceremonia": -3,
-}
-
-# --- Ministerio de Agricultura -----------------------------------------------
-MINAGRICULTURA_HIGH_PRIORITY: dict[str, int] = {
-    "decreto": 5, "resolucion": 5, "resolución": 5, "ley": 5,
-    "normatividad": 4, "desarrollo rural": 4, "desarrollo agropecuario": 4,
-    "extension agropecuaria": 4, "extensión agropecuaria": 4, "snia": 4,
-    "epsea": 4, "pdea": 4, "asistencia tecnica": 4, "asistencia técnica": 4,
-    "agricultura campesina": 4, "productor rural": 4, "productores rurales": 4,
-    "seguridad alimentaria": 4, "comercializacion": 4, "comercialización": 4,
-    "agroecologia": 4, "agroecología": 4, "produccion agropecuaria": 4,
-    "producción agropecuaria": 4, "innovacion agropecuaria": 4,
-    "innovación agropecuaria": 4,
-    "consejo municipal de desarrollo rural": 4, "cmdr": 4,
-    "politica": 3, "política": 3, "plan": 3, "guia": 4, "guía": 4,
-    "manual": 4, "lineamiento": 4, "circular": 3,
-}
-MINAGRICULTURA_BLACKLIST: dict[str, int] = {
-    "noticia": -5, "prensa": -5, "evento": -5, "galeria": -5, "galería": -5,
-    "video": -5, "instagram": -5, "facebook": -5, "twitter": -5, "youtube": -5,
-    "convocatoria": -3, "vacante": -4, "contratacion": -3, "contratación": -3,
-    "hoja de vida": -4,
-}
 
 # --- Envigado.gov.co (paginas puntuales, acotadas en reunion con cliente) --
 # No es crawleo: son 4 URLs fijas de interes, sin seguir enlaces (max_depth=0
@@ -94,15 +36,19 @@ ENVIGADO_COM_PAGES = (
 )
 
 # --- GMAS2 (sistema de gestion de calidad de Envigado) ---------------------
-# 5 documentos de calidad puntuales (procedimientos/procesos), acotados en
-# reunion con cliente. Verificado en vivo via HAR: la app arma cada documento
+# Los 6 procedimientos (GT-P) de la base de conocimiento (RF-C3-IV-01). Verificado en vivo via HAR: la app arma cada documento
 # con ~5 llamadas AJAX a endpoints "*.public" (getDocumentoCalidadInfo,
 # getDocumentoControlInfo, getDocumentoRelacionGrid, getDocumentoTableGrid,
 # getCampoActividadCols), TODAS sin cookies ni sesion -- ".public" es literal,
 # no requieren el login que el cliente indico (usuario/clave "consulta"). Se
 # renderiza igual que envigado_com (SPA/JS), no hace falta implementar login.
 GMAS2_DOCUMENT_IDS = (
-    "0000010207", "0000010446", "0000002145", "0000010445", "0000002147",
+    "0000010207",  # GT-P-004  Gestión Ambiental
+    "0000010446",  # GT-P-011  Bienestar Animal
+    "0000002145",  # GT-P-020  Bienestar Animal
+    "0000010445",  # GT-P-021  Bienestar Animal
+    "0000002147",  # GT-P-027  Bienestar Animal
+    "0000004622",  # GT-P-029  Ecosistemas (agregado en el bloque 1)
 )
 GMAS2_PAGES = tuple(
     f"https://gmas2.envigado.gov.co/gmas/VisualizacionDocumento.public?documento={doc_id}"
@@ -112,12 +58,33 @@ GMAS2_PAGES = tuple(
 # Retraso minimo (segundos) entre solicitudes, por fuente.
 SOURCE_DELAYS: dict[str, float] = {
     "ambientometro": 0.5,
-    "concejo_envigado": 0.7,
-    "minambiente": 1.0,
-    "minagricultura": 1.0,
     "envigado_com": 0.7,
     "gmas2_envigado": 0.7,
+    "observatorio_geotrends": 0.7,
 }
+
+# --- Hosts permitidos de la base (RF-C3-IV-01, RF-C3-AD-15) ------------------
+# Lista cerrada. "dominio_con_subdominios" acepta el dominio y todo host que
+# termine en ".<dominio>"; "host_exacto" solo ese host. Debe ser IDENTICA a
+# hosts_permitidos de backend/config/base-conocimiento.json.
+HOSTS_PERMITIDOS: tuple[tuple[str, str], ...] = (
+    ("envigado.gov.co", "dominio_con_subdominios"),
+    ("www.concejoenvigado.gov.co", "host_exacto"),
+    ("observatorioenvigado.geotrends.co", "host_exacto"),
+    ("ambientometroenvigado.com", "host_exacto"),
+)
+
+
+def host_permitido(url: str) -> bool:
+    """True si la URL es https y su host esta en HOSTS_PERMITIDOS."""
+    partes = urlsplit(url)
+    if partes.scheme != "https":
+        return False
+    host = (partes.hostname or "").lower()
+    for permitido, tipo in HOSTS_PERMITIDOS:
+        if host == permitido or (tipo == "dominio_con_subdominios" and host.endswith("." + permitido)):
+            return True
+    return False
 
 
 @dataclass(frozen=True, slots=True)
@@ -143,7 +110,6 @@ class SourceDefinition:
     # Dominios externos que solo pueden recibir solicitudes a enlaces
     # descubiertos dentro de una pagina oficial. Nunca se navegan como HTML.
     document_allowed_domains: tuple[str, ...] = ()
-    document_folder_mode: str = "extension"  # "extension" | "document_type"
     legacy_flat_layout: bool = False
     user_agent: str = ""  # vacio = usar el user_agent transparente por defecto
     # Ruta a un PEM extra (relativa a web_scraper/) para sitios que no envian
@@ -156,6 +122,13 @@ class SourceDefinition:
     title_code_selector: str = ""
     require_selector_text: str = ""
     require_text_values: tuple[str, ...] = ()
+    # GMAS2 (research R10): desde un GT-P semilla se siguen sus vinculados; desde
+    # un vinculado, SOLO sus descargas. Reemplaza el recorrido por profundidad.
+    gmas2_recorrido: bool = False
+    # Como esperar el render JS: "networkidle" (defecto) o "load" + una espera
+    # fija, para paginas que nunca dejan la red inactiva (visores de mapas).
+    render_wait: str = "networkidle"
+    render_espera_ms: int = 0
 
 
 SOURCES: dict[str, SourceDefinition] = {
@@ -166,97 +139,12 @@ SOURCES: dict[str, SourceDefinition] = {
         mode="general_observatory",
         related_seed_urls=("https://ambientometroenvigado.com/biblioteca-boletines/",),
         delay=SOURCE_DELAYS["ambientometro"],
-        document_folder_mode="extension",
         # A partir de ahora anida bajo su propia carpeta, igual que las demas
         # fuentes. Los archivos que ya existian antes de este cambio (layout
         # plano, directo bajo OUTPUT_DIR) se dejan donde estan: el dedup por
         # SHA-256 los sigue reconociendo via metadata/documentos.csv, solo lo
         # nuevo que se descubra de aqui en adelante cae en ambientometro/.
         legacy_flat_layout=False,
-    ),
-    "concejo_envigado": SourceDefinition(
-        name="concejo_envigado",
-        start_urls=("https://www.concejoenvigado.gov.co/corporacion/gaceta-del-concejo/",),
-        allowed_domains=("concejoenvigado.gov.co", "www.concejoenvigado.gov.co"),
-        mode="normative",
-        allowed_paths=ALLOWED_PATHS_CONCEJO,
-        # Un proyecto aun no es una norma aprobada. Se conserva "acuerdo-*"
-        # y se descarta "proyecto-de-acuerdo-*" para no contaminar el corpus.
-        document_exclude_phrases=("proyecto de acuerdo",),
-        # Verificado en vivo (2026-09): "/acuerdos_ano/" expone acuerdos desde
-        # 1905. Los anteriores a la Constitucion de 1991 son normativa casi
-        # con certeza derogada/reemplazada y ademas dieron el peor OCR de la
-        # muestra (escaneos de baja calidad, Tesseract reporto "possibly poor
-        # OCR"). Los sin anio detectable no se descartan por esto.
-        min_document_year=1991,
-        delay=SOURCE_DELAYS["concejo_envigado"],
-        document_folder_mode="document_type",
-        content_selectors=(
-            ".elementor-widget-archive-posts",
-            ".elementor-widget-theme-post-content",
-            ".elementor-location-archive",
-            "main",
-        ),
-        # Verificado en vivo: el Apache/WAF de este sitio devuelve 403 a
-        # cualquier User-Agent que se identifique como bot/crawler (incluido
-        # el UA transparente por defecto), pero permite un UA de navegador
-        # estandar. robots.txt no restringe estas rutas.
-        user_agent=(
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-            "(KHTML, like Gecko) Chrome/120.0 Safari/537.36"
-        ),
-    ),
-    "minambiente": SourceDefinition(
-        name="minambiente",
-        start_urls=(
-            "https://www.minambiente.gov.co/",
-            "https://www.minambiente.gov.co/normativa/",
-        ),
-        allowed_domains=("minambiente.gov.co", "www.minambiente.gov.co"),
-        mode="selective_normative",
-        delay=SOURCE_DELAYS["minambiente"],
-        min_relevance_score=4,
-        high_priority_keywords=MINAMBIENTE_HIGH_PRIORITY,
-        blacklist_keywords=MINAMBIENTE_BLACKLIST,
-        allowed_document_types=("decreto", "resolucion", "ley", "circular"),
-        document_exclude_phrases=(
-            "proyecto", "borrador", "anexo", "memoria justificativa",
-            "comentarios", "observaciones", "agenda regulatoria",
-        ),
-        document_folder_mode="extension",
-    ),
-    "minagricultura": SourceDefinition(
-        name="minagricultura",
-        start_urls=(
-            "https://www.minagricultura.gov.co/normatividad/decretos",
-            "https://www.minagricultura.gov.co/normatividad/resoluciones",
-            "https://www.minagricultura.gov.co/normatividad/leyes",
-        ),
-        allowed_domains=("minagricultura.gov.co", "www.minagricultura.gov.co"),
-        mode="selective_normative",
-        delay=SOURCE_DELAYS["minagricultura"],
-        min_relevance_score=4,
-        high_priority_keywords=MINAGRICULTURA_HIGH_PRIORITY,
-        blacklist_keywords=MINAGRICULTURA_BLACKLIST,
-        allowed_document_types=("decreto", "resolucion", "ley", "circular"),
-        # "notificacion": verificado en vivo, /normatividad/notificaciones/
-        # publica actos administrativos individuales dirigidos a una persona
-        # (terminacion de contrato, resoluciones de personal) con el nombre
-        # propio en el filename. allowed_document_types no basta porque el
-        # filename suele incluir la palabra "resolucion"/"resol" igual
-        # (ej. "gladys_nayibe_villamizar_contreras_resolucion.pdf"), asi que
-        # classify_document los identifica como tipo "resolucion" valido.
-        document_exclude_phrases=(
-            "proyecto", "borrador", "anexo", "memoria justificativa",
-            "comentarios", "observaciones", "agenda regulatoria",
-            "notificacion",
-        ),
-        content_selectors=("main",),
-        document_allowed_domains=(
-            "pruebasse.minagricultura.gov.co",
-            "minagriculturaco-my.sharepoint.com",
-        ),
-        document_folder_mode="extension",
     ),
     "envigado_com": SourceDefinition(
         name="envigado_com",
@@ -268,7 +156,6 @@ SOURCES: dict[str, SourceDefinition] = {
         # alcance quedo acotado en reunion con el cliente a estas paginas
         # puntuales, no a un crawleo del sitio.
         max_depth=0,
-        document_folder_mode="extension",
         # Verificado en vivo (2026-09): el servidor no envia su certificado
         # intermedio (GlobalSign GCC R46 OV TLS CA 2025), solo el hoja. curl/
         # macOS lo completan via AIA pero requests+certifi no, y fallan con
@@ -290,14 +177,12 @@ SOURCES: dict[str, SourceDefinition] = {
         # (VisualizacionDocumento.public) y descargas reales (downloadFile.public).
         allowed_paths=("/gmas/",),
         delay=SOURCE_DELAYS["gmas2_envigado"],
-        # Cada documento "Vigente" puede enlazar otros documentos del mismo
-        # sistema ("documentos asociados al proceso"); se siguen esos enlaces,
-        # pero require_selector_text (abajo) corta la rama en cuanto un
-        # documento no esta Vigente. Medido en vivo: el grafo completo desde
-        # los 5 documentos pedidos converge solo en ~21 documentos, mucho
-        # antes de este limite.
-        max_depth=10,
-        document_folder_mode="extension",
+        # Recorrido acotado (RF-C3-IV-01, research R10): GT-P (profundidad 0)
+        # -> sus vinculados (1) -> las descargas de esos vinculados (2). Solo
+        # entran los documentos citados dentro de los 6 GT-P, no el grafo
+        # completo de "documentos asociados al proceso".
+        max_depth=2,
+        gmas2_recorrido=True,
         # Igual que envigado_com: la pagina arma el documento con JS (jQuery +
         # ~5 llamadas AJAX). Sin renderizado el HTML crudo llega vacio.
         render_js=True,
@@ -309,11 +194,25 @@ SOURCES: dict[str, SourceDefinition] = {
         # el codigo (ej. "GT-P-004") en la celda vecina "Codigo: ...".
         title_selectors=(".sbigf",),
         title_code_selector="td:has(.resalt)",
-        # Verificado en vivo: documentos Derogados existen en el grafo (ej.
-        # los que devuelve "documentos asociados al proceso"). El cliente
-        # pidio ignorarlos por completo: ni guardar ni seguir sus enlaces.
+        # Verificado en vivo: hay documentos Derogados citados por GT-P
+        # vigentes (MG-P-003 y MG-F-002 en GT-P-004, captura del 2026-10-07).
+        # Un documento no "Vigente" no se guarda ni se siguen sus enlaces, y
+        # queda en el informe de corrida como estado_detectado="derogado"
+        # (RF-C3-IV-03): antes se descartaba sin dejar rastro.
         require_selector_text=".estado",
         require_text_values=("Vigente",),
+    ),
+    "observatorio_geotrends": SourceDefinition(
+        name="observatorio_geotrends",
+        start_urls=("https://observatorioenvigado.geotrends.co/observatorio",),
+        allowed_domains=("observatorioenvigado.geotrends.co",),
+        mode="general_observatory",
+        delay=SOURCE_DELAYS["observatorio_geotrends"],
+        # Verificado en la captura del 2026-10-07: visor de mapas (MapLibre)
+        # que pinta el contenido con JS y nunca deja la red inactiva.
+        render_js=True,
+        render_wait="load",
+        render_espera_ms=8_000,
     ),
 }
 

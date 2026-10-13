@@ -13,18 +13,25 @@ from requests.structures import CaseInsensitiveDict
 
 from scraper.config import ScraperConfig
 from scraper.crawler import CrawlItem, SourceCrawler
-from scraper.downloader import document_extension, response_filename
+from scraper.downloader import CATEGORY_BY_EXTENSION, document_extension, response_filename
 from scraper.downloader import DocumentDownloader
 from scraper.html_parser import ParsedPage, markdown_document, parse_html
 from scraper.metadata_store import MetadataStore
 from scraper.relevance import (
-    classify_document, concejo_folder_for_type, infer_concejo_document_type,
+    classify_document,
     relevance_score, should_crawl_url, should_download_document,
 )
 from scraper.sources import SOURCES
-from scraper.utils import normalize_url, safe_destination, should_ignore_url, slugify
+from scraper.utils import looks_like_document_url, normalize_url, safe_destination, should_ignore_url, slugify
 from main import print_report
 from scripts.recover_page_metadata import parse_frontmatter, recover
+
+# Fuentes retiradas del alcance (RF-C3-IV-01): sus definiciones viven en un
+# módulo de pruebas porque estas pruebas cubren lógica genérica del crawler.
+from fuentes_retiradas import RETIRADAS
+
+CONCEJO_PRUEBA = RETIRADAS["concejo_envigado"]
+MINAGRI_PRUEBA = RETIRADAS["minagricultura"]
 
 
 class UrlTests(unittest.TestCase):
@@ -54,7 +61,10 @@ class UrlTests(unittest.TestCase):
                 safe_destination(root, Path("../escape.txt"))
 
     def test_decorative_assets_are_not_crawled(self) -> None:
-        self.assertTrue(should_ignore_url("https://ambientometroenvigado.com/uploads/banner.JPG"))
+        # gif, svg y webp son decoración; png/jpg/tif enlazados son escaneos (RF-C3-IV-08).
+        self.assertTrue(should_ignore_url("https://ambientometroenvigado.com/uploads/banner.gif"))
+        self.assertTrue(should_ignore_url("https://ambientometroenvigado.com/uploads/logo.svg"))
+        self.assertFalse(should_ignore_url("https://ambientometroenvigado.com/uploads/escaneo.JPG"))
         self.assertFalse(should_ignore_url("https://ambientometroenvigado.com/uploads/informe.pdf"))
 
 
@@ -75,6 +85,26 @@ class ParserTests(unittest.TestCase):
         self.assertNotIn("Menu repetido", page.markdown)
         self.assertEqual(len(page.links), 1)
         self.assertEqual(page.category, "aire")
+
+    def test_image_is_a_document_only_when_linked_explicitly(self) -> None:
+        # RF-C3-IV-08: un escaneo enlazado con <a href> se adquiere para OCR;
+        # las <img> decorativas de la página nunca.
+        html = """
+        <html><body><article><div class='entry-content'>
+          <h1>Boletín escaneado</h1>
+          <img src="/wp-content/uploads/banner.png" alt="Banner">
+          <a href="/wp-content/uploads/boletin-abril.jpg">Descargar boletín</a>
+          <a href="/wp-content/uploads/mapa.tiff">Mapa</a>
+        </div></article></body></html>
+        """
+        page = parse_html(html, "https://ambientometroenvigado.com/boletines/")
+        urls = [url for url, _ in page.links]
+        self.assertEqual(sorted(urls), [
+            "https://ambientometroenvigado.com/wp-content/uploads/boletin-abril.jpg",
+            "https://ambientometroenvigado.com/wp-content/uploads/mapa.tiff",
+        ])
+        self.assertTrue(all(looks_like_document_url(u) for u in urls))
+        self.assertEqual(CATEGORY_BY_EXTENSION[".jpg"], "imagen")
 
     def test_extracts_document_embedded_via_embed_tag(self) -> None:
         # El Concejo de Envigado inserta el PDF de cada norma con <embed>, no <a href>.
@@ -120,7 +150,7 @@ class ParserTests(unittest.TestCase):
         """
         page = parse_html(
             html, "https://www.concejoenvigado.gov.co/categoria_boletines/decretos/",
-            SOURCES["concejo_envigado"].content_selectors,
+            CONCEJO_PRUEBA.content_selectors,
         )
         self.assertEqual([text for _, text in page.links], ["Decreto 1", "Decreto 2"])
 
@@ -133,7 +163,7 @@ class ParserTests(unittest.TestCase):
         """
         page = parse_html(
             html, "https://www.minagricultura.gov.co/normatividad/resoluciones/",
-            SOURCES["minagricultura"].content_selectors,
+            MINAGRI_PRUEBA.content_selectors,
         )
         self.assertEqual(len(page.links), 2)
 
@@ -202,7 +232,7 @@ class ConfigTests(unittest.TestCase):
             self.assertFalse((config.output_dir / "documentos").exists())
 
     def test_external_document_domains_are_not_crawl_domains(self) -> None:
-        source = SOURCES["minagricultura"]
+        source = MINAGRI_PRUEBA
         with tempfile.TemporaryDirectory() as directory:
             config = ScraperConfig(
                 start_url=source.start_urls[0], output_dir=Path(directory),
@@ -214,18 +244,19 @@ class ConfigTests(unittest.TestCase):
             self.assertNotIn(sharepoint, config.allowed_hosts)
 
     def test_external_document_link_is_enqueued_but_not_crawled_as_page(self) -> None:
-        source = SOURCES["minagricultura"]
+        # Un host de solo descargas se encola como documento pero nunca se
+        # navega como pagina. Desde el bloque 1 ademas debe estar en la lista
+        # cerrada de hosts (test_sources_scope.py cubre el caso contrario).
         with tempfile.TemporaryDirectory() as directory:
             config = ScraperConfig(
-                start_url=source.start_urls[0], output_dir=Path(directory),
-                source_name=source.name, extra_allowed_domains=source.allowed_domains,
-                document_allowed_domains=source.document_allowed_domains,
+                start_url="https://ambientometroenvigado.com/observatorio/", output_dir=Path(directory),
+                source_name="ambientometro", document_allowed_domains=("gmas2.envigado.gov.co",),
             )
             crawler = SourceCrawler(config)
             item = CrawlItem(config.start_url, 0, "")
             children = crawler._build_children(
-                item, config.start_url, "Resoluciones",
-                [("https://minagriculturaco-my.sharepoint.com/x/guestaccess.aspx?share=1", "Resolucion 1")],
+                item, config.start_url, "Observatorio",
+                [("https://gmas2.envigado.gov.co/gmas/downloadFile.public?repositorioArchivo=1", "Formato")],
             )
             self.assertEqual(len(children), 1)
             self.assertTrue(children[0].document_hint)
@@ -275,33 +306,8 @@ class RelevanceTests(unittest.TestCase):
         result = classify_document("Contenido sin tipo normativo reconocible")
         self.assertEqual((result.document_type, result.document_number, result.year), ("", "", ""))
 
-    def test_concejo_document_type_inferred_from_path(self) -> None:
-        self.assertEqual(
-            infer_concejo_document_type(
-                "https://www.concejoenvigado.gov.co/corporacion/gaceta-del-concejo/acuerdos/acuerdo-008/"
-            ),
-            "acuerdo",
-        )
-        self.assertEqual(concejo_folder_for_type("acuerdo"), "acuerdos")
-        self.assertEqual(concejo_folder_for_type("desconocido"), "otros")
-
-    def test_concejo_document_type_prefers_text_classification_over_incidental_path_word(self) -> None:
-        # El slug menciona "acuerdos" solo de forma incidental (corrige su
-        # numeracion); el propio titulo dice que es una Resolucion.
-        classification = classify_document(
-            "Resolucion Nro. 149 de 2025",
-            "RESOLUCION-149-CORRECCION-NUMERACION-DE-ACUERDOS.pdf", "",
-        )
-        doc_type = infer_concejo_document_type(
-            "https://www.concejoenvigado.gov.co/wp-content/uploads/2025/10/"
-            "RESOLUCION-149-CORRECCION-NUMERACION-DE-ACUERDOS.pdf",
-            classification.document_type,
-        )
-        self.assertEqual(doc_type, "resolucion")
-        self.assertEqual(concejo_folder_for_type(doc_type), "resoluciones")
-
     def test_should_crawl_url_normative_mode_restricted_to_allowed_paths(self) -> None:
-        concejo = SOURCES["concejo_envigado"]
+        concejo = CONCEJO_PRUEBA
         allowed, reason, _ = should_crawl_url(
             url="https://www.concejoenvigado.gov.co/categoria_boletines/decretos/decreto-1/",
             depth=1, mode=concejo.mode, allowed_paths=concejo.allowed_paths,
@@ -318,7 +324,7 @@ class RelevanceTests(unittest.TestCase):
         # son la unica forma de descubrir cada tipo de documento; si alguno
         # falta en ALLOWED_PATHS_CONCEJO sus documentos nunca se encuentran
         # (bug detectado: "circulares" y "boletines" institucionales faltaban).
-        concejo = SOURCES["concejo_envigado"]
+        concejo = CONCEJO_PRUEBA
         for category in ("decretos", "resoluciones", "circulares", "boletines"):
             allowed, _, _ = should_crawl_url(
                 url=f"https://www.concejoenvigado.gov.co/categoria_boletines/{category}/",
@@ -327,7 +333,7 @@ class RelevanceTests(unittest.TestCase):
             self.assertTrue(allowed, f"categoria_boletines/{category}/ deberia estar permitida")
 
     def test_should_crawl_url_allows_concejo_year_taxonomies(self) -> None:
-        concejo = SOURCES["concejo_envigado"]
+        concejo = CONCEJO_PRUEBA
         for path in ("acuerdos_ano", "actas_ano"):
             allowed, _, _ = should_crawl_url(
                 url=f"https://www.concejoenvigado.gov.co/{path}/2026/",
@@ -342,11 +348,8 @@ class RelevanceTests(unittest.TestCase):
         self.assertFalse(allowed)
         self.assertEqual(reason, "fuera_de_allowed_paths")
 
-    def test_concejo_folder_for_type_has_dedicated_circulares_folder(self) -> None:
-        self.assertEqual(concejo_folder_for_type("circular"), "circulares")
-
     def test_should_crawl_url_selective_normative_allows_index_pages_despite_low_score(self) -> None:
-        minambiente = SOURCES["minambiente"]
+        minambiente = RETIRADAS["minambiente"]
         # Score bajo (sin coincidencias) pero profundidad<=1: se admite igual como
         # pagina de indice necesaria para descubrir contenido normativo (seccion 5).
         allowed, reason, score = should_crawl_url(
@@ -360,7 +363,7 @@ class RelevanceTests(unittest.TestCase):
         self.assertLess(score, minambiente.min_relevance_score)
 
     def test_should_crawl_url_selective_normative_rejects_irrelevant_deep_pages(self) -> None:
-        minambiente = SOURCES["minambiente"]
+        minambiente = RETIRADAS["minambiente"]
         allowed, _, score = should_crawl_url(
             url="https://www.minambiente.gov.co/sala-de-prensa/noticias/alguna-noticia/",
             anchor_text="Alguna noticia", depth=3, mode=minambiente.mode,
@@ -372,14 +375,14 @@ class RelevanceTests(unittest.TestCase):
 
     def test_should_download_document_rejects_disallowed_extension(self) -> None:
         allowed, reason, _ = should_download_document(
-            url="https://example.com/banner.jpg", filename="banner.jpg", extension=".jpg",
+            url="https://example.com/banner.gif", filename="banner.gif", extension=".gif",
             mode="general_observatory",
         )
         self.assertFalse(allowed)
         self.assertEqual(reason, "extension_no_permitida")
 
     def test_should_download_document_rejects_zip_extension(self) -> None:
-        minagricultura = SOURCES["minagricultura"]
+        minagricultura = MINAGRI_PRUEBA
         allowed, reason, _ = should_download_document(
             url="https://www.minagricultura.gov.co/normatividad/decreto-anexos.zip",
             filename="decreto-anexos.zip", anchor_text="Anexos del decreto 123 de 2020",
@@ -392,7 +395,7 @@ class RelevanceTests(unittest.TestCase):
         self.assertEqual(reason, "extension_no_permitida")
 
     def test_should_download_document_normative_mode_is_exhaustive(self) -> None:
-        concejo = SOURCES["concejo_envigado"]
+        concejo = CONCEJO_PRUEBA
         allowed, reason, _ = should_download_document(
             url="https://www.concejoenvigado.gov.co/corporacion/gaceta-del-concejo/acuerdos/acuerdo-1.pdf",
             filename="acuerdo-1.pdf", extension=".pdf", mode=concejo.mode,
@@ -401,7 +404,7 @@ class RelevanceTests(unittest.TestCase):
         self.assertIn("exhaustiva", reason)
 
     def test_concejo_rejects_projects_but_keeps_approved_agreements(self) -> None:
-        concejo = SOURCES["concejo_envigado"]
+        concejo = CONCEJO_PRUEBA
         project_allowed, reason, _ = should_download_document(
             url="https://www.concejoenvigado.gov.co/docs/proyecto-de-acuerdo-036-de-2026.pdf",
             filename="proyecto-de-acuerdo-036-de-2026.pdf", extension=".pdf",
@@ -422,7 +425,7 @@ class RelevanceTests(unittest.TestCase):
         # Verificado en vivo: "/acuerdos_ano/" expone acuerdos desde 1905. Los
         # anteriores a la Constitucion de 1991 son casi con certeza normativa
         # derogada y dieron el peor OCR de la muestra (escaneos centenarios).
-        concejo = SOURCES["concejo_envigado"]
+        concejo = CONCEJO_PRUEBA
         self.assertEqual(concejo.min_document_year, 1991)
 
         old_allowed, reason, _ = should_download_document(
@@ -459,7 +462,7 @@ class RelevanceTests(unittest.TestCase):
         # whitelist de allowed_document_types no basta porque estos filenames
         # suelen incluir la palabra "resolucion"/"resol", asi que
         # classify_document los identifica como tipo "resolucion" valido.
-        minagricultura = SOURCES["minagricultura"]
+        minagricultura = MINAGRI_PRUEBA
         self.assertIn("notificacion", minagricultura.document_exclude_phrases)
 
         for filename in (
@@ -492,7 +495,7 @@ class RelevanceTests(unittest.TestCase):
     def test_ministries_only_allow_four_normative_document_types(self) -> None:
         expected_types = ("decreto", "resolucion", "ley", "circular")
         for source_name in ("minambiente", "minagricultura"):
-            source = SOURCES[source_name]
+            source = RETIRADAS[source_name]
             self.assertEqual(source.allowed_document_types, expected_types)
             for document_type in expected_types:
                 allowed, reason, _ = should_download_document(
@@ -518,7 +521,7 @@ class RelevanceTests(unittest.TestCase):
             self.assertTrue(abbreviated_allowed, reason)
 
     def test_ministries_reject_non_normative_and_draft_documents(self) -> None:
-        source = SOURCES["minambiente"]
+        source = RETIRADAS["minambiente"]
         rejected_names = (
             "proyecto-de-decreto-123-de-2026.pdf",
             "borrador-resolucion-045-de-2026.pdf",
@@ -540,7 +543,7 @@ class RelevanceTests(unittest.TestCase):
             self.assertFalse(allowed, f"No deberia aceptar {filename}")
 
     def test_index_title_does_not_make_generic_attachment_a_resolution(self) -> None:
-        source = SOURCES["minagricultura"]
+        source = MINAGRI_PRUEBA
         allowed, reason, _ = should_download_document(
             url="https://www.minagricultura.gov.co/documentos/archivo-123.pdf",
             filename="archivo-123.pdf", anchor_text="Descargar",
@@ -772,26 +775,20 @@ class MetadataStoreTests(unittest.TestCase):
 
 
 class ReportTests(unittest.TestCase):
-    def test_concejo_report_includes_all_types_and_total(self) -> None:
+    def test_report_includes_authorized_sources(self) -> None:
         manifest = {
-            "pages_visited": 1, "documents_found": 10,
-            "documents_downloaded": 10, "pages_saved_as_markdown": 1,
-            "documents_skipped_filter": 0, "duplicates_skipped": 0,
-            "errors": 0,
-            "by_document_type": {
-                "decreto": 1, "resolucion": 2, "circular": 1,
-                "manual": 2, "politica": 1, "otros": 3,
-            },
+            "pages_visited": 7, "documents_found": 3, "documents_downloaded": 3,
+            "pages_saved_as_markdown": 6, "documents_skipped_filter": 0,
+            "duplicates_skipped": 1, "errors": 0, "by_document_type": {},
         }
         output = StringIO()
         with redirect_stdout(output):
-            print_report({"concejo_envigado": manifest}, Path("salida"), False)
+            print_report({"gmas2_envigado": manifest, "observatorio_geotrends": manifest}, Path("salida"), False)
         report = output.getvalue()
-        self.assertIn("Circulares:", report)
-        self.assertIn("Manuales:", report)
-        self.assertIn("Politicas:", report)
-        self.assertIn("Total:         10", report)
-
+        self.assertIn("GMAS2 ENVIGADO", report)
+        self.assertIn("OBSERVATORIO GEOTRENDS", report)
+        self.assertIn("Duplicados globales: 2", report)
+        self.assertNotIn("CONCEJO", report)
 
 if __name__ == "__main__":
     unittest.main()

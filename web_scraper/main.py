@@ -8,8 +8,19 @@ from pathlib import Path
 
 from scraper import ScraperConfig, SourceCrawler
 from scraper.config import MAX_FILE_SIZE_MB, REQUEST_TIMEOUT
+from scraper.enlaces import SnapshotEnlaces, cargar_snapshot, esta_quitada
 from scraper.metadata_store import MetadataStore
+from scraper.run_report import RunReport
 from scraper.sources import SOURCES, SourceDefinition
+
+
+def _umbral_estructura() -> float:
+    """KB_UMBRAL_ESTRUCTURA (0 a 1); un valor inválido usa el defecto 0,3."""
+    try:
+        valor = float(os.environ.get("KB_UMBRAL_ESTRUCTURA", "0.3").replace(",", "."))
+    except ValueError:
+        return 0.3
+    return valor if 0 <= valor <= 1 else 0.3
 
 
 def default_sources() -> list[str]:
@@ -29,8 +40,8 @@ def default_sources() -> list[str]:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Crawler multi-fuente para el corpus documental institucional "
-        "(Ambientometro, Concejo de Envigado, MinAmbiente, MinAgricultura, Envigado.gov.co, GMAS2)",
+        description="Adquisicion y verificacion de las fuentes de la base de conocimiento "
+        "(GMAS2, Ambientometro, Envigado.gov.co, Observatorio Geotrends)",
     )
     parser.add_argument("--output", required=True, type=Path, help="Carpeta raiz compartida por todas las fuentes")
     parser.add_argument(
@@ -52,14 +63,30 @@ def build_parser() -> argparse.ArgumentParser:
         help="No agregar semillas/secciones relacionadas de ninguna fuente seleccionada",
     )
     parser.add_argument("--no-verify-ssl", action="store_true", help="Solo para diagnostico; no recomendado")
+    parser.add_argument(
+        "--manual", action="store_true",
+        help="Corrida lanzada a mano (make scrape): el informe se marca programada=false. "
+        "Las corridas de la programación semanal no llevan este flag (RF-C3-IV-02)",
+    )
     return parser
 
 
-def build_config(source: SourceDefinition, args: argparse.Namespace) -> ScraperConfig:
-    primary_start, *extra_starts = source.start_urls
+def build_config(
+    source: SourceDefinition, args: argparse.Namespace, snapshot: SnapshotEnlaces | None = None,
+) -> ScraperConfig:
+    # Con snapshot (lista administrada desde el panel) las semillas son EXACTAMENTE sus enlaces
+    # vigentes; sin el, las estaticas de sources.py.
+    if snapshot is not None:
+        semillas = snapshot.vigentes.get(source.name, ())
+        primary_start, *extra_starts = semillas
+        related_seeds = () if args.no_related_seeds else tuple(extra_starts)
+        excluidas = tuple(u for u in snapshot.quitados if esta_quitada(u, snapshot.quitados))
+    else:
+        primary_start, *extra_starts = source.start_urls
+        related_seeds = () if args.no_related_seeds else (*extra_starts, *source.related_seed_urls)
+        excluidas = ()
     if args.start_url and len(args.sources) == 1:
         primary_start = args.start_url
-    related_seeds = () if args.no_related_seeds else (*extra_starts, *source.related_seed_urls)
     kwargs: dict[str, object] = dict(
         start_url=primary_start,
         output_dir=args.output,
@@ -67,7 +94,6 @@ def build_config(source: SourceDefinition, args: argparse.Namespace) -> ScraperC
         legacy_flat_layout=source.legacy_flat_layout,
         mode=source.mode,
         allowed_paths=source.allowed_paths,
-        document_folder_mode=source.document_folder_mode,
         min_relevance_score=source.min_relevance_score,
         high_priority_keywords=source.high_priority_keywords,
         blacklist_keywords=source.blacklist_keywords,
@@ -82,6 +108,10 @@ def build_config(source: SourceDefinition, args: argparse.Namespace) -> ScraperC
         title_code_selector=source.title_code_selector,
         require_selector_text=source.require_selector_text,
         require_text_values=source.require_text_values,
+        gmas2_recorrido=source.gmas2_recorrido,
+        render_wait=source.render_wait,
+        render_espera_ms=source.render_espera_ms,
+        umbral_estructura=_umbral_estructura(),
         dry_run=args.dry_run,
         max_depth=args.max_depth if args.max_depth is not None else source.max_depth,
         request_timeout=args.timeout if args.timeout is not None else REQUEST_TIMEOUT,
@@ -90,6 +120,7 @@ def build_config(source: SourceDefinition, args: argparse.Namespace) -> ScraperC
         max_pages=args.max_pages,
         verify_ssl=not args.no_verify_ssl,
         related_seed_urls=related_seeds,
+        urls_excluidas=excluidas,
         extra_allowed_domains=source.allowed_domains,
     )
     if source.user_agent:
@@ -111,35 +142,10 @@ def print_report(manifests: dict[str, dict[str, object]], output_dir: Path, dry_
         print(f"Markdown guardado:      {manifest['pages_saved_as_markdown']}")
         print()
 
-    if "concejo_envigado" in manifests:
-        manifest = manifests["concejo_envigado"]
-        by_type = manifest.get("by_document_type", {})
-        print("CONCEJO ENVIGADO")
-        labels = {
-            "acuerdo": "Acuerdos", "decreto": "Decretos",
-            "resolucion": "Resoluciones", "circular": "Circulares",
-            "manual": "Manuales", "politica": "Politicas",
-            "plan": "Planes", "ley": "Leyes", "otros": "Otros",
-        }
-        ordered_types = [*labels, *(key for key in sorted(by_type) if key not in labels)]
-        for document_type in ordered_types:
-            count = int(by_type.get(document_type, 0))
-            if count or document_type in {"acuerdo", "decreto", "resolucion", "otros"}:
-                print(f"{labels.get(document_type, document_type.replace('_', ' ').title()) + ':':<15}{count}")
-        print(f"{'Total:':<15}{sum(int(value) for value in by_type.values())}")
-        print()
-
-    for key, label in (("minambiente", "MINAMBIENTE"), ("minagricultura", "MINAGRICULTURA")):
-        if key not in manifests:
-            continue
-        manifest = manifests[key]
-        print(label)
-        print(f"Documentos evaluados:   {manifest['documents_found']}")
-        print(f"Descargados:            {manifest['documents_downloaded']}")
-        print(f"Descartados por filtro: {manifest['documents_skipped_filter']}")
-        print()
-
-    for key, label in (("envigado_com", "ENVIGADO.GOV.CO"), ("gmas2_envigado", "GMAS2 ENVIGADO")):
+    for key, label in (
+        ("envigado_com", "ENVIGADO.GOV.CO"), ("gmas2_envigado", "GMAS2 ENVIGADO"),
+        ("observatorio_geotrends", "OBSERVATORIO GEOTRENDS"),
+    ):
         if key not in manifests:
             continue
         manifest = manifests[key]
@@ -168,12 +174,30 @@ def main() -> int:
 
     output_dir = Path(args.output).expanduser().resolve()
     metadata = MetadataStore(output_dir)  # compartida: da deduplicacion cruzada entre fuentes
+    # Lista de enlaces administrada desde el panel (None = semillas estaticas).
+    snapshot = cargar_snapshot(output_dir)
+    # Un informe por ejecucion: lo consume el kb-worker (contracts/run-report.md).
+    report = RunReport(fuentes=list(args.sources), programada=not args.manual)
     manifests: dict[str, dict[str, object]] = {}
-    for source_name in args.sources:
-        source = SOURCES[source_name]
-        config = build_config(source, args)
-        manifest = SourceCrawler(config, metadata=metadata).crawl()
-        manifests[source_name] = manifest
+    try:
+        for source_name in args.sources:
+            source = SOURCES[source_name]
+            if snapshot is not None and not snapshot.vigentes.get(source_name):
+                # Todos sus enlaces fueron quitados: no hay nada que verificar (lo publicado se conserva).
+                print(f"Fuente {source_name}: sin enlaces vigentes en la lista; se omite.", file=sys.stderr)
+                continue
+            config = build_config(source, args, snapshot)
+            manifest = SourceCrawler(config, metadata=metadata, report=report).crawl()
+            manifests[source_name] = manifest
+    except BaseException:
+        # Un informe incompleto se entrega igual (sus verificaciones valen),
+        # pero el kb-worker no infiere bajas a partir de el.
+        report.completa = False
+        raise
+    finally:
+        if not args.dry_run:
+            destino = report.write(output_dir / "runs")
+            print(f"Informe de corrida: {destino}", file=sys.stderr)
 
     if not args.dry_run:
         metadata.write_manifest({

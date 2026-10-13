@@ -49,6 +49,8 @@ class ScraperConfig:
     ca_bundle: str = ""
     max_pages: int | None = None
     related_seed_urls: tuple[str, ...] = RELATED_SEED_URLS
+    # Enlaces quitados desde el panel (SPEC007): no se verifican ni se descargan.
+    urls_excluidas: tuple[str, ...] = ()
     allowed_hosts: set[str] = field(default_factory=set)
     extra_allowed_domains: tuple[str, ...] = ()
     document_allowed_hosts: set[str] = field(default_factory=set)
@@ -65,7 +67,6 @@ class ScraperConfig:
     legacy_flat_layout: bool = True
     mode: str = "general_observatory"
     allowed_paths: tuple[str, ...] = ()
-    document_folder_mode: str = "extension"
     min_relevance_score: int = 0
     high_priority_keywords: dict[str, int] = field(default_factory=dict)
     blacklist_keywords: dict[str, int] = field(default_factory=dict)
@@ -91,6 +92,15 @@ class ScraperConfig:
     # donde solo interesa el contenido activo. Vacio = sin filtro.
     require_selector_text: str = ""
     require_text_values: tuple[str, ...] = ()
+    # Ver SourceDefinition (scraper/sources.py): recorrido acotado de GMAS2 y
+    # espera del render JS.
+    gmas2_recorrido: bool = False
+    render_wait: str = "networkidle"
+    render_espera_ms: int = 0
+    # Fracción del tamaño previo de una página por debajo de la cual se considera
+    # que la estructura del sitio cambió y no se sobrescribe lo guardado
+    # (RF-C3-IV-04; KB_UMBRAL_ESTRUCTURA).
+    umbral_estructura: float = 0.3
 
     def __post_init__(self) -> None:
         self.output_dir = Path(self.output_dir).expanduser().resolve()
