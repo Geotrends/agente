@@ -56,18 +56,35 @@ export function parseRetryAfter(header: string | null): number | undefined {
   return Math.max(0, (date - Date.now()) / 1000);
 }
 
-const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+/** Espera `ms`, o menos si `signal` se dispara antes. Nunca rechaza. */
+function sleep(ms: number, signal?: AbortSignal): Promise<void> {
+  if (signal?.aborted) return Promise.resolve();
+  return new Promise(resolve => {
+    const done = () => {
+      clearTimeout(timer);
+      signal?.removeEventListener("abort", done);
+      resolve();
+    };
+    const timer = setTimeout(done, ms);
+    signal?.addEventListener("abort", done, { once: true });
+  });
+}
 
 export type Attempt = () => Promise<{ result: ProviderResult; retryAfterSeconds?: number }>;
 
 /**
  * Ejecuta `attempt` hasta `config.attempts` veces, parando en cuanto haya
  * respuesta o un fallo que no mejore repitiéndose.
+ *
+ * Con `signal`, además deja de reintentar en cuanto vence el plazo de la
+ * petición: un segundo intento que ya no puede llegar a tiempo solo retiene la
+ * plaza de la cola y la cuota del proveedor.
  */
 export async function withRetry(
   attempt: Attempt,
   config: RetryConfig,
   onRetry?: (result: ProviderResult, delayMs: number) => void,
+  signal?: AbortSignal,
 ): Promise<ProviderResult> {
   let last: ProviderResult | undefined;
   for (let index = 0; index < config.attempts; index++) {
@@ -75,10 +92,11 @@ export async function withRetry(
     if (result.ok || !result.retryable) return result;
     last = result;
     const isLast = index === config.attempts - 1;
-    if (isLast) break;
+    if (isLast || signal?.aborted) break;
     const delay = retryDelayMs(config, index, retryAfterSeconds);
     onRetry?.(result, delay);
-    if (delay > 0) await sleep(delay);
+    if (delay > 0) await sleep(delay, signal);
+    if (signal?.aborted) break;
   }
   return last!;
 }

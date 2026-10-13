@@ -5,6 +5,13 @@ export type AskProviderInput = {
   message: string;
   courseContext: string;
   history?: ChatTurn[];
+  /**
+   * Plazo de la petición HTTP completa. Al vencer corta el intento en curso y
+   * los reintentos pendientes: sin esto el presupuesto de fallback solo se
+   * comprobaba ANTES de empezar cada proveedor, y uno que empezaba a tiempo
+   * podía seguir 2 × 60 s más y pasarse del timeout del proxy.
+   */
+  signal?: AbortSignal;
 };
 
 /**
@@ -12,8 +19,12 @@ export type AskProviderInput = {
  * es la taxonomía en sí, sino `retryable`: reintentar un 401 es quemar tiempo y
  * cuota, y caer al siguiente proveedor tampoco lo arregla si la clave de ese
  * también está mal.
+ *
+ * `timeout` es el plazo de la petición, no el de un intento: un intento que
+ * vence por su cuenta sigue siendo `network`, que sí vale la pena repetir.
  */
-export type ProviderFailureKind = "auth" | "quota" | "model" | "network" | "size" | "unknown";
+export type ProviderFailureKind =
+  | "auth" | "quota" | "model" | "network" | "size" | "timeout" | "circuit_open" | "unknown";
 
 /**
  * Resultado de un proveedor, con el éxito y el fallo distinguidos en el TIPO.
@@ -55,9 +66,54 @@ export function classifyHttpStatus(status: number): { kind: ProviderFailureKind;
   return { kind: "unknown", retryable: status >= 500 };
 }
 
+/**
+ * Lo que se le dice al ciudadano cuando falla el proveedor.
+ *
+ * `message` y `detail` están escritos para quien opera: nombran variables de
+ * entorno ("Revisa OPENAI_API_KEY") y copian el cuerpo HTTP o el error del SDK
+ * del proveedor. Devolverlos en la respuesta pública filtraba detalles internos
+ * a cualquiera; se quedan en el log y aquí solo se distingue lo que cambia qué
+ * puede hacer la persona: esperar un momento o esperar unos minutos.
+ */
+export function publicFailureMessage(kind: ProviderFailureKind): string {
+  if (kind === "timeout") return "La respuesta tardó demasiado. Intenta de nuevo en un momento.";
+  if (kind === "quota") return "El servicio está recibiendo muchas consultas. Intenta de nuevo en unos minutos.";
+  return "No pude generar la respuesta en este momento. Intenta de nuevo más tarde.";
+}
+
+/** Fallo por plazo agotado, igual para todos los proveedores. */
+export function deadlineFailure(label: string): ProviderResult {
+  return providerFailure("timeout",
+    `${label} no respondió a tiempo. Intenta de nuevo en un momento.`,
+    "plazo de la petición agotado", false);
+}
+
+/**
+ * Señal de un intento: su propio timeout más el plazo de la petición, si hay.
+ * Cualquiera de los dos que venza primero corta la llamada.
+ */
+export function attemptSignal(timeoutMs: number, deadline?: AbortSignal): AbortSignal {
+  const perAttempt = AbortSignal.timeout(timeoutMs);
+  return deadline ? AbortSignal.any([perAttempt, deadline]) : perAttempt;
+}
+
 export function getErrorMessage(error: unknown): string {
   if (error instanceof Error) {
     return error.message;
   }
   return String(error);
 }
+
+/**
+ * Resultado de una llamada a un modelo con los datos que exige el registro de
+ * consumo (RF-C3-DI-16/18): uso oficial, motivo de parada y modelo efectivo.
+ * Es interno; ninguno de estos campos llega al ciudadano.
+ */
+export type ModelUsage = { inputTokens: number; outputTokens: number };
+export type ModelStopReason = "end_turn" | "max_tokens" | "other";
+export type ModelCallOutput = {
+  text: string;
+  usage: ModelUsage;
+  stopReason: ModelStopReason;
+  effectiveModel: string;
+};

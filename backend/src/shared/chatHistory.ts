@@ -94,3 +94,47 @@ export function buildOpenAiMessages(
 export function embedHistoryInMessage(history: ChatTurn[], userMessage: string): string {
   return withEmbeddedHistory(history, userMessage);
 }
+
+/** Pares que se conservan hacia el modelo (RF-C3-IN-02). */
+export const MAX_HISTORY_PAIRS = 10;
+
+export type HistoryPair = { pregunta: string; respuesta: string };
+
+export type HistoryPairsResult =
+  | { ok: true; pares: HistoryPair[] }
+  | { ok: false; campo: string; mensaje: string };
+
+/**
+ * Valida TODOS los pares recibidos y solo después conserva los últimos 10
+ * (contracts/chat-api.md): 15 pares con el tercero malformado se rechazan aunque
+ * el tercero quedara fuera de la ventana. No recorta cada texto en silencio.
+ */
+export function validateHistoryPairs(raw: unknown): HistoryPairsResult {
+  if (raw === undefined) return { ok: true, pares: [] };
+  if (!Array.isArray(raw)) return { ok: false, campo: "historial", mensaje: "El historial debe ser una lista de pares." };
+  const pares: HistoryPair[] = [];
+  for (const [i, item] of raw.entries()) {
+    const campo = `historial[${i}]`;
+    if (!item || typeof item !== "object" || Array.isArray(item)) {
+      return { ok: false, campo, mensaje: "Cada elemento debe ser un par {pregunta, respuesta}." };
+    }
+    const { pregunta, respuesta, ...extra } = item as Record<string, unknown>;
+    if (Object.keys(extra).length) return { ok: false, campo, mensaje: "El par solo admite pregunta y respuesta." };
+    if (typeof pregunta !== "string" || !pregunta.trim()) {
+      return { ok: false, campo: `${campo}.pregunta`, mensaje: "La pregunta del par no puede estar vacía." };
+    }
+    if (typeof respuesta !== "string" || !respuesta.trim()) {
+      return { ok: false, campo: `${campo}.respuesta`, mensaje: "La respuesta del par no puede estar vacía." };
+    }
+    pares.push({ pregunta, respuesta });
+  }
+  return { ok: true, pares: pares.slice(-MAX_HISTORY_PAIRS) };
+}
+
+/** Pares → turnos para el serializador de texto plano existente. */
+export function pairsToTurns(pares: HistoryPair[]): ChatTurn[] {
+  return pares.flatMap<ChatTurn>(p => [
+    { role: "user", content: p.pregunta },
+    { role: "assistant", content: p.respuesta },
+  ]);
+}

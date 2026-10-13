@@ -3,7 +3,9 @@
  */
 import { Router, type NextFunction, type Request, type Response } from "express";
 import rateLimit, { ipKeyGenerator } from "express-rate-limit";
+import { sendError } from "../chat/errors.js";
 import { bearerFrom, issueToken, verifyToken, type SessionClaims } from "../services/auth.js";
+import { setting } from "../services/settings.js";
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -30,15 +32,9 @@ declare global {
 export function requireSession() {
   return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const token = bearerFrom(req.header("authorization"));
-    if (!token) {
-      res.status(401).json({ error: "Falta el token de sesión.", code: "no_token" });
-      return;
-    }
+    if (!token) { await sendError(res, "NO_AUTORIZADO"); return; }
     const claims = await verifyToken(token);
-    if (!claims) {
-      res.status(401).json({ error: "El token no es válido o expiró.", code: "invalid_token" });
-      return;
-    }
+    if (!claims) { await sendError(res, "NO_AUTORIZADO"); return; }
     req.auth = claims;
     next();
   };
@@ -62,7 +58,7 @@ export function rateLimitByIdentity(options: { windowMs: number; limit: number }
     // con IPv6 tiene billones de direcciones propias y salta el límite
     // cambiando de una a otra: la librería lo rechaza de entrada, y hace bien.
     keyGenerator: (req: Request, res) => req.auth?.sub ?? ipKeyGenerator(req.ip ?? "", 64) ?? String(res.statusCode),
-    message: { error: "Demasiadas consultas seguidas. Intenta de nuevo en un momento.", code: "rate_limited" },
+    handler: (_req, res) => { void sendError(res, "LIMITE_SOLICITUDES", { retryAfterSeconds: Number(res.getHeader("retry-after")) || 60 }); },
   });
 }
 
@@ -72,17 +68,20 @@ const router = Router();
  * Sesión anónima. No pide credenciales a propósito: el canal es público.
  *
  * El límite por IP es lo que impide que alguien pida un token nuevo por cada
- * petición y esquive así la cuota por identidad. Es la puerta de entrada, y
- * por eso es más estricta que el propio chat.
+ * petición y esquive así la cuota por identidad. Antes eran 30 por hora fijos:
+ * detrás de un CGNAT móvil o de la red de una oficina, esa cifra la agotaban
+ * personas distintas. Ahora es configurable y se lee en cada petición, como el
+ * resto de la configuración; el abuso lo siguen acotando la cuota diaria por IP
+ * y la global.
  */
 router.post(
   "/session",
   rateLimit({
     windowMs: 60 * 60 * 1000,
-    limit: 30,
+    limit: () => setting("authSessionHourlyPerIpLimit"),
     standardHeaders: "draft-7",
     legacyHeaders: false,
-    message: { error: "Demasiadas sesiones desde esta red. Intenta más tarde.", code: "rate_limited" },
+    handler: (_req, res) => { void sendError(res, "LIMITE_SOLICITUDES", { retryAfterSeconds: Number(res.getHeader("retry-after")) || 60 }); },
   }),
   async (_req, res) => {
     const { token, expiresIn } = await issueToken();
