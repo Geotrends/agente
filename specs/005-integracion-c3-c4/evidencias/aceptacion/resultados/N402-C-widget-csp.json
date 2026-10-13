@@ -1,0 +1,27 @@
+{
+  "runId": "N402-C-widget-csp",
+  "caseId": "N402",
+  "componente": "C",
+  "real": false,
+  "resultado": "pass",
+  "cantidades": {
+    "pruebas": 6,
+    "validas": 2,
+    "bloqueos": 3,
+    "cabecera": 1,
+    "moviles_reales": [
+      "Safari iOS",
+      "Chrome Android"
+    ]
+  },
+  "version": {
+    "treeHash": "f0a82e260f6dd9776c3618750b15a79a2d85d6d1dc246f31dff35a2980bacfbe"
+  },
+  "startedAt": "2026-10-11T00:46:28.063Z",
+  "finishedAt": "2026-10-11T00:46:30.059Z",
+  "artefacto": {
+    "ruta": "specs/005-integracion-c3-c4/evidencias/aceptacion/corridas/playwright-test__widget-csp.spec.ts.log",
+    "sha256": "8e0b4b70b0932f48ee1ec16c379f77428f36597ce272acf6901e050c080ed257"
+  },
+  "nota": "Corrida controlada: proveedor doble y/o base aislada; no acredita A/P/H/B."
+}

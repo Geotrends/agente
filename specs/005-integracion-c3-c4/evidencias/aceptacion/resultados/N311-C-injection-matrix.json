@@ -1,0 +1,23 @@
+{
+  "runId": "N311-C-injection-matrix",
+  "caseId": "N311",
+  "componente": "C",
+  "real": false,
+  "resultado": "pass",
+  "cantidades": {
+    "inyecciones": 9,
+    "pregunta": 3,
+    "historial": 3,
+    "fragmentos": 3
+  },
+  "version": {
+    "treeHash": "f0a82e260f6dd9776c3618750b15a79a2d85d6d1dc246f31dff35a2980bacfbe"
+  },
+  "startedAt": "2026-10-11T00:46:22.730Z",
+  "finishedAt": "2026-10-11T00:46:23.281Z",
+  "artefacto": {
+    "ruta": "specs/005-integracion-c3-c4/evidencias/aceptacion/corridas/backend-test__in-integracion__injection-matrix.test.ts.log",
+    "sha256": "b5bfcca3ce0d8854b3432f02aa6c8e27a367fb4eddb2e37d1e913bc21a8cb398"
+  },
+  "nota": "Corrida controlada: proveedor doble y/o base aislada; no acredita A/P/H/B."
+}

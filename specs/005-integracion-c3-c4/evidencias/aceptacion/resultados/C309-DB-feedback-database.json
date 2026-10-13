@@ -1,0 +1,22 @@
+{
+  "runId": "C309-DB-feedback-database",
+  "caseId": "C309",
+  "componente": "DB",
+  "real": false,
+  "resultado": "pass",
+  "cantidades": {
+    "envios": 12,
+    "guardados": 7,
+    "rechazados": 5
+  },
+  "version": {
+    "treeHash": "f0a82e260f6dd9776c3618750b15a79a2d85d6d1dc246f31dff35a2980bacfbe"
+  },
+  "startedAt": "2026-10-11T00:45:37.486Z",
+  "finishedAt": "2026-10-11T00:45:44.143Z",
+  "artefacto": {
+    "ruta": "specs/005-integracion-c3-c4/evidencias/aceptacion/corridas/backend-test__ui-integracion__feedback-database.test.ts.log",
+    "sha256": "45ea746765d5aea3a5ab5781ae6ff6b9fb33ae1ab5c1537e14b2554e2b7bb14c"
+  },
+  "nota": "Corrida controlada: proveedor doble y/o base aislada; no acredita A/P/H/B."
+}

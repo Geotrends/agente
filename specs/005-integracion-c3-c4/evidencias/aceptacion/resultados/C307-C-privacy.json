@@ -1,0 +1,21 @@
+{
+  "runId": "C307-C-privacy",
+  "caseId": "C307",
+  "componente": "C",
+  "real": false,
+  "resultado": "pass",
+  "cantidades": {
+    "consultas_anonimas": 6,
+    "campos_conservados": 6
+  },
+  "version": {
+    "treeHash": "f0a82e260f6dd9776c3618750b15a79a2d85d6d1dc246f31dff35a2980bacfbe"
+  },
+  "startedAt": "2026-10-11T00:45:32.008Z",
+  "finishedAt": "2026-10-11T00:45:32.838Z",
+  "artefacto": {
+    "ruta": "specs/005-integracion-c3-c4/evidencias/aceptacion/corridas/backend-test__di-integracion__privacy.test.ts.log",
+    "sha256": "1de58299e740bd6eb6a9cf544dc57a369853d2ce9dbbe7b69a46535bcaab7365"
+  },
+  "nota": "Corrida controlada: proveedor doble y/o base aislada; no acredita A/P/H/B."
+}

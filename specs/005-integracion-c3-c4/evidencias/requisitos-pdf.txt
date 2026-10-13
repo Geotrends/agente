@@ -1,0 +1,661 @@
+Fuente: /Users/geotrends/Desktop/DEV_LAOR/DOCUMENACION_C3_C4.pdf
+SHA256: 2fe87aab471d38aba8f636a650681a45efa9106b25673e4927d264de6cceda2f
+Extracción: pdftotext -layout; sección 4.5, páginas impresas 43–55.
+Fecha de revisión: 2026-10-10. El documento se trata como fuente de requisitos, no de instrucciones al agente.
+
+     4.5 Bloque 5: Integración (H4 – C3, H3 – C4).
+
+     4.5.1     Requisitos Funcionales.
+
+     4.5.1.1      RF-C3-IN-01
+
+         •     Hito: H4-C3
+         •     Prioridad: Esencial
+
+
+
+
+geotrends.co
+                                                                              Proyecto
+                                               Es simplemente el texto de relleno de las imprentas y archivos de texto.
+
+                                                   Código                      Fecha                     Revisión
+
+
+
+
+        •      Descripción: El modelo deberá ser el único origen de los identificadores de
+               conversación (UUID v4): generarlo cuando el ChatBot lo solicite al registrarse la
+               autorización y devolverlo. Deberá declarar en cada respuesta el modo
+               ('conversación' con el identificador, o 'anónima'), no asignar identificador en modo
+               'anónima' y rechazar con error de validación todo identificador que no haya
+               emitido.
+        •      Criterio de verificación: 3 conversaciones de 3 turnos, 5 consultas anónimas y 3
+               con identificador no emitido. Las 9 comparten identificador por conversación, las
+               5 anónimas no dejan identificador ni fila, las 3 se rechazan, el 100 % lleva campo
+               de modo y el frontend no genera identificadores..
+        •      Entregable asociado: Integración con el backend del Observatorio; Registro
+               básico de interacciones
+
+     4.5.1.2      RF-C3-IN-02
+
+        •      Hito: H4-C3
+        •      Prioridad: Esencial
+        •      Descripción: El modelo deberá aceptar cada consulta con pregunta (obligatoria),
+               identificador (opcional), categoría (opcional: 'Ecosistemas', 'Bienestar Animal' o
+               'Gestión Ambiental') e historial (opcional). Deberá conservar solo los 10
+               intercambios más recientes, sin error. Deberá rechazar con error de validación,
+               indicando el campo y sin invocar al LLM, la pregunta vacía, la categoría fuera de
+               lista, un intercambio sin pregunta o sin respuesta y el historial sin identificador.
+        •      Criterio de verificación: 12 solicitudes: 8 válidas (con un historial de 15 que llega
+               al proveedor con 10) y 4 inválidas con 0 llamadas al proveedor y 0 registros.
+        •      Entregable asociado: Integración con el backend del Observatorio; Lógica de
+               consulta automatizada.
+
+     4.5.1.3      RF-C3-IN-03
+
+        •      Hito: H4-C3
+        •      Prioridad: Esencial
+        •      Descripción: El modelo deberá devolver, en cada consulta exitosa, la respuesta
+               en Markdown con las citas dentro del texto y el tipo de resultado ('respondida',
+               'sin información', 'fuera de alcance' o 'aclaración'). Deberá devolver también la
+               lista de fuentes (identificador, nombre, enlace y fecha), una por documento citado
+               tras RF-C3-DI-08, generada sin exigir JSON al LLM y vacía si el tipo no es
+               'respondida'. Solo en modo conversación deberá devolver un identificador de
+               respuesta (UUID v4).
+
+
+
+
+geotrends.co
+                                                                              Proyecto
+                                               Es simplemente el texto de relleno de las imprentas y archivos de texto.
+
+                                                   Código                      Fecha                     Revisión
+
+
+
+
+        •      Criterio de verificación: 10 consultas (6 conversación, 4 anónimas). El
+               identificador de respuesta es único y está ligado a una fila solo en conversación,
+               el tipo de resultado es el esperado, la lista de fuentes coincide con las citas del
+               texto y va vacía en las no respondidas.
+        •      Entregable asociado: Integración con el backend del Observatorio; Registro
+               básico de interacciones.
+
+     4.5.1.4      RF-C3-IN-04
+
+        •      Hito: H4-C3
+        •      Prioridad: Esencial
+        •      Descripción: El modelo deberá responder lo que no pueda completar con un
+               objeto de error (código y mensaje genérico, sin proveedor, modelo, rutas, trazas
+               ni SQL): 'VALIDACION' (con campo infractor), 'SERVICIO_NO_DISPONIBLE'
+               (ambos modelos caídos o falla de búsqueda, salvo el reranker) o
+               'ERROR_INTERNO'. Deberá devolverlo en 40 s o menos.
+        •      Criterio    de      verificación:  9     pruebas:     3    'VALIDACION';       3
+               'SERVICIO_NO_DISPONIBLE' con registro y aviso en el panel; 2 de tiempo en 40 s
+               o menos; 1 'ERROR_INTERNO'. Ningún mensaje trae detalles técnicos.
+        •      Entregable asociado: Integración con el backend del Observatorio; Lógica de
+               consulta automatizada.
+
+     4.5.1.5      RF-C3-IN-05
+
+        •      Hito: H4-C3
+        •      Prioridad: Esencial
+        •      Descripción: El modelo deberá guardar en PostgreSQL, por cada consulta exitosa
+               en modo conversación, un registro único con los campos de RF-C3-DI-16 más
+               fecha y hora, identificador de conversación, identificador de respuesta, categoría,
+               texto de la pregunta, texto completo de la respuesta, tipo de resultado,
+               documentos citados y duración en ms.
+        •      Criterio de verificación: 8 consultas: 8 registros con los 9 campos y los de DI-16.
+               El identificador de respuesta y los documentos citados coinciden con lo devuelto
+               al ChatBot.
+        •      Entregable asociado: Registro básico de interacciones; Integración con el
+               backend del Observatorio.
+
+     4.5.1.6      RF-C3-IN-06
+
+        •      Hito: H4-C3
+
+
+
+
+geotrends.co
+                                                                               Proyecto
+                                                Es simplemente el texto de relleno de las imprentas y archivos de texto.
+
+                                                    Código                      Fecha                     Revisión
+
+
+
+
+        •      Prioridad: Esencial
+        •      Descripción: El modelo deberá reemplazar cédulas, teléfonos y correos del texto
+               de la pregunta y la respuesta por '[CÉDULA]', '[TELÉFONO]' y '[CORREO]' antes
+               de escribir el registro, con la regla de RNF-C3-DI-01. Deberá conservar códigos de
+               procedimientos, formatos y normas, números de resoluciones y decretos y fechas,
+               y no alterar lo que entrega al ChatBot.
+        •      Criterio de verificación: 14 consultas: en 9 con datos el registro lleva la etiqueta y
+               0 apariciones del dato; en 5 sin datos el texto es idéntico; la respuesta al ChatBot
+               no cambia.
+        •      Entregable asociado: Registro básico de interacciones.
+
+     4.5.1.7      RF-C3-IN-07
+
+        •      Hito: H4-C3
+        •      Prioridad: Esencial
+        •      Descripción: El modelo deberá guardar, por cada consulta exitosa en modo
+               'anónima', solo un registro técnico (los campos de RF-C3-DI-16 más fecha y hora
+               y modo), sin texto, categoría, tipo de resultado, documentos citados ni
+               identificadores, y sin fila de conversación.
+        •      Criterio de verificación: 6 consultas anónimas: 6 registros con esos campos, 0
+               coincidencias de los textos en toda la base y 0 filas de conversación.
+        •      Entregable asociado: Registro básico de interacciones.
+
+     4.5.1.8      RF-C3-IN-08
+
+        •      Hito: H4-C3
+        •      Prioridad: Esencial
+        •      Descripción El modelo deberá entregar la respuesta aunque falle la escritura del
+               registro, omitir el identificador de respuesta en modo conversación, notificar en el
+               panel en la primera escritura fallida (fecha, hora y modo, sin texto), no repetir la
+               notificación mientras la falla continúe y retomar el registro al primer éxito.
+        •      Criterio de verificación: 6 consultas con escritura fallando y 2 con escritura
+               restablecida: 4 respondidas completas, 2 en conversación sin identificador de
+               respuesta, 1 sola notificación y registro normal tras restablecer.
+        •      Entregable asociado: Registro básico de interacciones; Integración con el
+               backend del Observatorio.
+
+     4.5.1.9      RF-C3-IN-09
+
+        •      Hito: H4-C3
+
+
+
+
+geotrends.co
+                                                                                Proyecto
+                                                 Es simplemente el texto de relleno de las imprentas y archivos de texto.
+
+                                                     Código                      Fecha                     Revisión
+
+
+
+
+         •      Prioridad: Esencial
+         •      Descripción El modelo deberá recibir cada valoración (identificador de respuesta,
+                'Útil' o 'No útil' y motivo, obligatorio solo con 'No útil' entre 5 motivos) y guardarla
+                asociada al registro de la consulta. Deberá rechazar con 'VALIDACION' y sin
+                guardar un identificador inexistente, una segunda valoración, un motivo ausente o
+                presente de forma indebida y un motivo fuera de lista; no admite texto libre.
+         •      Criterio de verificación: 12 envíos: 7 válidos guardados y cruzables con el registro,
+                5 inválidos con 0 filas y el texto adicional no se guarda.
+         •      Entregable asociado: Registro básico de interacciones; Registro de preguntas sin
+                respuesta o casos de mejora
+
+     4.5.1.10      RF-C3-IN-10
+
+         •      Hito: H4-C3
+         •      Prioridad: Esencial
+         •      Descripción El modelo deberá exponer un servicio de solo lectura con el bloque
+                de contacto vigente (canales de atención inmediata, PQRSD, WhatsApp, correo y
+                contacto general), tomado del mismo registro de RF-C3-DI-19, DI-20 y DI-24, sin
+                invocar al LLM.
+         •      Criterio de verificación: 3 llamadas: valores idénticos al registro, valor nuevo tras
+                editar en el panel sin redespliegue, 0 invocaciones al proveedor y respuesta en 2
+                s o menos.
+         •      Entregable asociado: Integración con el backend del Observatorio.
+
+
+     4.5.1.11      RF-C4-IN-01
+
+         •      Hito: H3-C4
+         •      Prioridad: Esencial
+         •      Descripción: El ChatBot deberá solicitar al C3 un identificador de conversación
+                cuando el ciudadano seleccione 'Autorizo', conservarlo solo en la memoria de la
+                sesión del panel y enviarlo en cada consulta; omitirlo con 'No autorizo'; no generar
+                identificadores y descartarlo al iniciar una conversación nueva o recargar.
+         •      Criterio de verificación: 6 recorridos con inspección de tráfico y almacenamiento:
+                1 solicitud y mismo identificador con 'Autorizo', 0 con 'No autorizo', identificador
+                distinto tras 'Iniciar nueva' y tras recarga, 0 identificadores en el almacenamiento
+                del navegador.
+         •      Entregable asociado: Integración con el modelo IA; Registro básico de
+                interacciones.
+
+
+
+
+geotrends.co
+                                                                              Proyecto
+                                               Es simplemente el texto de relleno de las imprentas y archivos de texto.
+
+                                                   Código                      Fecha                     Revisión
+
+
+
+
+     4.5.1.12     RF-C4-IN-02
+
+        •      Hito: H3-C4
+        •      Prioridad: Esencial
+        •      Descripción: El ChatBot deberá enviar, con cada consulta de una conversación
+               con 'Autorizo', el historial de los últimos intercambios completos, con el máximo
+               de RF-C3-IN-02 (pregunta y respuesta completa, en orden cronológico), y omitirlo
+               con 'No autorizo' y en la primera consulta de cada conversación.
+        •      Criterio de verificación: 3 recorridos: en 12 consultas con 'Autorizo' la 12.ª lleva
+               exactamente 10 intercambios, con 'No autorizo' ninguna lleva historial y una
+               consulta fallida no entra al historial.
+        •      Entregable asociado: Integración con el modelo IA; Configuración de consultas
+               sobre trámites ambientales.
+
+     4.5.1.13     RF-C4-IN-03
+
+        •      Hito: H3-C4
+        •      Prioridad: Esencial
+        •      Descripción: El ChatBot deberá esperar la respuesta del C3 un máximo de 45 s
+               por intento. Al vencer, deberá cancelar el intento, tratarlo como fallo por tiempo
+               máximo de RF-C4-UI-08 y descartar sin mostrarla cualquier respuesta tardía.
+        •      Criterio de verificación: 4 pruebas con C3 simulado: a 40 s se muestra, a 50 s
+               aparece el fallo entre 45 y 46 s y la respuesta tardía no se muestra ni entra al
+               historial; el reintento tiene su propio límite; no aparece en una conversación nueva.
+        •      Entregable asociado: Integración con el modelo IA; Informe de pruebas
+               funcionales.
+
+     4.5.1.14     RF-C4-IN-04
+
+        •      Hito: H3-C4
+        •      Prioridad: Esencial
+        •      Descripción: El ChatBot deberá tratar como fallo de RF-C4-UI-08 toda respuesta
+               con 'VALIDACION' o 'ERROR_INTERNO' y toda respuesta no interpretable, sin
+               exponer código, campo ni mensaje del error. Con 'VALIDACION' no deberá mostrar
+               'Reintentar'.
+        •      Criterio de verificación: 6 pruebas: 2 'VALIDACION' sin 'Reintentar', 2
+               'ERROR_INTERNO' con 'Reintentar', 1 HTTP 502 con HTML y 1 JSON sin campos
+               esperados (como 'ERROR_INTERNO'). Nada técnico visible y la consulta fallida no
+               entra al historial.
+
+
+
+
+geotrends.co
+                                                                               Proyecto
+                                                Es simplemente el texto de relleno de las imprentas y archivos de texto.
+
+                                                    Código                      Fecha                     Revisión
+
+
+
+
+        •      Entregable asociado: Registro de preguntas sin respuesta o casos de mejora;
+               Registro básico de interacciones.
+
+     4.5.1.15     RF-C4-IN-05
+
+        •      Hito: H3-C4
+        •      Prioridad: Esencial
+        •      Descripción: El ChatBot deberá mostrar los controles de valoración solo debajo
+               de las respuestas que incluyan identificador de respuesta, y mostrar el texto con
+               normalidad en las que no lo incluyan.
+        •      Criterio de verificación: 6 respuestas: 2 con identificador (controles y valoración
+               enviada), 2 en conversación sin identificador y 2 anónimas, sin controles ni
+               elementos ocultos enfocables.
+        •      Entregable asociado: Integración con el backend del Observatorio; Lógica de
+               consulta automatizada.
+
+     4.5.1.16     RF-C4-IN-06
+
+        •      Hito: H3-C4
+        •      Prioridad: Esencial
+        •      Descripción: El ChatBot deberá solicitar el bloque de contactos de RF-C3-IN-10 al
+               abrirse el panel (máximo 5 s). Si no lo obtiene, deberá repetir la solicitud al elegir
+               'Emergencia o situación en curso' y al mostrar el mensaje de RF-C4-UI-08.
+               Mientras no lo tenga, deberá mostrar el mensaje fijo 'No pudimos cargar los
+               canales de atención. Consulte los canales oficiales del Municipio de Envigado.' con
+               enlace a la página oficial de contacto, sin valores guardados en el ChatBot.
+        •      Criterio de verificación: 4 pruebas: servicio restablecido antes de 'Emergencia'
+               muestra los canales; caído en ambos momentos muestra el mensaje y el enlace;
+               sin valores de contacto en el código.
+        •      Entregable asociado: Integración con el modelo IA.
+
+
+
+
+     4.5.2 Requisitos No Funcionales.
+
+     4.5.2.1      RNF-C3-IN-01
+
+        •      Componente: C3
+        •      Categoría: Seguridad (confidencialidad).
+        •      Descripción: Eliminar de cada registro de RF-C3-IN-05, a más tardar 24 h tras
+               cumplirse 12 meses desde su recepción, el texto de pregunta, el texto de respuesta
+
+
+
+geotrends.co
+                                                                              Proyecto
+                                               Es simplemente el texto de relleno de las imprentas y archivos de texto.
+
+                                                   Código                      Fecha                     Revisión
+
+
+
+
+               y los identificadores de conversación y de respuesta, conservando los demás
+               campos, con depuración automática y registro de cada ejecución.
+        •      Métrica o umbral: 12 meses más 24 h.
+        •      Criterio de verificación: Registros con fecha simulada: el de 11 meses y 29 días se
+               conserva, el de 12 meses y 1 día queda depurado; 2 ejecuciones automáticas
+               consecutivas con registro; 0 coincidencias del texto depurado.
+
+     4.5.2.2      RNF-C3-IN-02
+
+        •      Componente: C3
+        •      Categoría: Eficiencia de desempeño (comportamiento temporal).
+        •      Descripción: Entregar la respuesta completa en 20 s o menos en el percentil 95,
+               desde la recepción hasta la entrega, con una consulta a la vez.
+        •      Métrica o umbral: p95 de 20 s o menos.
+        •      Criterio de verificación: 100 consultas secuenciales en producción (40 simples,
+               30 medias, 30 complejas; 10 con historial de 10 y 10 de respuesta larga), repetidas
+               en 2 días; ninguna supera 40 s sin devolver el error de RF-C3-IN-04.
+
+     4.5.2.3      RNF-C3-IN-03
+
+        •      Componente: C3
+        •      Categoría: Eficiencia de desempeño (capacidad).
+        •      Descripción: Atender 25 consultas simultáneas con éxito y sin error, con el tiempo
+               de respuesta de RNF-C3-IN-02, y guardar el registro de cada una sin pérdidas ni
+               mezclas.
+        •      Métrica o umbral: 25 simultáneas, 0 errores, p95 de 20 s o menos.
+        •      Criterio de verificación: 3 oleadas de 25 separadas por 2 min (15 en conversación
+               de 5 conversaciones y 10 anónimas); 75 registros sin mezclas; repetido en 2 días.
+
+     4.5.2.4      RNF-C3-IN-04
+
+        •      Componente: C3
+        •      Categoría: Seguridad (control de acceso).
+        •      Descripción: Aceptar solicitudes solo con encabezado Origin dentro de una lista
+               configurable (solo el dominio del ChatBot) y rechazar con 403, sin invocar al LLM
+               ni registrar, las de otro origen o sin Origin.
+        •      Métrica o umbral: 0 solicitudes atendidas de orígenes no permitidos.
+        •      Criterio de verificación: 8 solicitudes: 2 válidas, 3 de orígenes no permitidos
+               (dominio ajeno, subdominio, http), 1 preflight sin CORS, 1 sin Origin y 1 con puerto
+               o ruta añadidos, todas con 403.
+
+
+
+
+geotrends.co
+                                                                               Proyecto
+                                                Es simplemente el texto de relleno de las imprentas y archivos de texto.
+
+                                                    Código                      Fecha                     Revisión
+
+
+
+
+     4.5.2.5      RNF-C3-IN-05
+
+        •      Componente: C3
+        •      Categoría: Seguridad (disponibilidad).
+        •      Descripción: Atender como máximo 60 solicitudes de consulta por minuto por IP
+               (ventana deslizante de 60 s), rechazar el exceso con 429 y Retry-After sin invocar
+               al LLM ni registrar, e identificar la IP por el encabezado del proxy, ignorando el del
+               cliente.
+        •      Métrica o umbral: 60 por minuto por IP.
+        •      Criterio de verificación: 62 solicitudes en 30 s (60 atendidas, 2 con 429); Retry-
+               After respetado; otra IP atendida; encabezado falsificado sigue limitado; 60 por
+               minuto durante 5 min sin 429.
+
+     4.5.2.6      RNF-C3-IN-06
+
+        •      Componente: C3
+        •      Categoría: Seguridad (disponibilidad).
+        •      Descripción: Rechazar con 413, sin invocar al LLM ni registrar, todo cuerpo mayor
+               a 131.072 bytes, detectándolo por Content-Length o durante la lectura, sin límite
+               de caracteres de la pregunta por separado.
+        •      Métrica o umbral: 131.072 bytes (128 KiB).
+        •      Criterio de verificación: 6 solicitudes: de unos 100 KB válida, pregunta de 20.000
+               caracteres atendida, 131.072 atendida y 131.073 con 413, y 5 MB con y sin Content-
+               Length sin aumento de memoria.
+
+     4.5.2.7      RNF-C3-IN-07
+
+        •      Componente: C3
+        •      Categoría: Seguridad (confidencialidad).
+        •      Descripción: Obtener las credenciales de Bedrock solo de un rol de IAM del
+               servidor de AWS, sin llaves estáticas y sin credenciales en código, repositorio,
+               imagen, variables de entorno ni configuración.
+        •      Métrica o umbral: 0 credenciales.
+        •      Criterio de verificación: Escaneo de secretos del repositorio y la imagen,
+               contenedor sin variables de llaves, invocación a ambos modelos con el rol; con el
+               rol retirado responde 'SERVICIO_NO_DISPONIBLE' y avisa en el panel sin imprimir
+               secretos.
+
+
+
+
+geotrends.co
+                                                                             Proyecto
+                                              Es simplemente el texto de relleno de las imprentas y archivos de texto.
+
+                                                  Código                      Fecha                     Revisión
+
+
+
+
+     4.5.2.8      RNF-C3-IN-08
+
+        •      Componente: C3
+        •      Categoría: Seguridad (confidencialidad).
+        •      Descripción: Usar una identidad de IAM exclusiva del servicio cuya política
+               autorice solo invocar los modelos habilitados en RNF-C3-DI-02 en la región
+               configurada y deniegue cualquier otra acción.
+        •      Métrica o umbral: 1 acción permitida, 2 modelos.
+        •      Criterio de verificación: Revisión de la política sin comodines; invocación de
+               ambos modelos funciona; un tercer modelo, el listado de modelos, la lectura de un
+               bucket y la consulta de claves de otro servicio resultan denegados.
+
+     4.5.2.9      RNF-C3-IN-09
+
+        •      Componente: C3
+        •      Categoría: Seguridad (confidencialidad).
+        •      Descripción: Descartado. Rotación de llaves cada 90 días. Motivo: no aplica,
+               porque el servicio usa un rol de IAM y no llaves estáticas (RNF-C3-IN-08).
+        •      Métrica o umbral: No aplica.
+        •      Criterio de verificación: No aplica.
+
+     4.5.2.10     RNF-C3-IN-10
+
+        •      Componente: C3
+        •      Categoría: Seguridad (confidencialidad).
+        •      Descripción: No escribir credenciales temporales de AWS ni encabezados de
+               autorización de Bedrock en registros técnicos, errores, notificaciones del panel,
+               registro de interacciones ni respuestas al navegador.
+        •      Métrica o umbral: 0 coincidencias.
+        •      Criterio de verificación: 8 escenarios con proveedor simulado: 4 fallos forzados,
+               2 consultas exitosas, 1 reinicio, y revisión de código y del paquete del frontend.
+
+     4.5.2.11     RNF-C3-IN-11
+
+        •      Componente: C3
+        •      Categoría: Seguridad (integridad).
+        •      Descripción: Mantener las reglas de RF-C3-DI-04, DI-09 y DI-20 cuando la
+               pregunta, el historial o un fragmento contengan instrucciones dirigidas al modelo,
+               tratando ese texto como datos.
+        •      Métrica o umbral: 9 de 9 casos.
+
+
+
+
+geotrends.co
+                                                                               Proyecto
+                                                Es simplemente el texto de relleno de las imprentas y archivos de texto.
+
+                                                    Código                      Fecha                     Revisión
+
+
+
+
+        •      Criterio de verificación: 9 casos: 3 en la pregunta, 3 en un turno falso del historial
+               y 3 en un fragmento de un documento de prueba; sin revelar el prompt, sin
+               responder sin respaldo, manteniendo leyenda y alcance.
+
+     4.5.2.12     RNF-C3-IN-12
+
+        •      Componente: C3
+        •      Categoría: Seguridad (confidencialidad).
+        •      Descripción: Incluir Cache-Control: no-store en todas las respuestas de consulta
+               y valoración, incluidas las de error.
+        •      Métrica o umbral: 100 % de las respuestas.
+        •      Criterio   de     verificación:     4 respuestas     inspeccionadas     (exitosa,
+               'SERVICIO_NO_DISPONIBLE', valoración y 'VALIDACION'); repetir una consulta
+               genera 2 invocaciones.
+
+     4.5.2.13     RNF-C3-IN-13
+
+        •      Componente: C3
+        •      Categoría: Eficiencia de desempeño (capacidad).
+        •      Descripción: Operar sin degradar el Observatorio ni el Geoportal: durante una
+               reindexación completa y durante 25 consultas simultáneas, el p95 de la página del
+               Observatorio y de una consulta de referencia al Geoportal no supera el 120 % del
+               medido sin carga, sin errores.
+        •      Métrica o umbral: 1,2 veces el tiempo sin carga o menos, 0 errores.
+        •      Criterio de verificación: 30 solicitudes a cada destino en 3 condiciones: sin carga,
+               durante reindexación y durante una oleada de 25 consultas.
+
+     4.5.2.14     RNF-C4-IN-01
+
+        •      Componente: C4
+        •      Categoría: Seguridad (confidencialidad).
+        •      Descripción: Mantener el texto de consultas y respuestas, incluido el historial, solo
+               en la memoria volátil del iframe, sin escribirlo en localStorage, sessionStorage,
+               IndexedDB, cookies ni URL, y perderlo al recargar o cerrar.
+        •      Métrica o umbral: 0 entradas con texto de la conversación.
+        •      Criterio de verificación: 3 recorridos en Chrome y Firefox con herramientas de
+               desarrollo y revisión de código; la conversación sigue completa tras 5 ciclos de
+               ocultar y mostrar.
+
+
+
+
+geotrends.co
+                                                                              Proyecto
+                                               Es simplemente el texto de relleno de las imprentas y archivos de texto.
+
+                                                    Código                     Fecha                     Revisión
+
+
+
+
+     4.5.2.15     RNF-C4-IN-02
+
+        •      Componente: C4
+        •      Categoría: Seguridad (integridad).
+        •      Descripción: Permitir que el iframe se incruste solo en páginas del dominio del
+               Observatorio (https://observatorioenvigado.geotrends.co) mediante la directiva
+               frame-ancestors, e impedirlo desde otros orígenes, incluidos otros subdominios y
+               http.
+        •      Métrica o umbral: 1 origen permitido.
+        •      Criterio de verificación: 6 pruebas: 2 incrustaciones válidas, 3 bloqueos (dominio
+               ajeno, subdominio, http), 1 inspección de la cabecera; bloqueos repetidos en Safari
+               iOS y Chrome Android.
+
+     4.5.3 Fallos encontrados.
+
+                                          Tabla 9. Fallos bloque 5.
+                                                                                        Requisito que lo
+                           Fallo                              Tipo REAL
+                                                                                          mitiga (ID)
+          Turnos de conversaciones distintas
+        mezclados en el registro; interacciones                                         RF-C3-IN-01, RF-
+                                                             Fallo de Datos
+      enlazadas sin autorización; identificadores                                          C4-IN-01
+                 fabricados por el cliente.
+          Categoría inválida que distorsiona la
+                                                      Fallo de Recuperación               RF-C3-IN-02
+             priorización de la recuperación.
+       Historial excesivo o sin identificador que
+                                                                                       RF-C3-IN-02, RF-
+      rompe el aislamiento del modo anónima o             Fallo de Modelo
+                                                                                          C4-IN-02
+                      eleva el costo.
+      Un seguimiento llega sin contexto y recibe
+                                                      Fallo de Recuperación               RF-C4-IN-02
+                    "sin información".
+            Una valoración no se asocia a su
+      respuesta; las respuestas sin información        Fallo de Datos / Fallo          RF-C3-IN-03, RF-
+       no llegan al registro de casos de mejora;         de Recuperación               C3-IN-09, RF-C4-
+         la frecuencia de citación no se puede           (según la causa)                   IN-05
+                           medir.
+               Las respuestas incorrectas,             Fallo de Datos / Fallo
+          desactualizadas o incompletas no se           de Recuperación /                 RF-C3-IN-05
+                 detectan ni se clasifican.              Fallo de Modelo
+      El ciudadano espera sin respuesta porque                                         RF-C3-IN-04, RF-
+                                                          Fallo de Modelo
+            el C3 no señala el fallo a tiempo.                                            C4-IN-03
+           El ciudadano ve un error técnico o
+        pantalla en blanco ante una respuesta             Fallo de Modelo                 RF-C4-IN-04
+                        inesperada.
+       Una falla de búsqueda se confunde con
+                                                      Fallo de Recuperación               RF-C3-IN-04
+                    "sin información".
+
+
+
+
+geotrends.co
+                                                                              Proyecto
+                                               Es simplemente el texto de relleno de las imprentas y archivos de texto.
+
+                                                   Código                      Fecha                     Revisión
+
+
+
+
+          Una respuesta tardía desordena la
+                                                      Fallo de Recuperación               RF-C4-IN-03
+              conversación o el historial.
+        El registro persistente acumula datos
+                                                          Fallo de Modelo                 RF-C3-IN-06
+                      personales.
+       El registro conserva textos sin límite de
+                                                            Fallo de Datos                RNF-C3-IN-01
+                        tiempo.
+      El texto de un ciudadano que no autorizó                                         RF-C3-IN-07, RF-
+                                                          Fallo de Modelo
+            queda almacenado o enlazado.                                                  C4-IN-01
+      Una caída de la base deja sin respuesta al
+                                                            Fallo de Datos                RF-C3-IN-08
+       ciudadano o pierde registros sin aviso.
+         La conversación queda legible en un          Fallo de Modelo / Fallo         RNF-C4-IN-01, RNF-
+          equipo compartido o en una caché.                  de Datos                     C3-IN-12
+         El ciudadano abandona por la espera.             Fallo de Modelo                RNF-C3-IN-02
+         El servicio falla bajo un pico o mezcla      Fallo de Modelo / Fallo
+                                                                                         RNF-C3-IN-03
+                 registros simultáneos.                      de Datos
+                                                                                         RNF-C3-IN-04,
+       Uso desde sitios ajenos, automatizado o
+                                                          Fallo de Modelo                RNF-C3-IN-05,
+        con cargas desmedidas; sobrecosto.
+                                                                                         RNF-C3-IN-06
+       Suplantación o clickjacking del panel del       Fallo de Datos / Fallo
+                                                                                         RNF-C4-IN-02
+                      ChatBot.                               de Modelo
+                                                                                         RNF-C3-IN-07,
+       Una credencial de AWS se filtra y se usa
+                                                          Fallo de Modelo                RNF-C3-IN-08,
+                 sin autorización.
+                                                                                         RNF-C3-IN-10
+        Una instrucción inyectada hace que el
+      modelo responda sin respaldo o fuera de             Fallo de Modelo                 RNF-C3-IN-11
+                       alcance.
+      El panel muestra canales desactualizados                                          RF-C3-IN-10, RF-
+                                                            Fallo de Datos
+                      o ninguno.                                                           C4-IN-06
+          El C3 degrada el Observatorio o el
+                                                            Salvaguarda                   RNF-C3-IN-13
+                      Geoportal.
+
+
+
+

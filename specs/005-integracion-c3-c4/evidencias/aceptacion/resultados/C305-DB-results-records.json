@@ -1,0 +1,22 @@
+{
+  "runId": "C305-DB-results-records",
+  "caseId": "C305",
+  "componente": "DB",
+  "real": false,
+  "resultado": "pass",
+  "cantidades": {
+    "exitos": 8,
+    "registros": 8,
+    "campos": 9
+  },
+  "version": {
+    "treeHash": "f0a82e260f6dd9776c3618750b15a79a2d85d6d1dc246f31dff35a2980bacfbe"
+  },
+  "startedAt": "2026-10-11T00:42:55.741Z",
+  "finishedAt": "2026-10-11T00:43:02.281Z",
+  "artefacto": {
+    "ruta": "specs/005-integracion-c3-c4/evidencias/aceptacion/corridas/backend-test__in-integracion__results-records.test.ts.log",
+    "sha256": "202769e6c457e8436ff3ea557efdf7a300ef2fd4b6e50ae02522daa35dd81a1e"
+  },
+  "nota": "Corrida controlada: proveedor doble y/o base aislada; no acredita A/P/H/B."
+}

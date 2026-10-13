@@ -1,0 +1,22 @@
+{
+  "runId": "C310-DB-contacts-config",
+  "caseId": "C310",
+  "componente": "DB",
+  "real": false,
+  "resultado": "pass",
+  "cantidades": {
+    "lecturas": 3,
+    "limite_ms": 2000,
+    "llamadas_llm": 0
+  },
+  "version": {
+    "treeHash": "f0a82e260f6dd9776c3618750b15a79a2d85d6d1dc246f31dff35a2980bacfbe"
+  },
+  "startedAt": "2026-10-11T00:45:49.915Z",
+  "finishedAt": "2026-10-11T00:45:52.732Z",
+  "artefacto": {
+    "ruta": "specs/005-integracion-c3-c4/evidencias/aceptacion/corridas/backend-test__in-integracion__contacts-config.test.ts.log",
+    "sha256": "bb5c998fbf6381ca180fe3f13e8acafdc2763fd03f4973427faa80acae565867"
+  },
+  "nota": "Corrida controlada: proveedor doble y/o base aislada; no acredita A/P/H/B."
+}

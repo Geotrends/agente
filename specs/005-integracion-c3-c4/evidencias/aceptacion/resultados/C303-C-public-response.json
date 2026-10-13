@@ -1,0 +1,22 @@
+{
+  "runId": "C303-C-public-response",
+  "caseId": "C303",
+  "componente": "C",
+  "real": false,
+  "resultado": "pass",
+  "cantidades": {
+    "consultas": 10,
+    "autorizadas": 6,
+    "anonimas": 4
+  },
+  "version": {
+    "treeHash": "f0a82e260f6dd9776c3618750b15a79a2d85d6d1dc246f31dff35a2980bacfbe"
+  },
+  "startedAt": "2026-10-11T00:43:02.282Z",
+  "finishedAt": "2026-10-11T00:43:02.507Z",
+  "artefacto": {
+    "ruta": "specs/005-integracion-c3-c4/evidencias/aceptacion/corridas/backend-test__in-integracion__public-response.test.ts.log",
+    "sha256": "1457a53281bc5dd6368da67522b490cf60ea2d3fc4427125e3fcdb04cb0c3d1a"
+  },
+  "nota": "Corrida controlada: proveedor doble y/o base aislada; no acredita A/P/H/B."
+}

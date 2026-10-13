@@ -1,0 +1,26 @@
+{
+  "runId": "N401-C-storage",
+  "caseId": "N401",
+  "componente": "C",
+  "real": false,
+  "resultado": "pass",
+  "cantidades": {
+    "recorridos_por_navegador": 3,
+    "navegadores": [
+      "Chrome",
+      "Firefox"
+    ],
+    "ocultaciones": 5,
+    "textos_en_storage": 0
+  },
+  "version": {
+    "treeHash": "f0a82e260f6dd9776c3618750b15a79a2d85d6d1dc246f31dff35a2980bacfbe"
+  },
+  "startedAt": "2026-10-11T00:46:23.282Z",
+  "finishedAt": "2026-10-11T00:46:28.063Z",
+  "artefacto": {
+    "ruta": "specs/005-integracion-c3-c4/evidencias/aceptacion/corridas/playwright-test__storage.spec.ts.log",
+    "sha256": "6f5885b740db01ee39559b7975999977bd65c76ded027a8388c7df90d1dc7bf3"
+  },
+  "nota": "Corrida controlada: proveedor doble y/o base aislada; no acredita A/P/H/B."
+}

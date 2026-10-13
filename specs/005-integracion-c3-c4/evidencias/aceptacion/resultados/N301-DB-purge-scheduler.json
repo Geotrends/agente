@@ -1,0 +1,22 @@
+{
+  "runId": "N301-DB-purge-scheduler",
+  "caseId": "N301",
+  "componente": "DB",
+  "real": false,
+  "resultado": "pass",
+  "cantidades": {
+    "conservada_dias": "11m29d",
+    "depurada_dias": "12m1d",
+    "ejecuciones_automaticas": 2
+  },
+  "version": {
+    "treeHash": "f0a82e260f6dd9776c3618750b15a79a2d85d6d1dc246f31dff35a2980bacfbe"
+  },
+  "startedAt": "2026-10-11T00:45:56.794Z",
+  "finishedAt": "2026-10-11T00:46:06.125Z",
+  "artefacto": {
+    "ruta": "specs/005-integracion-c3-c4/evidencias/aceptacion/corridas/backend-test__in-integracion__purge-scheduler.test.ts.log",
+    "sha256": "93148351f99f8e9e8ee748384800c89a229ec288f6fa92ca53a33e4e7bba9600"
+  },
+  "nota": "Corrida controlada: proveedor doble y/o base aislada; no acredita A/P/H/B."
+}

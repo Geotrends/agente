@@ -1,0 +1,26 @@
+{
+  "runId": "C403-C-query-integration",
+  "caseId": "C403",
+  "componente": "C",
+  "real": false,
+  "resultado": "pass",
+  "cantidades": {
+    "pruebas": 4,
+    "visible_ms": 40000,
+    "fallo_ms": 50000,
+    "ventana_fallo_ms": [
+      45000,
+      46000
+    ]
+  },
+  "version": {
+    "treeHash": "f0a82e260f6dd9776c3618750b15a79a2d85d6d1dc246f31dff35a2980bacfbe"
+  },
+  "startedAt": "2026-10-11T00:45:52.733Z",
+  "finishedAt": "2026-10-11T00:45:56.793Z",
+  "artefacto": {
+    "ruta": "specs/005-integracion-c3-c4/evidencias/aceptacion/corridas/playwright-test__query-integration.spec.ts.log",
+    "sha256": "945d3add17efecf244dc078d75985e1001fdab6e2259fbd15d9d44ee2fa6f4e0"
+  },
+  "nota": "Corrida controlada: proveedor doble y/o base aislada; no acredita A/P/H/B."
+}

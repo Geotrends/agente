@@ -1,0 +1,23 @@
+{
+  "runId": "C308-C-registry-episode",
+  "caseId": "C308",
+  "componente": "C",
+  "real": false,
+  "resultado": "pass",
+  "cantidades": {
+    "fallos": 6,
+    "recuperadas": 2,
+    "autorizadas_sin_id": 2,
+    "avisos": 1
+  },
+  "version": {
+    "treeHash": "f0a82e260f6dd9776c3618750b15a79a2d85d6d1dc246f31dff35a2980bacfbe"
+  },
+  "startedAt": "2026-10-11T00:45:32.838Z",
+  "finishedAt": "2026-10-11T00:45:35.400Z",
+  "artefacto": {
+    "ruta": "specs/005-integracion-c3-c4/evidencias/aceptacion/corridas/backend-test__in-integracion__registry-episode.test.ts.log",
+    "sha256": "155b674346209e5e0a97e0ff4d378805be7853ad01a30a24173ebf542178af31"
+  },
+  "nota": "Corrida controlada: proveedor doble y/o base aislada; no acredita A/P/H/B."
+}

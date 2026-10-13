@@ -1,0 +1,23 @@
+{
+  "runId": "C301-DB-consent",
+  "caseId": "C301",
+  "componente": "DB",
+  "real": false,
+  "resultado": "pass",
+  "cantidades": {
+    "conversaciones": 3,
+    "turnos_por_conversacion": 3,
+    "anonimas": 5,
+    "ids_no_emitidos": 3
+  },
+  "version": {
+    "treeHash": "f0a82e260f6dd9776c3618750b15a79a2d85d6d1dc246f31dff35a2980bacfbe"
+  },
+  "startedAt": "2026-10-11T00:42:49.475Z",
+  "finishedAt": "2026-10-11T00:42:50.935Z",
+  "artefacto": {
+    "ruta": "specs/005-integracion-c3-c4/evidencias/aceptacion/corridas/backend-test__di-integracion__consent.test.ts.log",
+    "sha256": "ce4d0d8d2cd6778e2ff76248c9f3d74c380410a3d09474428ea2ea308876772e"
+  },
+  "nota": "Corrida controlada: proveedor doble y/o base aislada; no acredita A/P/H/B."
+}

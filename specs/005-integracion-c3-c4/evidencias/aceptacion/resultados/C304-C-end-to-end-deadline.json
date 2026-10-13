@@ -1,0 +1,25 @@
+{
+  "runId": "C304-C-end-to-end-deadline",
+  "caseId": "C304",
+  "componente": "C",
+  "real": false,
+  "resultado": "pass",
+  "cantidades": {
+    "casos": 9,
+    "validacion": 3,
+    "indisponibilidad": 3,
+    "tiempo": 2,
+    "interno": 1,
+    "limite_ms": 40000
+  },
+  "version": {
+    "treeHash": "f0a82e260f6dd9776c3618750b15a79a2d85d6d1dc246f31dff35a2980bacfbe"
+  },
+  "startedAt": "2026-10-11T00:43:02.507Z",
+  "finishedAt": "2026-10-11T00:45:29.183Z",
+  "artefacto": {
+    "ruta": "specs/005-integracion-c3-c4/evidencias/aceptacion/corridas/backend-test__in-integracion__end-to-end-deadline.test.ts.log",
+    "sha256": "365d61214cab7e6951bc66abc395a5d3d15503b69342b9f2752134c6f0883b14"
+  },
+  "nota": "Corrida controlada: proveedor doble y/o base aislada; no acredita A/P/H/B."
+}

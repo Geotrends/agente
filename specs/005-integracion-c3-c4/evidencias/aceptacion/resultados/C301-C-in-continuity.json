@@ -1,0 +1,23 @@
+{
+  "runId": "C301-C-in-continuity",
+  "caseId": "C301",
+  "componente": "C",
+  "real": false,
+  "resultado": "pass",
+  "cantidades": {
+    "conversaciones": 3,
+    "turnos_por_conversacion": 3,
+    "anonimas": 5,
+    "ids_no_emitidos": 3
+  },
+  "version": {
+    "treeHash": "f0a82e260f6dd9776c3618750b15a79a2d85d6d1dc246f31dff35a2980bacfbe"
+  },
+  "startedAt": "2026-10-11T00:42:50.935Z",
+  "finishedAt": "2026-10-11T00:42:55.740Z",
+  "artefacto": {
+    "ruta": "specs/005-integracion-c3-c4/evidencias/aceptacion/corridas/playwright-test__in-continuity.spec.ts.log",
+    "sha256": "c3e9e4fbf2e04e5c386e5a8cb163fa3bfff3be6e1032658d7a35bf3b93d42778"
+  },
+  "nota": "Corrida controlada: proveedor doble y/o base aislada; no acredita A/P/H/B."
+}

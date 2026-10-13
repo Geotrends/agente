@@ -1,0 +1,685 @@
+{
+  "generado": "2026-10-11T00:46:40.942Z",
+  "version": "f0a82e260f6dd9776c3618750b15a79a2d85d6d1dc246f31dff35a2980bacfbe",
+  "casos": [
+    {
+      "id": "C301",
+      "requisito": "RF-C3-IN-01",
+      "requeridos": [
+        "C",
+        "DB",
+        "A",
+        "P"
+      ],
+      "estado": "pendiente",
+      "cubiertos": [
+        "C",
+        "DB"
+      ],
+      "faltantes": [
+        "A",
+        "P"
+      ],
+      "problemas": [
+        "faltan componentes: A, P"
+      ],
+      "resultados": 3
+    },
+    {
+      "id": "C302",
+      "requisito": "RF-C3-IN-02",
+      "requeridos": [
+        "C",
+        "DB",
+        "A",
+        "P"
+      ],
+      "estado": "pendiente",
+      "cubiertos": [
+        "C",
+        "DB"
+      ],
+      "faltantes": [
+        "A",
+        "P"
+      ],
+      "problemas": [
+        "faltan componentes: A, P"
+      ],
+      "resultados": 2
+    },
+    {
+      "id": "C303",
+      "requisito": "RF-C3-IN-03",
+      "requeridos": [
+        "C",
+        "DB",
+        "A",
+        "P"
+      ],
+      "estado": "pendiente",
+      "cubiertos": [
+        "C",
+        "DB"
+      ],
+      "faltantes": [
+        "A",
+        "P"
+      ],
+      "problemas": [
+        "faltan componentes: A, P"
+      ],
+      "resultados": 3
+    },
+    {
+      "id": "C304",
+      "requisito": "RF-C3-IN-04",
+      "requeridos": [
+        "C",
+        "DB",
+        "P"
+      ],
+      "estado": "pendiente",
+      "cubiertos": [
+        "C",
+        "DB"
+      ],
+      "faltantes": [
+        "P"
+      ],
+      "problemas": [
+        "faltan componentes: P"
+      ],
+      "resultados": 3
+    },
+    {
+      "id": "C305",
+      "requisito": "RF-C3-IN-05",
+      "requeridos": [
+        "DB",
+        "C",
+        "A",
+        "P"
+      ],
+      "estado": "pendiente",
+      "cubiertos": [
+        "C",
+        "DB"
+      ],
+      "faltantes": [
+        "A",
+        "P"
+      ],
+      "problemas": [
+        "faltan componentes: A, P"
+      ],
+      "resultados": 2
+    },
+    {
+      "id": "C306",
+      "requisito": "RF-C3-IN-06",
+      "requeridos": [
+        "C",
+        "DB",
+        "A",
+        "P"
+      ],
+      "estado": "pendiente",
+      "cubiertos": [
+        "C",
+        "DB"
+      ],
+      "faltantes": [
+        "A",
+        "P"
+      ],
+      "problemas": [
+        "faltan componentes: A, P"
+      ],
+      "resultados": 2
+    },
+    {
+      "id": "C307",
+      "requisito": "RF-C3-IN-07",
+      "requeridos": [
+        "DB",
+        "C",
+        "A",
+        "P"
+      ],
+      "estado": "pendiente",
+      "cubiertos": [
+        "C",
+        "DB"
+      ],
+      "faltantes": [
+        "A",
+        "P"
+      ],
+      "problemas": [
+        "faltan componentes: A, P"
+      ],
+      "resultados": 2
+    },
+    {
+      "id": "C308",
+      "requisito": "RF-C3-IN-08",
+      "requeridos": [
+        "C",
+        "DB",
+        "P"
+      ],
+      "estado": "pendiente",
+      "cubiertos": [
+        "C",
+        "DB"
+      ],
+      "faltantes": [
+        "P"
+      ],
+      "problemas": [
+        "faltan componentes: P"
+      ],
+      "resultados": 3
+    },
+    {
+      "id": "C309",
+      "requisito": "RF-C3-IN-09",
+      "requeridos": [
+        "DB",
+        "C",
+        "P"
+      ],
+      "estado": "pendiente",
+      "cubiertos": [
+        "C",
+        "DB"
+      ],
+      "faltantes": [
+        "P"
+      ],
+      "problemas": [
+        "faltan componentes: P"
+      ],
+      "resultados": 4
+    },
+    {
+      "id": "C310",
+      "requisito": "RF-C3-IN-10",
+      "requeridos": [
+        "DB",
+        "C",
+        "P"
+      ],
+      "estado": "pendiente",
+      "cubiertos": [
+        "C",
+        "DB"
+      ],
+      "faltantes": [
+        "P"
+      ],
+      "problemas": [
+        "faltan componentes: P"
+      ],
+      "resultados": 2
+    },
+    {
+      "id": "C401",
+      "requisito": "RF-C4-IN-01",
+      "requeridos": [
+        "C",
+        "DB",
+        "B",
+        "P"
+      ],
+      "estado": "pendiente",
+      "cubiertos": [
+        "C",
+        "DB"
+      ],
+      "faltantes": [
+        "B",
+        "P"
+      ],
+      "problemas": [
+        "faltan componentes: B, P"
+      ],
+      "resultados": 2
+    },
+    {
+      "id": "C402",
+      "requisito": "RF-C4-IN-02",
+      "requeridos": [
+        "C",
+        "DB",
+        "B",
+        "A",
+        "P"
+      ],
+      "estado": "pendiente",
+      "cubiertos": [
+        "C",
+        "DB"
+      ],
+      "faltantes": [
+        "B",
+        "A",
+        "P"
+      ],
+      "problemas": [
+        "faltan componentes: B, A, P"
+      ],
+      "resultados": 2
+    },
+    {
+      "id": "C403",
+      "requisito": "RF-C4-IN-03",
+      "requeridos": [
+        "C",
+        "B",
+        "P"
+      ],
+      "estado": "pendiente",
+      "cubiertos": [
+        "C"
+      ],
+      "faltantes": [
+        "B",
+        "P"
+      ],
+      "problemas": [
+        "faltan componentes: B, P"
+      ],
+      "resultados": 1
+    },
+    {
+      "id": "C404",
+      "requisito": "RF-C4-IN-04",
+      "requeridos": [
+        "C",
+        "P",
+        "B"
+      ],
+      "estado": "pendiente",
+      "cubiertos": [
+        "C"
+      ],
+      "faltantes": [
+        "P",
+        "B"
+      ],
+      "problemas": [
+        "faltan componentes: P, B"
+      ],
+      "resultados": 1
+    },
+    {
+      "id": "C405",
+      "requisito": "RF-C4-IN-05",
+      "requeridos": [
+        "C",
+        "DB",
+        "B",
+        "P"
+      ],
+      "estado": "pendiente",
+      "cubiertos": [
+        "C",
+        "DB"
+      ],
+      "faltantes": [
+        "B",
+        "P"
+      ],
+      "problemas": [
+        "faltan componentes: B, P"
+      ],
+      "resultados": 2
+    },
+    {
+      "id": "C406",
+      "requisito": "RF-C4-IN-06",
+      "requeridos": [
+        "C",
+        "P",
+        "B"
+      ],
+      "estado": "pendiente",
+      "cubiertos": [
+        "C"
+      ],
+      "faltantes": [
+        "P",
+        "B"
+      ],
+      "problemas": [
+        "faltan componentes: P, B"
+      ],
+      "resultados": 1
+    },
+    {
+      "id": "N301",
+      "requisito": "RNF-C3-IN-01",
+      "requeridos": [
+        "DB",
+        "P"
+      ],
+      "estado": "pendiente",
+      "cubiertos": [
+        "DB"
+      ],
+      "faltantes": [
+        "P"
+      ],
+      "problemas": [
+        "faltan componentes: P"
+      ],
+      "resultados": 2
+    },
+    {
+      "id": "N302",
+      "requisito": "RNF-C3-IN-02",
+      "requeridos": [
+        "A",
+        "P"
+      ],
+      "estado": "pendiente",
+      "cubiertos": [],
+      "faltantes": [
+        "A",
+        "P"
+      ],
+      "problemas": [
+        "faltan componentes: A, P",
+        "cantidad «dias» no cubierta por ninguna corrida",
+        "cantidad «secuenciales_por_dia» no cubierta por ninguna corrida",
+        "cantidad «simples» no cubierta por ninguna corrida",
+        "cantidad «medias» no cubierta por ninguna corrida",
+        "cantidad «complejas» no cubierta por ninguna corrida",
+        "cantidad «con_historial» no cubierta por ninguna corrida",
+        "cantidad «largas» no cubierta por ninguna corrida",
+        "cantidad «p95_ms» no cubierta por ninguna corrida",
+        "cantidad «silencio_max_ms» no cubierta por ninguna corrida"
+      ],
+      "resultados": 0
+    },
+    {
+      "id": "N303",
+      "requisito": "RNF-C3-IN-03",
+      "requeridos": [
+        "A",
+        "P"
+      ],
+      "estado": "pendiente",
+      "cubiertos": [],
+      "faltantes": [
+        "A",
+        "P"
+      ],
+      "problemas": [
+        "faltan componentes: A, P",
+        "cantidad «dias» no cubierta por ninguna corrida",
+        "cantidad «oleadas_por_dia» no cubierta por ninguna corrida",
+        "cantidad «tamano_oleada» no cubierta por ninguna corrida",
+        "cantidad «autorizadas» no cubierta por ninguna corrida",
+        "cantidad «conversaciones» no cubierta por ninguna corrida",
+        "cantidad «anonimas» no cubierta por ninguna corrida",
+        "cantidad «pausa_ms» no cubierta por ninguna corrida",
+        "cantidad «registros_por_dia» no cubierta por ninguna corrida",
+        "cantidad «registros_total» no cubierta por ninguna corrida",
+        "cantidad «p95_ms» no cubierta por ninguna corrida",
+        "cantidad «errores» no cubierta por ninguna corrida"
+      ],
+      "resultados": 0
+    },
+    {
+      "id": "N304",
+      "requisito": "RNF-C3-IN-04",
+      "requeridos": [
+        "C",
+        "P"
+      ],
+      "estado": "pendiente",
+      "cubiertos": [
+        "C"
+      ],
+      "faltantes": [
+        "P"
+      ],
+      "problemas": [
+        "faltan componentes: P"
+      ],
+      "resultados": 1
+    },
+    {
+      "id": "N305",
+      "requisito": "RNF-C3-IN-05",
+      "requeridos": [
+        "C",
+        "P"
+      ],
+      "estado": "pendiente",
+      "cubiertos": [
+        "C"
+      ],
+      "faltantes": [
+        "P"
+      ],
+      "problemas": [
+        "faltan componentes: P"
+      ],
+      "resultados": 2
+    },
+    {
+      "id": "N306",
+      "requisito": "RNF-C3-IN-06",
+      "requeridos": [
+        "C",
+        "P"
+      ],
+      "estado": "pendiente",
+      "cubiertos": [
+        "C"
+      ],
+      "faltantes": [
+        "P"
+      ],
+      "problemas": [
+        "faltan componentes: P"
+      ],
+      "resultados": 2
+    },
+    {
+      "id": "N307",
+      "requisito": "RNF-C3-IN-07",
+      "requeridos": [
+        "A",
+        "P"
+      ],
+      "estado": "pendiente",
+      "cubiertos": [],
+      "faltantes": [
+        "A",
+        "P"
+      ],
+      "problemas": [
+        "faltan componentes: A, P",
+        "cantidad «llaves_en_repo_imagen_env» no cubierta por ninguna corrida",
+        "cantidad «modelos_con_rol» no cubierta por ninguna corrida"
+      ],
+      "resultados": 0
+    },
+    {
+      "id": "N308",
+      "requisito": "RNF-C3-IN-08",
+      "requeridos": [
+        "A"
+      ],
+      "estado": "pendiente",
+      "cubiertos": [],
+      "faltantes": [
+        "A"
+      ],
+      "problemas": [
+        "faltan componentes: A",
+        "cantidad «acciones» no cubierta por ninguna corrida",
+        "cantidad «arn» no cubierta por ninguna corrida",
+        "cantidad «exitos» no cubierta por ninguna corrida",
+        "cantidad «denegaciones» no cubierta por ninguna corrida"
+      ],
+      "resultados": 0
+    },
+    {
+      "id": "N309",
+      "requisito": "RNF-C3-IN-09",
+      "requeridos": [],
+      "estado": "descartado",
+      "cubiertos": [],
+      "faltantes": [],
+      "problemas": [
+        "descartado por la fuente; sin trabajo de rotación de llaves"
+      ],
+      "resultados": 0
+    },
+    {
+      "id": "N310",
+      "requisito": "RNF-C3-IN-10",
+      "requeridos": [
+        "C"
+      ],
+      "estado": "controlado_conforme",
+      "cubiertos": [
+        "C"
+      ],
+      "faltantes": [],
+      "problemas": [],
+      "resultados": 1
+    },
+    {
+      "id": "N311",
+      "requisito": "RNF-C3-IN-11",
+      "requeridos": [
+        "C",
+        "A"
+      ],
+      "estado": "pendiente",
+      "cubiertos": [
+        "C"
+      ],
+      "faltantes": [
+        "A"
+      ],
+      "problemas": [
+        "faltan componentes: A"
+      ],
+      "resultados": 1
+    },
+    {
+      "id": "N312",
+      "requisito": "RNF-C3-IN-12",
+      "requeridos": [
+        "C",
+        "DB",
+        "P",
+        "A"
+      ],
+      "estado": "pendiente",
+      "cubiertos": [
+        "C",
+        "DB"
+      ],
+      "faltantes": [
+        "P",
+        "A"
+      ],
+      "problemas": [
+        "faltan componentes: P, A"
+      ],
+      "resultados": 2
+    },
+    {
+      "id": "N313",
+      "requisito": "RNF-C3-IN-13",
+      "requeridos": [
+        "H",
+        "A",
+        "P"
+      ],
+      "estado": "pendiente",
+      "cubiertos": [],
+      "faltantes": [
+        "H",
+        "A",
+        "P"
+      ],
+      "problemas": [
+        "faltan componentes: H, A, P",
+        "cantidad «destinos» no cubierta por ninguna corrida",
+        "cantidad «condiciones» no cubierta por ninguna corrida",
+        "cantidad «muestras_por_celda» no cubierta por ninguna corrida",
+        "cantidad «total» no cubierta por ninguna corrida",
+        "cantidad «razon_p95_max» no cubierta por ninguna corrida",
+        "cantidad «errores» no cubierta por ninguna corrida"
+      ],
+      "resultados": 0
+    },
+    {
+      "id": "N401",
+      "requisito": "RNF-C4-IN-01",
+      "requeridos": [
+        "C",
+        "B",
+        "P"
+      ],
+      "estado": "pendiente",
+      "cubiertos": [
+        "C"
+      ],
+      "faltantes": [
+        "B",
+        "P"
+      ],
+      "problemas": [
+        "faltan componentes: B, P"
+      ],
+      "resultados": 1
+    },
+    {
+      "id": "N402",
+      "requisito": "RNF-C4-IN-02",
+      "requeridos": [
+        "C",
+        "P",
+        "H",
+        "B"
+      ],
+      "estado": "pendiente",
+      "cubiertos": [
+        "C"
+      ],
+      "faltantes": [
+        "P",
+        "H",
+        "B"
+      ],
+      "problemas": [
+        "faltan componentes: P, H, B"
+      ],
+      "resultados": 2
+    }
+  ],
+  "resumen": {
+    "pendiente": 29,
+    "controlado_conforme": 1,
+    "real_conforme": 0,
+    "fallo": 0,
+    "descartado": 1,
+    "activos": 30,
+    "conformes": 1
+  },
+  "completo": false,
+  "versionesResultados": [
+    "f0a82e260f6dd9776c3618750b15a79a2d85d6d1dc246f31dff35a2980bacfbe"
+  ]
+}

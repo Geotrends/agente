@@ -1,0 +1,22 @@
+{
+  "runId": "N301-DB-consumption",
+  "caseId": "N301",
+  "componente": "DB",
+  "real": false,
+  "resultado": "pass",
+  "cantidades": {
+    "conservada_dias": "11m29d",
+    "depurada_dias": "12m1d",
+    "ejecuciones_automaticas": 2
+  },
+  "version": {
+    "treeHash": "f0a82e260f6dd9776c3618750b15a79a2d85d6d1dc246f31dff35a2980bacfbe"
+  },
+  "startedAt": "2026-10-11T00:45:35.400Z",
+  "finishedAt": "2026-10-11T00:45:36.312Z",
+  "artefacto": {
+    "ruta": "specs/005-integracion-c3-c4/evidencias/aceptacion/corridas/backend-test__di-integracion__consumption.test.ts.log",
+    "sha256": "39a727fea7b3a53c45f26113022d532701de2dc9505da3f179a543169c0774a7"
+  },
+  "nota": "Corrida controlada: proveedor doble y/o base aislada; no acredita A/P/H/B."
+}

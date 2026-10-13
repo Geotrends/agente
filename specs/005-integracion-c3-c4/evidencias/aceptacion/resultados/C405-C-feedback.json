@@ -1,0 +1,24 @@
+{
+  "runId": "C405-C-feedback",
+  "caseId": "C405",
+  "componente": "C",
+  "real": false,
+  "resultado": "pass",
+  "cantidades": {
+    "respuestas": 6,
+    "con_id": 2,
+    "autorizadas_sin_id": 2,
+    "anonimas": 2,
+    "con_controles": 2
+  },
+  "version": {
+    "treeHash": "f0a82e260f6dd9776c3618750b15a79a2d85d6d1dc246f31dff35a2980bacfbe"
+  },
+  "startedAt": "2026-10-11T00:45:44.143Z",
+  "finishedAt": "2026-10-11T00:45:49.915Z",
+  "artefacto": {
+    "ruta": "specs/005-integracion-c3-c4/evidencias/aceptacion/corridas/playwright-test__feedback.spec.ts.log",
+    "sha256": "177abb577a239ef20385f892644e3027323ac5c70b2480a815766216b5c5cc05"
+  },
+  "nota": "Corrida controlada: proveedor doble y/o base aislada; no acredita A/P/H/B."
+}

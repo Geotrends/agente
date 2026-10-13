@@ -1,0 +1,23 @@
+{
+  "runId": "N305-C-trust-proxy",
+  "caseId": "N305",
+  "componente": "C",
+  "real": false,
+  "resultado": "pass",
+  "cantidades": {
+    "consultas_30s": 62,
+    "permitidas": 60,
+    "rechazadas": 2,
+    "ventana_5min_por_min": 60
+  },
+  "version": {
+    "treeHash": "f0a82e260f6dd9776c3618750b15a79a2d85d6d1dc246f31dff35a2980bacfbe"
+  },
+  "startedAt": "2026-10-11T00:46:07.701Z",
+  "finishedAt": "2026-10-11T00:46:08.782Z",
+  "artefacto": {
+    "ruta": "specs/005-integracion-c3-c4/evidencias/aceptacion/corridas/backend-test__in-integracion__trust-proxy.test.ts.log",
+    "sha256": "f6323dd15236f74cfc4332bf3f5602b0f8a94ae42da78bfa366d6184e2400469"
+  },
+  "nota": "Corrida controlada: proveedor doble y/o base aislada; no acredita A/P/H/B."
+}

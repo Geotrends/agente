@@ -1,0 +1,25 @@
+{
+  "runId": "C304-C-error-contract",
+  "caseId": "C304",
+  "componente": "C",
+  "real": false,
+  "resultado": "pass",
+  "cantidades": {
+    "casos": 9,
+    "validacion": 3,
+    "indisponibilidad": 3,
+    "tiempo": 2,
+    "interno": 1,
+    "limite_ms": 40000
+  },
+  "version": {
+    "treeHash": "f0a82e260f6dd9776c3618750b15a79a2d85d6d1dc246f31dff35a2980bacfbe"
+  },
+  "startedAt": "2026-10-11T00:45:29.184Z",
+  "finishedAt": "2026-10-11T00:45:32.008Z",
+  "artefacto": {
+    "ruta": "specs/005-integracion-c3-c4/evidencias/aceptacion/corridas/backend-test__di-integracion__error-contract.test.ts.log",
+    "sha256": "e1d806e6676447e108946504f1440c9e47942c40bc034967106c6cb41406bcc3"
+  },
+  "nota": "Corrida controlada: proveedor doble y/o base aislada; no acredita A/P/H/B."
+}

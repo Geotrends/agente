@@ -1,0 +1,23 @@
+{
+  "runId": "N305-C-chat-perimeter",
+  "caseId": "N305",
+  "componente": "C",
+  "real": false,
+  "resultado": "pass",
+  "cantidades": {
+    "consultas_30s": 62,
+    "permitidas": 60,
+    "rechazadas": 2,
+    "ventana_5min_por_min": 60
+  },
+  "version": {
+    "treeHash": "f0a82e260f6dd9776c3618750b15a79a2d85d6d1dc246f31dff35a2980bacfbe"
+  },
+  "startedAt": "2026-10-11T00:46:06.125Z",
+  "finishedAt": "2026-10-11T00:46:07.700Z",
+  "artefacto": {
+    "ruta": "specs/005-integracion-c3-c4/evidencias/aceptacion/corridas/backend-test__di-integracion__chat-perimeter.test.ts.log",
+    "sha256": "5b706289b7f40602abcb07f32214f6bd899a65fc54f09426d45a2d4f384253e8"
+  },
+  "nota": "Corrida controlada: proveedor doble y/o base aislada; no acredita A/P/H/B."
+}
