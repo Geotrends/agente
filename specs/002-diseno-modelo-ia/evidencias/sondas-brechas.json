@@ -1,0 +1,15 @@
+{
+  "duplicateIds": [
+    1,
+    2
+  ],
+  "unrecognizedSource": [
+    {
+      "path": "recuperado"
+    }
+  ],
+  "tokenLimit": 3000,
+  "complexityWithFivePairs": "complex",
+  "tableChunks": 3,
+  "maxWithHeading": 1027
+}

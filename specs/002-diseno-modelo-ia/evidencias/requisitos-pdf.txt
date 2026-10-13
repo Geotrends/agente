@@ -1,0 +1,476 @@
+Fuente: DOCUMENACION_C3_C4.pdf
+Sección 4.2, páginas impresas 23–35. Extracción textual; consultar el PDF ante diferencias de formato.
+SHA-256: 2fe87aab471d38aba8f636a650681a45efa9106b25673e4927d264de6cceda2f
+
+     4.2 Bloque 2: Diseño del modelo IA (H2 – C3).
+
+     4.2.1     Requisitos Funcionales.
+
+     4.2.1.1      RF-C3-DI-01
+
+         •     Hito: H2-C3
+         •     Prioridad: Esencial
+         •     Descripción: Limitar el modelo a orientar sobre trámites y consultar la base; no
+               hace análisis estadístico, regresiones ni predicciones
+         •     Criterio de verificación: Se hacen 10 preguntas: 5 de análisis de datos (por
+               ejemplo, una estadística, una regresión o una predicción) y 5 sobre trámites. Se
+               aprueba si en las 5 de análisis el modelo responde como 'fuera de alcance', no
+               calcula nada y orienta al canal oficial, y si las 5 de trámites se responden con
+               normalidad.
+         •     Entregable asociado: Documento de diseño.
+
+     4.2.1.2      RF-C3-DI-02
+
+         •     Hito: H2-C3
+         •     Prioridad: Esencial.
+
+•      Descripción: Calcular la complejidad con puntaje local determinista (simple <3,
+               media 3–5, compleja ≥6; ≥10 intercambios previos ⇒ compleja), sin llamar a un
+               proveedor.
+        •      Criterio de verificación: Se hacen 12 preguntas con puntaje esperado calculado
+               de antemano: 3 simples (menor a 3), 3 medias (de 3 a 5), 3 complejas (6 o más)
+               y 3 de puntaje simple enviadas con 10 o más intercambios previos. Se aprueba
+               si las 12 quedan en el nivel esperado (las 3 últimas como complejas), cada
+               pregunta repetida obtiene siempre el mismo puntaje y el registro técnico no
+               muestra llamadas a un proveedor durante el cálculo.
+        •      Entregable asociado: Documento de diseño.
+
+     4.2.1.3      RF-C3-DI-03
+
+        •      Hito: H2-C3
+        •      Prioridad: Esencial
+        •      Descripción: Usar modelo por defecto según nivel (gpt-oss-20b simple/media,
+               120b compleja) y el otro como respaldo; si fallan ambos, error
+               'SERVICIO_NO_DISPONIBLE' de RF-C3-IN-04, registro y aviso en la pantalla de
+               estado de RF-C3-AD-48.
+        •      Criterio de verificación: Se hacen 9 pruebas: 3 por cada nivel de complejidad. En
+               cada nivel se simulan tres situaciones: (1) funciona el modelo principal, (2) el
+               principal falla y entra el de respaldo, (3) fallan los dos. Se aprueba si en (1) y (2)
+               responde el modelo esperado, y en (3) el sistema avisa que el servicio no está
+               disponible, lo deja registrado y lo muestra en el panel de administración.
+        •      Entregable asociado: Documento de diseño.
+
+     4.2.1.4      RF-C3-DI-04
+
+        •      Hito: H2-C3
+        •      Prioridad: Esencial
+        •      Descripción: El modelo deberá responder solo con los fragmentos recuperados;
+               si ninguno supera el umbral, deberá responder con el texto fijo "No encontré
+               información validada… " y el canal oficial, sin usar conocimiento general.
+        •      Criterio de verificación: Se hacen 10 preguntas: 5 sobre temas que no están en la
+               base y 5 que sí están. Se aprueba si, en las 5 sin información, la respuesta es
+               exactamente el texto fijo, sin citar documentos ni agregar datos que el modelo
+               "sepa por su cuenta", y si en las 5 con información responde usando los
+               documentos de la base.
+        •      Entregable asociado: Documento de diseño.
+
+4.2.1.5      RF-C3-DI-05
+
+        •      Hito: H2-C3
+        •      Prioridad: Esencial.
+        •      Descripción: El modelo deberá aplicar el umbral de relevancia de RF-C3-DI-04
+               con un valor fijado por calibración contra el conjunto de oro: entre los valores
+               probados, se elegirá el más alto con el que ninguna pregunta que sí tiene
+               respuesta en la base termine con el texto fijo "No encontré información
+               validada…". El valor elegido, los valores probados y sus resultados deberán
+               quedar documentados, y la calibración deberá repetirse cuando cambie el
+               reranker o el modelo de embeddings.
+        •      Criterio de verificación: Se prueba el sistema con un conjunto de preguntas de
+               referencia cuya respuesta correcta ya se conoce (el conjunto de oro), usando
+               varios valores del umbral. Se elige el valor con el que ninguna pregunta que sí tiene
+               respuesta en la base termina contestada con "no encontré información". Se
+               aprueba si el valor elegido cumple eso y los resultados quedan documentados.
+        •      Entregable asociado: Documento de diseño; Informe de validación.
+
+     4.2.1.6      RF-C3-DI-06
+
+        •      Hito: H2-C3.
+        •      Prioridad: Importante.
+        •      Descripción: El modelo deberá, si el reranker falla, continuar con los 8 mejores
+               resultados de RRF y reflejar el estado del reranker y si se aplica umbral en la
+               pantalla de estado de RF-C3-AD-48.
+        •      Criterio de verificación: El reranker es el paso que reordena los resultados de
+               búsqueda según su relevancia. Se apaga y se hacen 3 consultas. Se aprueba si el
+               sistema sigue respondiendo con los 8 mejores resultados de la búsqueda inicial,
+               el panel indica que el reordenamiento no está disponible y que no se está aplicando
+               el umbral, y al reactivarlo el funcionamiento normal se restablece.
+        •      Entregable asociado: Documento de diseño
+
+     4.2.1.7      RF-C3-DI-07
+
+        •      Hito: H2-C3.
+        •      Prioridad: Esencial.
+        •      Descripción: El modelo deberá citar en cada respuesta el documento (nombre con
+               enlace) y su fecha de última actualización; para páginas del Observatorio, el título
+               con enlace y la fecha de acceso.
+
+•      Criterio de verificación: Se revisan 10 respuestas. Se aprueba si en todas aparece
+               el nombre del documento con un enlace que abre, y la fecha mostrada es la misma
+               que figura en la matriz documental o ficha de ese documento (para páginas del
+               Observatorio, la fecha en que se accedió a la página).
+        •      Entregable asociado: Documento de diseño.
+
+     4.2.1.8      RF-C3-DI-08
+
+        •      Hito: H2-C3.
+        •      Prioridad: Importante.
+        •      Descripción: El modelo deberá citar solo los documentos que declare haber usado
+               y que estén entre los fragmentos recuperados, eliminando los demás.
+        •      Criterio de verificación: Se revisan 10 respuestas, 3 de ellas preparadas a
+               propósito: se simula que el modelo menciona un documento que no se usó en esa
+               respuesta. Se aprueba si en esas 3 el documento sobrante no aparece en la cita
+               final, y en las 10 solo se muestran documentos que realmente se consultaron para
+               responder.
+        •      Entregable asociado: Documento de diseño.
+
+     4.2.1.9      RF-C3-DI-09
+
+        •      Hito: H2-C3.
+        •      Prioridad: Esencial.
+        •      Descripción: El modelo deberá, ante preguntas de decisión o concepto, dar la
+               información base, indicar que decide la dirección responsable e incluir la leyenda
+               fija "no reemplaza asesoría técnica ni jurídica formal".
+        •      Criterio de verificación: Se hacen 15 preguntas: 10 que piden una decisión o un
+               concepto (por ejemplo, "¿me aprueban el permiso?") y 5 solo informativas. Se
+               aprueba si las 10 incluyen la información disponible, aclaran que la decisión es de
+               la dirección responsable y muestran la leyenda exacta, y las 5 informativas se
+               responden sin atribuirse ninguna decisión.
+        •      Entregable asociado: Documento de diseño.
+
+     4.2.1.10     RF-C3-DI-10
+
+        •      Hito: H2-C3.
+        •      Prioridad: Importante.
+        •      Descripción: El modelo deberá responder en español, en formato Markdown, con
+               tono cercano y sin jerga extraña, coloquialismos ni groserías.
+
+•      Criterio de verificación: Un revisor del equipo evalúa 10 respuestas con una lista
+                de 6 puntos: está en español, tiene formato ordenado, el tono es cercano, no usa
+                jerga extraña, no usa coloquialismos y no tiene groserías. Se aprueba si al menos
+                9 de las 10 cumplen los 6 puntos.
+         •      Entregable asociado: Documento de diseño.
+
+     4.2.1.11      RF-C3-DI-11
+
+         •      Hito: H2-C3
+         •      Prioridad: Importante.
+         •      Descripción: El modelo deberá, ante conflicto entre documentos, dar prevalencia
+                al GT-P sobre el GT-N.
+         •      Criterio de verificación: Se preparan 5 casos en los que el procedimiento (GT-P)
+                y la norma (GT-N) dicen cosas distintas sobre el mismo dato. Se aprueba si en los
+                5 la respuesta sigue lo que dice el procedimiento y lo cita como fuente.
+         •      Entregable asociado: Documento de diseño.
+
+     4.2.1.12      RF-C3-DI-12
+
+         •      Hito: H2-C3.
+         •      Prioridad: Esencial.
+         •      Descripción: El modelo deberá recuperar con búsqueda híbrida BM25 + vectorial
+                combinada con RRF, enviar 16 candidatos al reranker y entregar como máximo 8
+                fragmentos ordenados por puntaje del reranker.
+         •      Criterio de verificación: La búsqueda combina dos métodos: uno por palabras
+                exactas y otro por significado. Se ejecutan 5 consultas revisando el registro de
+                cada paso. Se aprueba si se ve que ambos métodos aportan resultados, que se
+                evalúan como máximo 16 candidatos y que se entregan como máximo 8
+                fragmentos, de mayor a menor relevancia.
+         •      Entregable asociado: Documento de diseño.
+
+     4.2.1.13      RF-C3-DI-13
+
+         •      Hito: H2-C3.
+         •      Prioridad: Importante.
+         •      Descripción: El modelo deberá fragmentar los documentos en trozos de máximo
+                1.000 caracteres, sin partir palabras, con solapamiento de 150 caracteres y
+                manteniendo cada tabla completa en un fragmento.
+         •      Criterio de verificación: Se revisa una muestra de fragmentos de al menos 5
+                documentos, 2 de ellos con tablas. Se aprueba si ningún trozo supera 1.000
+
+caracteres, no hay palabras cortadas a la mitad, cada trozo repite
+               aproximadamente los últimos 150 caracteres del anterior (con tolerancia de una
+               palabra) y cada tabla aparece completa dentro de un solo trozo.
+        •      Entregable asociado: Documento de diseño.
+
+     4.2.1.14     RF-C3-DI-14
+
+        •      Hito: H2-C3.
+        •      Prioridad: Importante.
+        •      Descripción: El modelo deberá seleccionar los fragmentos finales solo entre los
+               que superen el umbral, dando preferencia a un máximo de 3 por documento,
+               eliminando duplicados (Jaccard ≥0,6) y completando hasta 8 solo con fragmentos
+               sobre el umbral.
+        •      Criterio de verificación: Se prueban 3 situaciones: (a) muchos fragmentos útiles
+               de un mismo documento mientras otros documentos también sirven, (b) solo un
+               documento sirve, (c) fragmentos casi idénticos (similitud del 60 % o más). Se
+               aprueba si en (a) no hay más de 3 por documento, en (b) se completa hasta 8 con
+               fragmentos de ese documento, en (c) se elimina el repetido, y en ningún caso entra
+               un fragmento que no supere el umbral de relevancia.
+        •      Entregable asociado: Documento de diseño.
+
+     4.2.1.15     RF-C3-DI-15
+
+        •      Hito: H2-C3.
+        •      Prioridad: Importante.
+        •      Descripción: El modelo deberá, en preguntas de seguimiento, agregar a la
+               consulta de búsqueda los últimos 500 caracteres de la pregunta previa (cortados
+               en límite de palabra), sin incluirlos como contexto del LLM ni aplicarlo a preguntas
+               autónomas.
+        •      Criterio de verificación: Se hacen 10 pruebas: 5 preguntas de seguimiento (por
+               ejemplo, "¿y cuánto demora?") y 5 que se entienden solas. Se aprueba si en las de
+               seguimiento la búsqueda incluye el final de la pregunta anterior (sin cortar
+               palabras), y en las que se entienden solas la búsqueda usa solo la pregunta nueva.
+        •      Entregable asociado: Documento de diseño.
+
+     4.2.1.16     RF-C3-DI-16
+
+        •      Hito: H2-C3.
+        •      Prioridad: Importante.
+
+•      Descripción: El modelo deberá registrar en PostgreSQL, por cada consulta, el
+               modelo que respondió, los tokens de entrada y salida y el costo estimado según la
+               tarifa configurada por modelo.
+        •      Criterio de verificación: Los tokens son la unidad con que se mide el texto que
+               procesa el modelo. Se hacen 10 consultas (5 por cada modelo, al menos una
+               atendida por el de respaldo). Se aprueba si cada consulta deja un registro con el
+               modelo usado, los tokens de entrada, los de salida y el costo estimado, y si al
+               recalcular el costo a mano con la tarifa configurada el resultado coincide en las 10.
+        •      Entregable asociado: Documento de diseño.
+
+     4.2.1.17     RF-C3-DI-17
+
+        •      Hito: H2-C3.
+        •      Prioridad: Importante.
+        •      Descripción: El modelo deberá usar el mismo prompt de sistema y las mismas
+               reglas de generación en los dos modelos habilitados, de modo que ante los mismos
+               fragmentos los datos clave coincidan.
+        •      Criterio de verificación: El prompt es el conjunto de instrucciones que recibe el
+               modelo. Se revisa que ambos modelos usen las mismas instrucciones. Luego se
+               hacen 10 preguntas (al menos 3 por dirección) a cada modelo con la misma
+               información de apoyo. Se aprueba si en las 10 coinciden los datos clave de la
+               respuesta (requisitos, plazos, normas y canal de atención) y solo cambia la forma
+               de redactarlos.
+        •      Entregable asociado: Documento de diseño.
+
+     4.2.1.18     RF-C3-DI-18
+
+        •      Hito: H2-C3.
+        •      Prioridad: Importante.
+        •      Descripción: El modelo deberá, cuando una respuesta termine por alcanzar el tope
+               de tokens de RNF-C3-DI-03, recortarla en la última oración completa y agregar la
+               cita del documento (RF-C3-DI-07) y el aviso fijo "Respuesta abreviada por su
+               extensión; consulte el documento para el detalle completo".
+        •      Criterio de verificación: Se baja temporalmente el límite de longitud para forzar el
+               corte y se hacen 6 consultas (3 por modelo), más 3 consultas normales. Se
+               aprueba si en las 6 la respuesta termina en una oración completa, incluye la cita
+               con enlace y fecha y muestra el aviso fijo, y si en las 3 normales el aviso no
+               aparece.
+        •      Entregable asociado: Documento de diseño.
+
+4.2.1.19     RF-C3-DI-19
+
+        •      Hito: H2-C3.
+        •      Prioridad: Esencial.
+        •      Descripción: El modelo deberá incluir en la respuesta los canales de atención
+               inmediata de la sección de datos de contacto del prompt de sistema, antes de la
+               orientación procedimental, cuando la consulta describa una situación de riesgo o
+               afectación en curso, tomando esos datos exclusivamente del registro de contacto
+               que alimenta al ChatBot, sin generarlos ni inferirlos.
+        •      Criterio de verificación: 10 consultas en texto libre: 5 de situaciones en curso y 5
+               informativas. Se aprueba si al menos 4 de las 5 primeras incluyen los canales
+               inmediatos antes de la orientación, si en las informativas no aparecen en más de 1
+               caso, y si los números coinciden con el registro de contacto.
+        •      Entregable asociado: Documento de diseño.
+
+     4.2.1.20     RF-C3-DI-20
+
+        •      Hito: H2-C3.
+        •      Prioridad: Esencial.
+        •      Descripción: El modelo deberá, ante consultas ajenas a las direcciones de
+               Ecosistemas, Bienestar Animal y Gestión Ambiental, informar que su orientación
+               se limita a esas tres direcciones y entregar los datos de contacto general, sin
+               responder el contenido de la consulta.
+        •      Criterio de verificación: 8 consultas: 4 ajenas y 4 propias. Se aprueba si las 4
+               ajenas declaran la limitación, entregan el contacto general y no responden el
+               contenido, y las 4 propias se responden con normalidad.
+        •      Entregable asociado: Documento de diseño; Definición de alcance y límites del
+               ChatBot.
+
+     4.2.1.21     RF-C3-DI-21
+
+        •      Hito: H2-C3.
+        •      Prioridad: Importante.
+        •      Descripción: El modelo deberá, ante consultas insuficientes para identificar el
+               trámite o la materia, formular una pregunta de clarificación en lugar del texto de
+               ausencia de información de RF-C3-DI-04, limitada a un turno, aplicando RF-C3-
+               DI-04 si la consulta sigue siendo insuficiente.
+        •      Criterio de verificación: 8 consultas: 4 insuficientes y 4 completas. Se aprueba si
+               al menos 3 de las 4 insuficientes devuelven pregunta de clarificación, si las 4
+
+completas no la reciben, y si al persistir la insuficiencia tras la clarificación se aplica
+               RF-C3-DI-04 sin encadenar otra pregunta.
+        •      Entregable asociado: Documento de diseño.
+
+     4.2.1.22      RF-C3-DI-22
+
+        •      Hito: H2-C3.
+        •      Prioridad: Importante.
+        •      Descripción: El modelo deberá mantener el tono institucional de RF-C3-DI-10 ante
+               lenguaje ofensivo o provocador, sin reproducir ni responder a ese lenguaje, y
+               atender con normalidad la consulta sobre trámites cuando exista dentro del
+               mensaje.
+        •      Criterio de verificación: 8 consultas: 4 con lenguaje ofensivo (2 con pregunta
+               válida) y 4 equivalentes sin él. Se aprueba si ninguna respuesta reproduce
+               expresiones del ciudadano, adopta registro agresivo o emite reproches, si las 2
+               con pregunta válida reciben la misma orientación, y si no se interrumpe la
+               conversación.
+        •      Entregable asociado: Documento de diseño; Guion conversacional institucional.
+
+     4.2.1.23      RF-C3-DI-23
+
+        •      Hito: H2-C3.
+        •      Prioridad: Esencial.
+        •      Descripción: El modelo deberá advertir al ciudadano, en cada turno cuya consulta
+               contenga datos personales identificables, que no requiere suministrarlos, que se
+               abstenga de incluirlos y que la conversación se trata conforme a la política del
+               Municipio, y entregar la orientación sin reproducir los datos recibidos.
+        •      Criterio de verificación: 8 consultas: 4 con datos personales (cédula, dirección,
+               teléfono o correo, nombre de tercero) y 4 equivalentes sin ellos. Se aprueba si las
+               4 primeras muestran la advertencia antes de la orientación, ninguna reproduce el
+               dato, la orientación es equivalente, y las 4 restantes no muestran advertencia.
+               Adicional: conversación de 3 turnos con datos personales, advertencia en los 3.
+        •      Entregable asociado: Documento de diseño; Definición de alcance y límites del
+               Chatbot.
+
+     4.2.1.24      RF-C3-DI-24
+
+        •      Hito: H2-C3.
+        •      Prioridad: Esencial.
+
+•      Descripción: El modelo deberá incluir al cierre de cada respuesta sobre trámites,
+               requisitos o procedimientos los tres canales oficiales de recepción —PQRSD,
+               WhatsApp y correo electrónico— tomados de la sección de datos de contacto, sin
+               presentar ninguno como canal único ni excluyente.
+        •      Criterio de verificación: 8 consultas sobre trámites de las tres direcciones. Se
+               aprueba si las 8 cierran con los tres canales, sus valores coinciden con el registro
+               de contacto, ninguno se presenta como único, y tras actualizar uno en el panel la
+               siguiente respuesta muestra el valor nuevo sin redespliegue.
+        •      Entregable asociado: Documento de diseño; Orientación sobre requisitos,
+               procedimientos y rutas de atención.
+
+     4.2.1.25     RF-C3-DI-25
+
+        •      Hito: H2-C3.
+        •      Prioridad: Importante.
+        •      Descripción: El modelo deberá estructurar la respuesta en pasos numerados
+               cuando el contenido describa una secuencia ordenada, en tabla cuando compare
+               dos o más elementos sobre los mismos atributos, y en prosa continua en los demás
+               casos.
+        •      Criterio de verificación: 9 respuestas: 3 secuenciales, 3 comparativas y 3
+               informativas. Se aprueba si al menos 8 de 9 corresponden a la estructura
+               esperada, según revisor del equipo funcional, y ninguna informativa presenta
+               pasos artificiales ni tablas de una sola fila.
+        •      Entregable asociado: Documento de diseño.
+
+     4.2.2 Requisitos No Funcionales.
+
+     4.2.2.1      RNF-C3-DI-01
+
+        •      Componente: C3.
+        •      Categoría: Seguridad (confidencialidad).
+        •      Descripción: El modelo deberá enviar al proveedor, incluido AWS Bedrock, solo la
+               pregunta, los fragmentos recuperados y el historial limitado conforme a RF-C3-IN-
+               02, con cédulas, teléfonos y correos enmascarados.
+        •      Métrica o umbral: 15 consultas (5 con cédula, 5 con teléfono y 5 con correo) en
+               las que ningún dato personal sale completo; en ningún caso se envían más de 10
+               intercambios previos
+
+•      Método de verificación: Se hacen las 15 consultas, además de una conversación
+               con más de 10 intercambios, y se revisa lo que realmente sale hacia el proveedor.
+               Se aprueba si los datos personales aparecen enmascarados y solo viajan la
+               pregunta, los fragmentos y como máximo los últimos 10 intercambios.
+
+     4.2.2.2      RNF-C3-DI-02
+
+        •      Componente: C3.
+        •      Categoría: Seguridad.
+        •      Descripción: El modelo deberá usar únicamente AWS Bedrock con gpt-oss-20b
+               y gpt-oss-120b, con los demás proveedores, incluido Ollama, deshabilitados.
+        •      Métrica o umbral: 0 conexiones hacia otros proveedores en 20 consultas.
+        •      Método de verificación: Se revisa la configuración y se hacen 20 consultas
+               mientras se registra el tráfico que sale del sistema. Se aprueba si solo están
+               habilitados los dos modelos de AWS Bedrock, los demás aparecen desactivados y
+               ninguna consulta se conecta a otro proveedor.
+
+     4.2.2.3      RNF-C3-DI-03
+
+        •      Componente: C3.
+        •      Categoría: Eficiencia de desempeño.
+        •      Descripción: El modelo deberá limitar cada respuesta a un máximo de 2.200
+               tokens de salida, con el mismo tope para los dos modelos.
+        •      Métrica o umbral: Ninguna de 10 respuestas largas (5 por modelo) supera 2.200
+               tokens.
+        •      Método de verificación: Se hacen 10 preguntas pensadas para provocar
+               respuestas largas, 5 por cada modelo. Se aprueba si en ninguna la respuesta
+               supera 2.200 tokens, según el registro de longitud de cada respuesta.
+
+     4.2.3 Fallos identificados.
+
+                                         Tabla 6. Fallos bloque 2.
+                                                                                       Requisito que lo
+                          Fallo                             Tipo REAL
+                                                                                         mitiga (ID)
+                                                                                        RF-C3-DI-04,
+         Respuesta sin respaldo documental               Fallo de Modelo
+                                                                                        RF-C3-DI-08
+         Umbral de relevancia mal calibrado o
+                                                     Fallo de Recuperación               RF-C3-DI-05
+                     desactivado
+                     Reranker caído.                 Fallo de Recuperación               RF-C3-DI-06
+       Fragmentos duplicados o sesgados hacia
+                                                     Fallo de Recuperación                RF-C3-DI-14
+                un solo documento
+
+Tablas partidas o pérdida de contexto en
+                                                       Fallo de Recuperación                RF-C3-DI-13
+                    los fragmentos
+                  Documentos en conflicto                    Fallo de Datos                 RF-C3-DI-11
+               Datos personales enviados a un
+                                                           Fallo de Modelo                 RNF-C3-DI-01
+                         proveedor
+                                                                                          RNF-C3-DI-02,
+       Proveedor no autorizado o mal enrutado              Fallo de Modelo                 RF-C3-DI-02,
+                                                                                           RF-C3-DI-03
+                  Caída de ambos modelos                   Fallo de Modelo                 RF-C3-DI-03
+                                                                                           RF-C3-DI-16,
+                  Sobrecosto no detectado                  Fallo de Modelo
+                                                                                          RNF-C3-DI-03
+        Respuesta descontrolada o cortada sin                                             RNF-C3-DI-03,
+                                                           Fallo de Modelo
+                           fuente                                                          RF-C3-DI-18
+       Contenido distinto según el modelo que
+                                                           Fallo de Modelo                  RF-C3-DI-17
+                         responda
+      Tono inadecuado o apariencia de asesoría                                             RF-C3-DI-09,
+                                                           Fallo de Modelo
+                           formal                                                          RF-C3-DI-10
+      Situación de riesgo en curso atendida solo
+                                                           Fallo de Modelo                  RF-C3-DI-19
+              con orientación procedimental
+      El modelo responde sobre materias fuera
+                                                           Fallo de Modelo                 RF-C3-DI-20
+           de la competencia de la Secretaría
+           Consulta incompleta tratada como
+                                                       Fallo de Recuperación                RF-C3-DI-21
+           ausencia de información en la base
+       El modelo adopta el registro provocador
+       del ciudadano o niega orientación por la            Fallo de Modelo                 RF-C3-DI-22
+                   forma de la solicitud
+      Datos personales innecesarios quedan en
+                                                           Fallo de Modelo                 RF-C3-DI-23
+           el registro y en la respuesta visible
+      El ciudadano no sabe por dónde continuar
+       el trámite, o se indica un canal inventado          Fallo de Modelo                 RF-C3-DI-24
+                          o único
+           Estructura impuesta que fragmenta
+      contenido no secuencial, o procedimiento             Fallo de Modelo                 RF-C3-DI-25
+                     en prosa ilegible
+

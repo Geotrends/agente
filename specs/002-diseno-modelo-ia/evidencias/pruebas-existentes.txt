@@ -1,0 +1,431 @@
+TAP version 13
+# Subtest: el encabezado de fragmento lleva los campos que la regla 7 del prompt necesita para citar
+ok 1 - el encabezado de fragmento lleva los campos que la regla 7 del prompt necesita para citar
+  ---
+  duration_ms: 0.417041
+  type: 'test'
+  ...
+# Subtest: sin título, el encabezado cae al nombre de archivo y no a la ruta entera
+ok 2 - sin título, el encabezado cae al nombre de archivo y no a la ruta entera
+  ---
+  duration_ms: 0.088125
+  type: 'test'
+  ...
+# Subtest: un documento sin páginas no inventa el campo
+ok 3 - un documento sin páginas no inventa el campo
+  ---
+  duration_ms: 0.037375
+  type: 'test'
+  ...
+# Subtest: M-4: las fuentes agrupan por documento conservando TODAS las páginas citadas
+ok 4 - M-4: las fuentes agrupan por documento conservando TODAS las páginas citadas
+  ---
+  duration_ms: 0.312417
+  type: 'test'
+  ...
+# Subtest: un documento sin páginas no expone el campo pages
+ok 5 - un documento sin páginas no expone el campo pages
+  ---
+  duration_ms: 0.045333
+  type: 'test'
+  ...
+# Subtest: M-2: la pregunta que se sostiene sola no arrastra el tema anterior
+ok 6 - M-2: la pregunta que se sostiene sola no arrastra el tema anterior
+  ---
+  duration_ms: 0.451375
+  type: 'test'
+  ...
+# Subtest: M-2: sin historial nunca hay contexto previo
+ok 7 - M-2: sin historial nunca hay contexto previo
+  ---
+  duration_ms: 0.081417
+  type: 'test'
+  ...
+# Subtest: M-4: marcador FUENTES_USADAS vacío (saludo) no muestra ninguna fuente
+ok 8 - M-4: marcador FUENTES_USADAS vacío (saludo) no muestra ninguna fuente
+  ---
+  duration_ms: 0.043542
+  type: 'test'
+  ...
+# Subtest: M-4: sin marcador (usedPaths null) se muestran todas por seguridad
+ok 9 - M-4: sin marcador (usedPaths null) se muestran todas por seguridad
+  ---
+  duration_ms: 0.116875
+  type: 'test'
+  ...
+# Subtest: M-4: con fuentes citadas, se filtra solo a las usadas
+ok 10 - M-4: con fuentes citadas, se filtra solo a las usadas
+  ---
+  duration_ms: 0.236375
+  type: 'test'
+  ...
+# Subtest: M-4: cita que no encaja con ningún path cae a mostrar todas (no oculta evidencia)
+ok 11 - M-4: cita que no encaja con ningún path cae a mostrar todas (no oculta evidencia)
+  ---
+  duration_ms: 0.035416
+  type: 'test'
+  ...
+# Subtest: 'carne' de documento pasa a 'carnet', con artículo masculino
+ok 12 - 'carne' de documento pasa a 'carnet', con artículo masculino
+  ---
+  duration_ms: 0.50175
+  type: 'test'
+  ...
+# Subtest: 'carne' como alimento no se toca
+ok 13 - 'carne' como alimento no se toca
+  ---
+  duration_ms: 0.032666
+  type: 'test'
+  ...
+# Subtest: normalizeHistory: recorta un turno individual a MAX_TURN_CHARS
+ok 14 - normalizeHistory: recorta un turno individual a MAX_TURN_CHARS
+  ---
+  duration_ms: 0.718625
+  type: 'test'
+  ...
+# Subtest: normalizeHistory: recorta el historial completo a MAX_TOTAL_CHARS empezando por el mas antiguo
+ok 15 - normalizeHistory: recorta el historial completo a MAX_TOTAL_CHARS empezando por el mas antiguo
+  ---
+  duration_ms: 0.24725
+  type: 'test'
+  ...
+# Subtest: normalizeHistory: ignora turnos con role invalido o contenido vacio
+ok 16 - normalizeHistory: ignora turnos con role invalido o contenido vacio
+  ---
+  duration_ms: 0.74475
+  type: 'test'
+  ...
+# Subtest: serializeHistoryAsText: un turno "assistant" fabricado queda como texto, nunca como rol assistant
+ok 17 - serializeHistoryAsText: un turno "assistant" fabricado queda como texto, nunca como rol assistant
+  ---
+  duration_ms: 0.110834
+  type: 'test'
+  ...
+# Subtest: serializeHistoryAsText: historial vacio no agrega ningun bloque
+ok 18 - serializeHistoryAsText: historial vacio no agrega ningun bloque
+  ---
+  duration_ms: 0.079416
+  type: 'test'
+  ...
+# Subtest: buildOpenAiMessages: exactamente dos mensajes (system + user), nunca uno por turno
+ok 19 - buildOpenAiMessages: exactamente dos mensajes (system + user), nunca uno por turno
+  ---
+  duration_ms: 0.079166
+  type: 'test'
+  ...
+# Subtest: embedHistoryInMessage: sin historial devuelve el mensaje intacto
+ok 20 - embedHistoryInMessage: sin historial devuelve el mensaje intacto
+  ---
+  duration_ms: 0.070042
+  type: 'test'
+  ...
+# Subtest: logChatInteraction: diez escrituras concurrentes conservan las diez filas y diez ids distintos
+ok 21 - logChatInteraction: diez escrituras concurrentes conservan las diez filas y diez ids distintos
+  ---
+  duration_ms: 14.354125
+  type: 'test'
+  ...
+# Subtest: logChatInteraction: un fallo de escritura no rompe la cadena para las siguientes
+ok 22 - logChatInteraction: un fallo de escritura no rompe la cadena para las siguientes
+  ---
+  duration_ms: 1.040292
+  type: 'test'
+  ...
+# Subtest: A-11: los datos personales no llegan al disco
+ok 23 - A-11: los datos personales no llegan al disco
+  ---
+  duration_ms: 2.194
+  type: 'test'
+  ...
+# Subtest: A-11: cada fila lleva fecha y hash de la pregunta
+ok 24 - A-11: cada fila lleva fecha y hash de la pregunta
+  ---
+  duration_ms: 1.451
+  type: 'test'
+  ...
+# Subtest: A-11: migrar un CSV antiguo enmascara también lo ya guardado
+ok 25 - A-11: migrar un CSV antiguo enmascara también lo ya guardado
+  ---
+  duration_ms: 2.0075
+  type: 'test'
+  ...
+# [chatlog] retención de 90 días: se descartan 1 interacciones.
+# Subtest: A-11: la retención descarta lo viejo y conserva lo reciente
+ok 26 - A-11: la retención descarta lo viejo y conserva lo reciente
+  ---
+  duration_ms: 0.880292
+  type: 'test'
+  ...
+# Subtest: A-11: una fila sin fecha legible no se borra por no poder fecharla
+ok 27 - A-11: una fila sin fecha legible no se borra por no poder fecharla
+  ---
+  duration_ms: 0.777125
+  type: 'test'
+  ...
+# Subtest: M-3: el frontmatter YAML deja de ser el fragmento nº 1 y aporta el título
+ok 28 - M-3: el frontmatter YAML deja de ser el fragmento nº 1 y aporta el título
+  ---
+  duration_ms: 1.506666
+  type: 'test'
+  ...
+# Subtest: M-3: corta en frontera de artículo, no a mitad de inciso
+ok 29 - M-3: corta en frontera de artículo, no a mitad de inciso
+  ---
+  duration_ms: 0.348458
+  type: 'test'
+  ...
+# Subtest: M-3: "el artículo 5 dice" en mitad de un párrafo no abre sección
+ok 30 - M-3: "el artículo 5 dice" en mitad de un párrafo no abre sección
+  ---
+  duration_ms: 0.250542
+  type: 'test'
+  ...
+# Subtest: M-3: una tabla repite su encabezado en cada fragmento
+ok 31 - M-3: una tabla repite su encabezado en cada fragmento
+  ---
+  duration_ms: 0.607125
+  type: 'test'
+  ...
+# Subtest: M-4: el fragmento sabe en qué página del PDF empieza
+ok 32 - M-4: el fragmento sabe en qué página del PDF empieza
+  ---
+  duration_ms: 0.275917
+  type: 'test'
+  ...
+# Subtest: M-4: un documento sin páginas no inventa número
+ok 33 - M-4: un documento sin páginas no inventa número
+  ---
+  duration_ms: 0.090958
+  type: 'test'
+  ...
+# Subtest: una sección más larga que el límite se sigue partiendo por tamaño
+ok 34 - una sección más larga que el límite se sigue partiendo por tamaño
+  ---
+  duration_ms: 0.272458
+  type: 'test'
+  ...
+# Subtest: no se pierde contenido al fragmentar
+ok 35 - no se pierde contenido al fragmentar
+  ---
+  duration_ms: 0.135792
+  type: 'test'
+  ...
+# Subtest: un documento vacío no produce fragmentos rotos
+ok 36 - un documento vacío no produce fragmentos rotos
+  ---
+  duration_ms: 0.592375
+  type: 'test'
+  ...
+# Subtest: diversify: respeta el tope por documento cuando hay alternativas de sobra
+ok 37 - diversify: respeta el tope por documento cuando hay alternativas de sobra
+  ---
+  duration_ms: 1.186125
+  type: 'test'
+  ...
+# Subtest: diversify: el tope cede antes que el cupo cuando no hay alternativas suficientes
+ok 38 - diversify: el tope cede antes que el cupo cuando no hay alternativas suficientes
+  ---
+  duration_ms: 0.324541
+  type: 'test'
+  ...
+# Subtest: diversify: si NO hay alternativas, rellena y devuelve lo mismo que sin diversificar
+ok 39 - diversify: si NO hay alternativas, rellena y devuelve lo mismo que sin diversificar
+  ---
+  duration_ms: 0.353917
+  type: 'test'
+  ...
+# Subtest: diversify: descarta un casi-duplicado cuando hay con qué reemplazarlo
+ok 40 - diversify: descarta un casi-duplicado cuando hay con qué reemplazarlo
+  ---
+  duration_ms: 0.298417
+  type: 'test'
+  ...
+# Subtest: diversify: un casi-duplicado SÍ entra si no hay nada más con que llenar el cupo
+ok 41 - diversify: un casi-duplicado SÍ entra si no hay nada más con que llenar el cupo
+  ---
+  duration_ms: 0.078375
+  type: 'test'
+  ...
+# Subtest: diversify: funciona sobre candidatos sin logit del reranker (ruta de reserva RRF)
+ok 42 - diversify: funciona sobre candidatos sin logit del reranker (ruta de reserva RRF)
+  ---
+  duration_ms: 0.092959
+  type: 'test'
+  ...
+# Subtest: diversify: lista vacía no revienta
+ok 43 - diversify: lista vacía no revienta
+  ---
+  duration_ms: 0.034
+  type: 'test'
+  ...
+# Subtest: shingles/jaccard: identidad, disyunción y solapamiento parcial
+ok 44 - shingles/jaccard: identidad, disyunción y solapamiento parcial
+  ---
+  duration_ms: 0.093792
+  type: 'test'
+  ...
+# Subtest: shingles: ignora tildes y palabras vacías, para que dos copias del mismo texto coincidan
+ok 45 - shingles: ignora tildes y palabras vacías, para que dos copias del mismo texto coincidan
+  ---
+  duration_ms: 0.428667
+  type: 'test'
+  ...
+# Subtest: enmascara los datos personales que llegan de verdad a un canal de atención
+ok 46 - enmascara los datos personales que llegan de verdad a un canal de atención
+  ---
+  duration_ms: 1.874417
+  type: 'test'
+  ...
+# Subtest: conserva la palabra que dice de qué dato se trata
+ok 47 - conserva la palabra que dice de qué dato se trata
+  ---
+  duration_ms: 0.205708
+  type: 'test'
+  ...
+# Subtest: NO toca la numeración normativa, que es la que alimenta la evaluación
+ok 48 - NO toca la numeración normativa, que es la que alimenta la evaluación
+  ---
+  duration_ms: 0.17175
+  type: 'test'
+  ...
+# Subtest: un número largo suelto, sin ancla léxica, se deja en paz
+ok 49 - un número largo suelto, sin ancla léxica, se deja en paz
+  ---
+  duration_ms: 0.185834
+  type: 'test'
+  ...
+# Subtest: NO toca las cifras presupuestales, que es lo que más abunda en el corpus
+ok 50 - NO toca las cifras presupuestales, que es lo que más abunda en el corpus
+  ---
+  duration_ms: 0.11525
+  type: 'test'
+  ...
+# Subtest: enmascara varias apariciones en el mismo texto
+ok 51 - enmascara varias apariciones en el mismo texto
+  ---
+  duration_ms: 0.086625
+  type: 'test'
+  ...
+# Subtest: texto sin datos personales pasa intacto
+ok 52 - texto sin datos personales pasa intacto
+  ---
+  duration_ms: 0.164458
+  type: 'test'
+  ...
+# Subtest: auto-route lee proveedor y modelo de cada complejidad
+ok 53 - auto-route lee proveedor y modelo de cada complejidad
+  ---
+  duration_ms: 2.173166
+  type: 'test'
+  ...
+# Subtest: auto-route usa Groq para preguntas simples y medias
+ok 54 - auto-route usa Groq para preguntas simples y medias
+  ---
+  duration_ms: 2.313625
+  type: 'test'
+  ...
+# Subtest: auto-route usa DeepSeek para preguntas complejas
+ok 55 - auto-route usa DeepSeek para preguntas complejas
+  ---
+  duration_ms: 1.015667
+  type: 'test'
+  ...
+# Subtest: auto-route usa el reemplazo con su propio modelo si falta el principal
+ok 56 - auto-route usa el reemplazo con su propio modelo si falta el principal
+  ---
+  duration_ms: 0.264833
+  type: 'test'
+  ...
+# Subtest: cada complejidad conserva su propio reemplazo
+ok 57 - cada complejidad conserva su propio reemplazo
+  ---
+  duration_ms: 0.295583
+  type: 'test'
+  ...
+# Subtest: needsPreviousContext: preguntas que NO se sostienen solas
+ok 58 - needsPreviousContext: preguntas que NO se sostienen solas
+  ---
+  duration_ms: 1.684334
+  type: 'test'
+  ...
+# Subtest: needsPreviousContext: preguntas autocontenidas NO se tocan
+ok 59 - needsPreviousContext: preguntas autocontenidas NO se tocan
+  ---
+  duration_ms: 0.250125
+  type: 'test'
+  ...
+# Subtest: needsPreviousContext: la longitud deja de decidir
+ok 60 - needsPreviousContext: la longitud deja de decidir
+  ---
+  duration_ms: 0.132834
+  type: 'test'
+  ...
+# Subtest: tailAtWordBoundary: no parte palabras por la mitad
+ok 61 - tailAtWordBoundary: no parte palabras por la mitad
+  ---
+  duration_ms: 0.122834
+  type: 'test'
+  ...
+# Subtest: tailAtWordBoundary: textos cortos pasan intactos y una palabra larguísima no se pierde
+ok 62 - tailAtWordBoundary: textos cortos pasan intactos y una palabra larguísima no se pierde
+  ---
+  duration_ms: 0.200292
+  type: 'test'
+  ...
+# Subtest: weighQueryTerms: la pregunta anterior pesa menos que la actual
+ok 63 - weighQueryTerms: la pregunta anterior pesa menos que la actual
+  ---
+  duration_ms: 1.465125
+  type: 'test'
+  ...
+# Subtest: weighQueryTerms: un string suelto equivale a un solo tramo de peso 1
+ok 64 - weighQueryTerms: un string suelto equivale a un solo tramo de peso 1
+  ---
+  duration_ms: 0.720208
+  type: 'test'
+  ...
+# Subtest: weighQueryTerms: un tramo con peso 0 no aporta términos
+ok 65 - weighQueryTerms: un tramo con peso 0 no aporta términos
+  ---
+  duration_ms: 0.112
+  type: 'test'
+  ...
+# Subtest: rankAndFilterByRelevance: descarta lo que no llega al umbral y ordena por logit
+ok 66 - rankAndFilterByRelevance: descarta lo que no llega al umbral y ordena por logit
+  ---
+  duration_ms: 0.528291
+  type: 'test'
+  ...
+# Subtest: rankAndFilterByRelevance: umbral muy alto puede dejar cero resultados (abstención)
+ok 67 - rankAndFilterByRelevance: umbral muy alto puede dejar cero resultados (abstención)
+  ---
+  duration_ms: 0.046583
+  type: 'test'
+  ...
+# Subtest: rankAndFilterByRelevance: sin umbral (muy negativo) no descarta nada, solo recorta a 8
+ok 68 - rankAndFilterByRelevance: sin umbral (muy negativo) no descarta nada, solo recorta a 8
+  ---
+  duration_ms: 0.070167
+  type: 'test'
+  ...
+# Subtest: rankAndFilterByRelevance: un candidato sin logit (rerank undefined) se trata como -Infinity
+ok 69 - rankAndFilterByRelevance: un candidato sin logit (rerank undefined) se trata como -Infinity
+  ---
+  duration_ms: 0.042583
+  type: 'test'
+  ...
+# Subtest: rankAndFilterByRelevance: ruta de reserva sin reranker (RRF) nunca la llama -- no filtra nada por diseño
+ok 70 - rankAndFilterByRelevance: ruta de reserva sin reranker (RRF) nunca la llama -- no filtra nada por diseño
+  ---
+  duration_ms: 0.082458
+  type: 'test'
+  ...
+1..70
+# tests 70
+# suites 0
+# pass 70
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 758.631667
