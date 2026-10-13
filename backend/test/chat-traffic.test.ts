@@ -3,6 +3,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
+import { setting } from "../src/services/settings.js";
 import { resetAuthSecret } from "../src/services/auth.js";
 import {
   ChatAdmissionQueue, ChatQueueError, ChatTrafficController,
@@ -119,7 +120,7 @@ test("la cola es FIFO, se acota y retira clientes desconectados", async () => {
     error instanceof ChatQueueError && error.code === "chat_queue_full");
   abort.abort();
   await assert.rejects(fourth, /client_disconnected/);
-  assert.deepEqual(queue.status(), { active: 2, queued: 1, averageMs: 10000 });
+  assert.deepEqual(queue.status(), { active: 2, queued: 1, averageMs: setting("chatQueueInitialAverageMs") });
   release1();
   const release3 = await third;
   assert.deepEqual(order, [3]);
@@ -137,5 +138,43 @@ test("una espera que vence sale de la cola con código estable", async () => {
   await assert.rejects(queue.acquire(), (error: unknown) =>
     error instanceof ChatQueueError && error.code === "chat_queue_timeout");
   assert.equal(queue.status().queued, 0);
+  release();
+});
+
+test("sin plaza y con una espera estimada mayor que maxWaitMs, se rechaza de inmediato", async () => {
+  process.env.CHAT_MAX_CONCURRENT = "1";
+  process.env.CHAT_MAX_QUEUE = "5";
+  const queue = new ChatAdmissionQueue();
+  const release = await queue.acquire();
+  // La media inicial es de 10 s por consulta: 1 s de margen no alcanza.
+  const started = Date.now();
+  await assert.rejects(queue.acquire(undefined, { maxWaitMs: 1_000 }), (error: unknown) =>
+    error instanceof ChatQueueError && error.code === "chat_queue_busy" && error.retryAfterSeconds >= 1);
+  assert.ok(Date.now() - started < 500, "no debe esperar para luego fallar");
+  assert.equal(queue.status().queued, 0, "el rechazo no ocupa lugar en la cola");
+  release();
+});
+
+test("con plaza libre, maxWaitMs no impide la admisión", async () => {
+  process.env.CHAT_MAX_CONCURRENT = "1";
+  const queue = new ChatAdmissionQueue();
+  const release = await queue.acquire(undefined, { maxWaitMs: 0 });
+  assert.equal(queue.status().active, 1);
+  release();
+});
+
+test("maxWaitMs acota la espera por debajo de CHAT_QUEUE_TIMEOUT_MS", async () => {
+  process.env.CHAT_MAX_CONCURRENT = "1";
+  process.env.CHAT_QUEUE_TIMEOUT_MS = "30000";
+  const queue = new ChatAdmissionQueue();
+  // Consultas instantáneas bajan la media móvil (10 s iniciales) a milisegundos,
+  // para que la siguiente sí quepa en el margen y entre a esperar.
+  for (let i = 0; i < 40; i++) (await queue.acquire())();
+  const release = await queue.acquire();
+  const started = Date.now();
+  await assert.rejects(queue.acquire(undefined, { maxWaitMs: 100 }), (error: unknown) =>
+    error instanceof ChatQueueError && error.code === "chat_queue_timeout");
+  const waited = Date.now() - started;
+  assert.ok(waited >= 90 && waited < 5_000, `vence con el plazo, no con los 30 s configurados (esperó ${waited} ms)`);
   release();
 });

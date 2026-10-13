@@ -3,6 +3,7 @@ import path from "node:path";
 import { ipKeyGenerator } from "express-rate-limit";
 import { fingerprintClient } from "./auth.js";
 import { setting } from "./settings.js";
+import { safeErrorCode } from "./safeLog.js";
 
 const HOUR_MS = 60 * 60 * 1_000;
 
@@ -92,9 +93,9 @@ export class ChatTrafficController {
       const code = (error as NodeJS.ErrnoException).code;
       if (code !== "ENOENT") {
         const corrupt = `${file}.corrupt-${this.now()}`;
-        console.error(`[traffic] state_corrupt file=${file} backup=${corrupt} error=${String(error)}`);
+        console.error(`[traffic] state_corrupt file=${file} backup=${corrupt} error=${safeErrorCode(error)}`);
         await fs.rename(file, corrupt).catch(renameError => {
-          console.error(`[traffic] state_backup_failed error=${String(renameError)}`);
+          console.error(`[traffic] state_backup_failed error=${safeErrorCode(renameError)}`);
         });
       }
       this.state = emptyState(this.now());
@@ -213,14 +214,38 @@ export class ChatTrafficController {
   }
 }
 
-export type ChatQueueErrorCode = "chat_queue_full" | "chat_queue_timeout";
+export type ChatQueueErrorCode = "chat_queue_full" | "chat_queue_busy" | "chat_queue_timeout";
+
+const QUEUE_ERROR_MESSAGES: Record<ChatQueueErrorCode, string> = {
+  chat_queue_full: "La cola de consultas está llena.",
+  chat_queue_busy: "Hay muchas consultas en curso y la tuya no alcanzaría a atenderse a tiempo.",
+  chat_queue_timeout: "La consulta esperó demasiado tiempo en la cola.",
+};
 
 export class ChatQueueError extends Error {
   constructor(readonly code: ChatQueueErrorCode, readonly retryAfterSeconds: number) {
-    super(code === "chat_queue_full" ? "La cola de consultas está llena." : "La consulta esperó demasiado tiempo en la cola.");
+    super(QUEUE_ERROR_MESSAGES[code]);
     this.name = "ChatQueueError";
   }
 }
+
+/**
+ * Una consulta rechazada por saturación es la señal de que la capacidad no
+ * alcanza; la degradación se refleja en el panel, no por otro canal (Const. VI).
+ */
+function saturated(code: ChatQueueErrorCode, retryAfterSeconds: number, active: number, queued: number): ChatQueueError {
+  console.warn(`[traffic] chat_saturated code=${code} active=${active} queued=${queued}`);
+  return new ChatQueueError(code, retryAfterSeconds);
+}
+
+export type AcquireOptions = {
+  /**
+   * Espera máxima que todavía deja tiempo para responder dentro del plazo de
+   * la petición. Si la espera estimada ya la supera, se rechaza de inmediato:
+   * esperar para luego fallar solo empeora la experiencia y retiene la conexión.
+   */
+  maxWaitMs?: number;
+};
 
 type Waiting = {
   resolve: (release: () => void) => void;
@@ -234,15 +259,21 @@ type Waiting = {
 export class ChatAdmissionQueue {
   private active = 0;
   private waiting: Waiting[] = [];
-  private averageMs = 10_000;
+  /** Promedio supuesto en frío; se reemplaza por la media móvil de las consultas reales. */
+  private averageMs = setting("chatQueueInitialAverageMs");
 
   status(): { active: number; queued: number; averageMs: number } {
     return { active: this.active, queued: this.waiting.length, averageMs: Math.round(this.averageMs) };
   }
 
-  private retryAfterSeconds(): number {
+  /** Espera estimada de quien entre ahora al final de la cola. */
+  private estimatedWaitMs(): number {
     const waves = Math.max(1, Math.ceil((this.waiting.length + 1) / setting("chatMaxConcurrent")));
-    return Math.max(1, Math.ceil(waves * this.averageMs / 1_000));
+    return waves * this.averageMs;
+  }
+
+  private retryAfterSeconds(): number {
+    return Math.max(1, Math.ceil(this.estimatedWaitMs() / 1_000));
   }
 
   private releaseFor(started: number): () => void {
@@ -272,7 +303,7 @@ export class ChatAdmissionQueue {
     }
   }
 
-  acquire(signal?: AbortSignal): Promise<() => void> {
+  acquire(signal?: AbortSignal, options: AcquireOptions = {}): Promise<() => void> {
     if (signal?.aborted) return Promise.reject(new Error("client_disconnected"));
     if (this.active < setting("chatMaxConcurrent")) {
       this.active++;
@@ -280,7 +311,13 @@ export class ChatAdmissionQueue {
     }
     if (this.waiting.length >= setting("chatMaxQueue")) {
       console.warn(`[traffic] chat_queue_full active=${this.active} queued=${this.waiting.length}`);
-      return Promise.reject(new ChatQueueError("chat_queue_full", this.retryAfterSeconds()));
+      return Promise.reject(saturated("chat_queue_full", this.retryAfterSeconds(), this.active, this.waiting.length));
+    }
+    const maxWaitMs = Math.max(0, Math.min(setting("chatQueueTimeoutMs"), options.maxWaitMs ?? Infinity));
+    const estimatedMs = this.estimatedWaitMs();
+    if (options.maxWaitMs !== undefined && estimatedMs > maxWaitMs) {
+      console.warn(`[traffic] chat_queue_busy active=${this.active} queued=${this.waiting.length} estimated_ms=${Math.round(estimatedMs)} max_wait_ms=${maxWaitMs}`);
+      return Promise.reject(saturated("chat_queue_busy", this.retryAfterSeconds(), this.active, this.waiting.length));
     }
     return new Promise((resolve, reject) => {
       const entry = {} as Waiting;
@@ -300,8 +337,8 @@ export class ChatAdmissionQueue {
         remove();
         if (signal && entry.onAbort) signal.removeEventListener("abort", entry.onAbort);
         console.warn(`[traffic] chat_queue_timeout active=${this.active} queued=${this.waiting.length}`);
-        reject(new ChatQueueError("chat_queue_timeout", this.retryAfterSeconds()));
-      }, setting("chatQueueTimeoutMs"));
+        reject(saturated("chat_queue_timeout", this.retryAfterSeconds(), this.active, this.waiting.length));
+      }, maxWaitMs);
       if (signal && entry.onAbort) signal.addEventListener("abort", entry.onAbort, { once: true });
       this.waiting.push(entry);
     });

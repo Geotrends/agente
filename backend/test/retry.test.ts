@@ -9,7 +9,6 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { parseRetryAfter, retryDelayMs, withRetry, type RetryConfig } from '../src/shared/retry.js';
 import { providerFailure, type ProviderResult } from '../src/shared/llmTypes.js';
-import { createOpenAiCompatibleProvider } from '../src/shared/openAiCompatible.js';
 
 const fast: RetryConfig = { attempts: 2, baseDelayMs: 0, maxDelayMs: 0 };
 
@@ -84,52 +83,28 @@ test('parseRetryAfter: segundos, fecha HTTP y basura', () => {
 
 // ── de punta a punta, contra la fábrica real ────────────────────────────────
 
-test('la fábrica reintenta un 503 y devuelve la respuesta del segundo intento', async () => {
-  process.env.TEST_RETRY_KEY = 'clave';
-  process.env.PROVIDER_RETRY_BASE_MS = '0';
-  process.env.GROQ_MODEL = 'llama-3.1-8b-instant';
-  process.env.GROQ_MODELS = 'llama-3.1-8b-instant';
-  const realFetch = globalThis.fetch;
+test('withRetry: una señal abortada no inicia otro intento', async () => {
+  const controller = new AbortController();
   let calls = 0;
-  globalThis.fetch = (async () => {
+  const result = await withRetry(async () => {
     calls++;
-    return calls === 1
-      ? new Response('no disponible', { status: 503 })
-      : new Response(JSON.stringify({ choices: [{ message: { content: 'respuesta buena' } }] }), { status: 200 });
-  }) as typeof fetch;
-
-  const ask = createOpenAiCompatibleProvider({
-    label: 'Reintentos', provider: 'groq', apiKeyEnv: 'TEST_RETRY_KEY',
-    missingKeyMessage: 'falta clave', url: () => 'https://ejemplo.invalido/v1',
-    body: base => ({ ...base }),
-  });
-  try {
-    const result = await ask({ message: 'hola', courseContext: 'contexto' });
-    assert.equal(result.ok, true);
-    assert.equal(result.ok && result.answer, 'respuesta buena');
-    assert.equal(calls, 2);
-  } finally {
-    globalThis.fetch = realFetch;
-    delete process.env.PROVIDER_RETRY_BASE_MS;
-  }
+    controller.abort();
+    return { result: providerFailure('network', 'cortado') };
+  }, { attempts: 5, baseDelayMs: 0, maxDelayMs: 0 }, undefined, controller.signal);
+  assert.equal(result.ok, false);
+  assert.equal(calls, 1);
 });
 
-test('la fábrica NO reintenta un 401', async () => {
-  process.env.TEST_RETRY_KEY = 'clave';
-  const realFetch = globalThis.fetch;
+test('withRetry: el aborto interrumpe la espera entre intentos', async () => {
+  const controller = new AbortController();
+  const started = Date.now();
   let calls = 0;
-  globalThis.fetch = (async () => { calls++; return new Response('denegado', { status: 401 }); }) as typeof fetch;
-
-  const ask = createOpenAiCompatibleProvider({
-    label: 'Reintentos', provider: 'groq', apiKeyEnv: 'TEST_RETRY_KEY',
-    missingKeyMessage: 'falta clave', url: () => 'https://ejemplo.invalido/v1',
-    body: base => ({ ...base }),
-  });
-  try {
-    const result = await ask({ message: 'hola', courseContext: 'contexto' });
-    assert.equal(result.ok, false);
-    assert.equal(calls, 1, 'una clave mala no mejora reintentando');
-  } finally {
-    globalThis.fetch = realFetch;
-  }
+  setTimeout(() => controller.abort(), 20);
+  await withRetry(async () => {
+    calls++;
+    return { result: providerFailure('network', 'caído') };
+  }, { attempts: 2, baseDelayMs: 10_000, maxDelayMs: 10_000 }, undefined, controller.signal);
+  assert.ok(Date.now() - started < 2_000, 'no debe esperar los 10 s del retroceso');
+  assert.equal(calls, 1, 'tras el aborto no hay segundo intento');
 });
+

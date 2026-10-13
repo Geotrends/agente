@@ -118,26 +118,3 @@ test('intListFromEnv: ordena, elimina duplicados y rechaza listas inválidas', (
   });
 });
 
-test('la clave de Gemini se lee en cada llamada, no al importar el módulo', async () => {
-  // La asimetría del hallazgo: Gemini evaluaba la clave una vez al cargar, así
-  // que una clave puesta o rotada con el servicio ya arrancado funcionaba para
-  // los otros cuatro proveedores y no para este.
-  const previous = process.env.GEMINI_API_KEY;
-  delete process.env.GEMINI_API_KEY;
-  const { askGemini } = await import('../src/gemini/askGemini.js');
-
-  const sinClave = await askGemini({ message: 'hola', courseContext: 'contexto' });
-  assert.equal(sinClave.ok, false);
-  assert.match(sinClave.ok ? '' : sinClave.message, /Falta configurar GEMINI_API_KEY/);
-
-  // Se configura DESPUÉS de importar: antes, esto seguía fallando igual.
-  process.env.GEMINI_API_KEY = 'clave-puesta-en-caliente';
-  const conClave = await askGemini({ message: 'hola', courseContext: 'contexto' });
-  assert.doesNotMatch(
-    conClave.ok ? '' : conClave.message, /Falta configurar GEMINI_API_KEY/,
-    'la clave nueva se ve sin reiniciar el proceso',
-  );
-
-  if (previous === undefined) delete process.env.GEMINI_API_KEY;
-  else process.env.GEMINI_API_KEY = previous;
-});

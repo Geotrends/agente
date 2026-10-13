@@ -62,3 +62,21 @@ test("el diagnóstico distingue lo que viene del entorno de lo que es defecto", 
     else process.env.RERANK_CANDIDATES = previo;
   }
 });
+
+// Los mínimos de estos dos ajustes son requisitos del contrato, no preferencias:
+// ninguna configuración puede bajarlos (RF-C3-IV-07, RNF-C3-IV-03).
+for (const [nombre, env, bajo, minimo] of [
+  ["ocrMinConfidence", "OCR_MIN_CONFIDENCE", "60", 80],
+  ["kbRetencionMeses", "KB_RETENCION_MESES", "11", 12],
+] as const) {
+  test(`${env} no admite valores por debajo de ${minimo}`, () => {
+    const previo = process.env[env];
+    try {
+      process.env[env] = bajo;
+      assert.equal(setting(nombre), minimo);
+    } finally {
+      if (previo === undefined) delete process.env[env];
+      else process.env[env] = previo;
+    }
+  });
+}
