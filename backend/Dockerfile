@@ -12,17 +12,15 @@
 # vuelva a pasar en el siguiente despliegue.
 FROM node:22-bookworm-slim AS base
 
-# tesseract-ocr + los idiomas que usa OCR_LANGUAGE (spa+eng), ocrmypdf con
-# unpaper para --clean, ghostscript para el remuestreo, y libreoffice-writer
-# —solo Writer: el paquete completo pesa varias veces más y no se usa— para
-# convertir los .doc heredados.
+# tesseract-ocr + los idiomas que usa OCR_LANGUAGE (spa+eng), poppler-utils
+# (pdftoppm) para rasterizar PDF escaneados antes del OCR con confianza medida
+# (RF-C3-IV-07, research R6), y libreoffice-writer —solo Writer: el paquete
+# completo pesa varias veces más y no se usa— para convertir los .doc heredados.
 RUN apt-get update && apt-get install -y --no-install-recommends \
       tesseract-ocr \
       tesseract-ocr-spa \
       tesseract-ocr-eng \
-      ocrmypdf \
-      unpaper \
-      ghostscript \
+      poppler-utils \
       libreoffice-writer \
       fonts-liberation \
       ca-certificates \
@@ -57,12 +55,18 @@ RUN npm run typecheck && npm run build
 
 FROM base AS runtime
 ENV NODE_ENV=production
-# El índice vive en el heap: el límite por defecto de Node se queda corto en
-# cuanto el corpus crece (hallazgo C-2). Se fija explícito para que dependa de
-# la configuración y no del tamaño de RAM de la máquina anfitriona.
-ENV NODE_OPTIONS=--max-old-space-size=4096
+# El índice ya no vive en el heap sino en Qdrant (research R17): el proceso
+# solo carga los modelos ONNX. Se mantiene un límite explícito (antes 4096 MB
+# por el hallazgo C-2) para que dependa de la configuración y no de la RAM de
+# la máquina anfitriona.
+ENV NODE_OPTIONS=--max-old-space-size=1024
 
 COPY --from=build /app/dist ./dist
+# Configuración versionada de la base de conocimiento (mapas de dirección y
+# hosts permitidos: solo cambia con un despliegue, RF-C3-AD-15) y migraciones
+# que aplica el kb-worker al arrancar.
+COPY config ./config
+COPY migrations ./migrations
 
 # El corpus y las cachés se montan como volúmenes: no viajan en la imagen.
 #   /app/data   documentos (GEOTRENDS_DOCUMENTS_ROOT)
@@ -80,8 +84,8 @@ VOLUME ["/app/data", "/app/.cache", "/app/var"]
 # hace falta escribir en runtime son los 3 directorios de volumenes, que aqui
 # estan vacios, asi que el chown no recursivo es practicamente gratis.
 RUN useradd --system --uid 10001 geobot \
-    && mkdir -p /app/data /app/.cache /app/var \
-    && chown geobot:geobot /app/data /app/.cache /app/var
+    && mkdir -p /app/data /app/data/runs /app/.cache /app/var \
+    && chown geobot:geobot /app/data /app/data/runs /app/.cache /app/var
 USER geobot
 
 EXPOSE 4000
