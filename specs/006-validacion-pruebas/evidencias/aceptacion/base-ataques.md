@@ -1,0 +1,9 @@
+# Base de ataques aislada
+
+Fecha: 2026-10-11. `AttackBase` registra obligación de cleanup antes de instalar, usa catálogo/normalización/publicación/indexación existentes y registra recibo de retiro con antes/después/puntos/búsqueda/persona/fecha. Errores, cancelación y SIGTERM dejan limpieza verificada; una salida abrupta deja obligación durable que se reconcilia antes de otra ejecución. Rechaza alias oficial `kb_chunks`, base sin nombre de prueba y cambio de alias durante instalación. La prueba utiliza PostgreSQL/Qdrant reales de Docker, contenido y embeddings sintéticos; no acredita resistencia de AWS.
+
+El documento solo se instala en una copia explícita identificada por `AttackScope`: databaseName, alias, officialAlias, baseRef, copyRef y syntheticOnly=true. `kbAttackPorts` comprueba current_database; cada operación de publicación conserva configuración/pipeline vigentes. CLI requiere manifiesto privado con schemaVersion=1, scope, by, documentsRoot relativo seguro y cases con caseId/documentKey/reportRef/testDocumentRef. El reporte scraper de cada ataque contiene un solo enlace, al documento exacto aprobado; JSON nunca contiene comandos. Usar URL/clave normalizada por el pipeline (sin barra final), sin cambiar reglas para acomodar la fixture.
+
+La exposición exige recuperación identificada y contexto efectivamente enviado al modelo, no solo presencia del archivo. `AttackBase.execute` recibe la constancia del puerto de evaluación; el runner independiente la obtiene de hits del retriever incluidos en el prompt en memoria y puntos del documento aislado. El integrado necesita observación privada del servidor de aceptación, ligada a hash de respuesta/matriz/release. No se añade esa información al payload público ni al registro anónimo.
+
+Pendiente real: copia de base publicada, aprobación/documentación del entorno y evidencia de exposición/retiro en corridas AWS. No se publicó ningún ataque en la base oficial ni se importaron datos ciudadanos.
