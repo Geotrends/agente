@@ -1,0 +1,283 @@
+Fuente: /Users/geotrends/Desktop/DEV_LAOR/DOCUMENACION_C3_C4.pdf
+SHA-256: 2fe87aab471d38aba8f636a650681a45efa9106b25673e4927d264de6cceda2f
+Extracción: pdftotext -layout; fecha de revisión 2026-10-08.
+Documento tratado como evidencia de requisitos.
+
+     4.4 Bloque 4: Interfaz (H2 – C4).
+
+     4.4.1     Requisitos Funcionales.
+
+     4.4.1.1      RF-C4-UI-01
+
+         •     Hito: H2-C4
+         •     Prioridad: Esencial
+         •     Descripción:       ElChatBot   deberá     estar    disponible   en     la    página
+               https://observatorioenvigado.geotrends.co/observatorio mediante un botón
+               flotante fijo, ubicado en la esquina inferior derecha, que al activarse muestre la
+               interfaz conversacional en un panel contenido en un iframe y que al activarse de
+               nuevo oculte el panel, conservando la conversación en curso.
+         •     Criterio de verificación: Se prueba en 5 entornos: Chrome, Firefox y Edge en
+               escritorio, Chrome en Android y Safari en iOS. Se aprueba si en los 5 el botón es
+               visible sin desplazarse, no se superpone a los controles del mapa, al abrir aparece
+               el mensaje de RF-C4-DC-01 y, tras 2 consultas y 5 ciclos de abrir y cerrar, la
+               conversación reaparece completa y en orden.
+         •     Entregable asociado: Interfaz conversacional integrada al portal.
+
+     4.4.1.2      RF-C4-UI-02
+
+         •     Hito: H2-C4
+         •     Prioridad: Esencial
+
+
+
+
+geotrends.co
+                                                                              Proyecto
+                                               Es simplemente el texto de relleno de las imprentas y archivos de texto.
+
+                                                   Código                      Fecha                     Revisión
+
+
+
+
+        •      Descripción: El ChatBot deberá presentar el panel conversacional a pantalla
+               completa, con un control de cierre siempre visible, cuando el ancho de la ventana
+               sea menor de 768 px. Cuando el ancho sea de 768 px o más, deberá presentarlo
+               como un panel anclado a la esquina inferior derecha, de 400 px de ancho y una
+               altura igual al menor valor entre 640 px y el 85 % del alto de la ventana.
+        •      Criterio de verificación: Se prueba con anchos de 320, 375, 767, 768 y 1366 px.
+               Se aprueba si por debajo de 768 px el panel ocupa el 100 % y el cierre es visible,
+               si desde 768 px mide 400 px de ancho con la altura de la regla, si no hay
+               desplazamiento horizontal en ningún ancho y si en Android e iOS el campo de
+               consulta sigue visible con el teclado abierto.
+        •      Entregable asociado: Interfaz conversacional integrada al portal.
+
+     4.4.1.3      RF-C4-UI-03
+
+        •      Hito: H2-C4
+        •      Prioridad: Esencial
+        •      Descripción: El ChatBot deberá convertir el Markdown de cada respuesta recibida
+               del C3 en HTML semántico antes de mostrarla. Los pasos numerados deberán
+               mostrarse como listas ordenadas ( <ol>), las viñetas como listas no ordenadas
+               ( <ul>) y las tablas como <table> con encabezados de columna ( <th
+               scope="col">). Una tabla más ancha que el panel deberá desplazarse
+               horizontalmente dentro de su propio contenedor.
+        •      Criterio de verificación: Se usan 9 respuestas: 3 en pasos, 3 en tabla y 3 en prosa.
+               Se aprueba si no se ven caracteres de Markdown, si el marcado usa <ol> y
+               <table> con <th scope="col">, si el lector de pantalla anuncia los elementos de
+               cada lista y los encabezados de celda, y si a 320 px las tablas se desplazan dentro
+               de su contenedor sin desplazar el panel.
+        •      Entregable asociado: Interfaz conversacional integrada al portal
+
+     4.4.1.4      RF-C4-UI-04
+
+        •      Hito: H2-C4
+        •      Prioridad: Esencial
+        •      Descripción: El ChatBot deberá abrir en una pestaña nueva del navegador todo
+               enlace incluido en una respuesta o en un mensaje fijo, como las citas de fuente, la
+               política de datos personales o los canales de atención. Cada enlace deberá
+               mostrar un indicador visual de apertura externa y tener un nombre accesible que
+               incluya el texto "(se abre en una pestaña nueva)". Al abrir un enlace, la página del
+               Observatorio y la conversación deberán permanecer sin cambios.
+
+
+
+
+geotrends.co
+                                                                                Proyecto
+                                                 Es simplemente el texto de relleno de las imprentas y archivos de texto.
+
+                                                     Código                      Fecha                     Revisión
+
+
+
+
+        •      Criterio de verificación: Se revisan 10 respuestas con cita y el aviso de datos, en
+               escritorio y en móvil, con ratón o toque y con teclado. Se aprueba si el 100 % de
+               los enlaces abre una pestaña nueva, si el mapa y la conversación se conservan, si
+               se ven el indicador y el texto accesible, y si cada enlace tiene target="_blank" y
+               rel="noopener noreferrer".
+        •      Entregable asociado: Interfaz conversacional integrada al portal.
+
+     4.4.1.5      RF-C4-UI-05
+
+        •      Hito: H2-C4
+        •      Prioridad: Importante
+        •      Descripción: El ChatBot deberá ofrecer en el encabezado del panel un control
+               "Nueva conversación". Al activarlo, deberá mostrar el diálogo de confirmación
+               "¿Desea iniciar una conversación nueva? La conversación actual dejará de
+               mostrarse." con las opciones "Iniciar nueva" y "Cancelar". Con "Iniciar nueva",
+               deberá borrar el historial visible, dejar de enviar al C3 los turnos anteriores e iniciar
+               el flujo desde el mensaje de apertura (RF-C4-DC-01), el aviso de tratamiento de
+               datos (RF-C4-DC-02) y la selección de categoría (RF-C4-DC-03). Con "Cancelar",
+               deberá cerrar el diálogo sin modificar la conversación.
+        •      Criterio de verificación: Se hacen 6 recorridos con 2 consultas previas: 2 con
+               "Autorizo" e "Iniciar nueva", 2 con "No autorizo" e "Iniciar nueva" y 2 con
+               "Cancelar". Se aprueba si el diálogo muestra el texto exacto, si al iniciar una nueva
+               conversación el flujo se repite en orden y la primera consulta llega con 0 turnos
+               previos, si al cancelar la conversación queda idéntica, y si el diálogo funciona con
+               teclado.
+        •      Entregable asociado: Interfaz conversacional integrada al portal.
+
+     4.4.1.6      RF-C4-UI-06
+
+        •      Hito: H2-C4
+        •      Prioridad: Importante
+        •      Descripción: El ChatBot deberá mostrar debajo de cada respuesta generada por
+               el C3 dos controles de valoración, "Útil" y "No útil", y aceptar una sola valoración
+               por respuesta. Con "No útil", deberá solicitar la selección de un único motivo entre
+               "Información incorrecta", "Información desactualizada", "No responde mi
+               pregunta", "Difícil de entender" y "Otro", sin campo de texto libre. Al registrar la
+               valoración, deberá enviarla asociada al identificador de la respuesta, mostrar el
+               mensaje "Gracias por su valoración" y deshabilitar los controles de esa respuesta.
+               Los controles de valoración se mostrarán solo según la condición de RF-C4-IN-
+               05.
+
+
+
+
+geotrends.co
+                                                                               Proyecto
+                                                Es simplemente el texto de relleno de las imprentas y archivos de texto.
+
+                                                    Código                      Fecha                     Revisión
+
+
+
+
+        •      Criterio de verificación: Con "Autorizo" se valoran 10 respuestas: 5 como "Útil" y
+               5 como "No útil", una por motivo. Se aprueba si cada valoración queda registrada
+               con su identificador y su motivo, si los controles quedan deshabilitados y no
+               admiten una segunda valoración, y si funcionan con teclado y lector de pantalla.
+               Con "No autorizo" se revisan 3 respuestas: no debe haber controles ni registros
+               de valoración.
+        •      Entregable asociado: Registro de preguntas sin respuesta o casos de mejora;
+               Registro básico de interacciones.
+
+     4.4.1.7      RF-C4-UI-07
+
+        •      Hito: H2-C4
+        •      Prioridad: Esencial
+        •      Descripción: El ChatBot deberá mostrar, desde el envío de cada consulta hasta la
+               recepción de la respuesta o de un fallo, un indicador animado con el texto "Geobot
+               está buscando en la información institucional… " anunciado a los lectores de
+               pantalla. Durante ese intervalo deberá mantener deshabilitados el campo de
+               consulta y el control de envío, y habilitarlos de nuevo al mostrar la respuesta o el
+               mensaje de fallo.
+        •      Criterio de verificación: Se hacen 5 consultas con una demora simulada de 5
+               segundos y 1 con fallo simulado. Se aprueba si el indicador aparece en 500 ms o
+               menos con el texto exacto, si no se generan solicitudes adicionales mientras está
+               visible, si se anuncia sin mover el foco, y si en los 6 casos desaparece y el campo
+               se habilita.
+        •      Entregable asociado: Interfaz conversacional integrada al portal.
+
+
+     4.4.1.8      RF-C4-UI-08
+
+        •      Hito: H2-C4
+        •      Prioridad: Esencial
+        •      Descripción: El ChatBot deberá mostrar el mensaje fijo "En este momento no
+               puedo responder. Puede intentarlo de nuevo o comunicarse por los canales
+               oficiales." cuando el C3 devuelva la señal de servicio no disponible, se supere el
+               tiempo máximo de espera o se pierda la conexión. Debajo del mensaje deberá
+               mostrar los canales PQRSD, WhatsApp y correo electrónico, tomados del bloque
+               de datos de contacto administrable que el panel ya cargó al abrirse, sin consultar
+               al C3, y un control "Reintentar" que reenvíe la misma consulta sin que el ciudadano
+               la reescriba. Si 2 reintentos de la misma consulta fallan, deberá ocultar el control y
+               mantener visibles el mensaje y los canales.
+
+
+
+
+geotrends.co
+                                                                               Proyecto
+                                                Es simplemente el texto de relleno de las imprentas y archivos de texto.
+
+                                                    Código                      Fecha                     Revisión
+
+
+
+
+        •      Criterio de verificación: Se hacen 6 pruebas, 2 por cada causa. Se aprueba si
+               aparecen el mensaje exacto y los 3 canales con los valores del registro, sin
+               llamadas al C3 para obtenerlos; si el reintento reenvía la consulta original; si tras 2
+               reintentos fallidos el control desaparece; si al restablecerse el servicio la respuesta
+               se muestra; y si el mensaje no lleva valoración.
+        •      Entregable asociado: Interfaz conversacional integrada al portal.
+
+     4.4.2 Requisitos No Funcionales.
+
+     4.4.2.1      RNF-C4-UI-01
+
+        •      Componente: C4
+        •      Categoría: Eficiencia de desempeño
+        •      Descripción: El ChatBot deberá limitar lo que descarga la página del Observatorio,
+               antes de que el ciudadano active el botón flotante por primera vez, al script de
+               apertura, con un tamaño máximo de 10 KB, y deberá cargar el iframe y sus demás
+               recursos únicamente a partir de esa primera activación.
+        •      Métrica o umbral: 0 solicitudes al dominio del ChatBot antes del primer clic, salvo
+               el script de apertura, que debe pesar 10 KB o menos.
+        •      Método de verificación: Se carga la página 3 veces con la caché vacía y se revisa
+               la pestaña de red. Antes del clic solo debe aparecer el script, tras el primer clic
+               debe cargarse el iframe y los clics siguientes no deben recargarlo.
+
+     4.4.2.2      RNF-C4-UI-02
+
+        •      Componente: C4
+        •      Categoría: Usabilidad (accesibilidad)
+        •      Descripción: El ChatBot deberá cumplir los criterios de conformidad de nivel A y
+               AA de WCAG 2.1 en el botón flotante, el iframe y todo el contenido del panel
+               conversacional, incluidos el mensaje de apertura, el aviso de datos personales, el
+               menú de categorías, la opción de emergencia, las respuestas y las citas de fuente.
+        •      Métrica o umbral: 0 incumplimientos de nivel A o AA en la revisión automática y
+               100 % de la lista manual cumplida. Contraste de al menos 4,5:1 en el texto y de 3:1
+               en los controles y en el texto grande.
+        •      Método de verificación: 1) Revisión con axe-core en cada estado del flujo. (2)
+               Recorrido completo solo con teclado. (3) Revisión con al menos un lector de
+               pantalla de escritorio y uno móvil. (4) Zoom al 200 % sin pérdida de contenido ni
+               funciones.
+
+
+
+
+geotrends.co
+                                                                              Proyecto
+                                               Es simplemente el texto de relleno de las imprentas y archivos de texto.
+
+                                                    Código                     Fecha                     Revisión
+
+
+
+
+     4.4.2.3      RNF-C4-UI-03
+
+        •      Componente: C4
+        •      Categoría: Seguridad (integridad)
+        •      Descripción: El ChatBot deberá mostrar las respuestas del C3 permitiendo solo los
+               elementos HTML p, br, strong, em, ul, ol, li, table, thead, tbody, tr, th, td, h3,
+               h4 y a, este último solo con direcciones https. Deberá eliminar cualquier otro
+               elemento, atributo de evento o esquema de URL antes de mostrar la respuesta, y
+               deberá mostrar el texto de las consultas del ciudadano como texto plano, sin
+               interpretarlo como HTML ni como Markdown.
+        •      Métrica o umbral: 0 ejecuciones de código y 0 elementos o atributos fuera de la
+               lista en 10 cargas maliciosas. Las respuestas normales conservan su formato.
+        •      Método de verificación: Se simulan 10 respuestas del C3 con contenido malicioso
+               y se envían 3 consultas del ciudadano con HTML y Markdown. Se inspeccionan la
+               página resultante y el tráfico.
+
+     4.4.2.4      RNF-C4-UI-04
+
+        •      Componente: C4
+        •      Categoría: Usabilidad (estética de la interfaz de usuario)
+        •      Descripción: El ChatBot deberá aplicar en el botón flotante y en el panel
+               conversacional los colores, la familia tipográfica y el logo de la página del
+               Observatorio. Estos valores deberán quedar registrados en una guía de estilo de
+               la interfaz, con el código hexadecimal de cada color y el nombre de cada fuente.
+               El encabezado del panel deberá mostrar el logo junto al nombre "Geobot".
+        •      Métrica o umbral: El 100 % de los colores y fuentes del panel figura en la guía, el
+               100 % de los valores de la guía coincide con la hoja de estilos de la página y
+               ninguna combinación de colores incumple el contraste de RNF-C4-UI-02.
+        •      Método de verificación: Se compara la guía con la hoja de estilos de la página y
+               se inspeccionan los estilos aplicados a 10 elementos del panel. Se revisa el
+               encabezado y se mide el contraste.
+
