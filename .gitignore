@@ -16,7 +16,6 @@ backend/.cache
 backend/var/
 
 .claude
-.github
 .vscode
 
 # Artefactos locales y resultados reproducibles
@@ -30,3 +29,33 @@ __pycache__
 
 # Export estático del frontend (build de Docker o NEXT_OUTPUT=export)
 frontend/out
+
+# Salidas de Playwright (SPEC004)
+frontend/test-results/
+frontend/playwright-report/
+
+# CSP generada por scripts/build-csp.mjs y launcher compilado
+csp-chat.conf
+public/embed/
+csp-chat.e2e.conf
+
+# SPEC006: salidas y secretos locales
+build/
+*.log
+.env*
+!.env.example
+Thumbs.db
+*.tmp
+*.swp
+.idea/
+.venv/
+venv/
+*.egg-info/
+frontend/out-admin
+
+# Caché local de herramientas frontend
+frontend/.cache/
+
+# Herramientas locales de Spec Kit y agentes (no se versionan)
+.specify/
+.agents/
