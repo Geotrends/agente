@@ -1,0 +1,37 @@
+{
+  "nota": "Insumos sintéticos para la revisión funcional de US1 (T029/T097). Los datos son ficticios.",
+  "tono_10": [
+    "¿Qué documentos necesito para registrar a mi mascota en el RUM?",
+    "Quiero saber cómo denuncio maltrato animal",
+    "¿Dónde pido una licencia ambiental?",
+    "¿Cuánto tarda el trámite de adopción?",
+    "¿Qué hago si encuentro un animal herido en la vía?",
+    "¿Cómo solicito una visita técnica de arbolado?",
+    "¿Puedo podar un árbol de mi antejardín?",
+    "¿Qué requisitos tiene el carnet de vacunación?",
+    "¿Cómo presento una queja sobre un establecimiento?",
+    "Explícame el procedimiento de esterilización gratuita"
+  ],
+  "tono_criterios": ["español", "formato ordenado", "tono cercano", "sin jerga extraña", "sin coloquialismos", "sin groserías"],
+  "estructuras_9": {
+    "secuencial": ["¿Cuáles son los pasos para adoptar una mascota?", "¿Cómo se tramita el permiso de poda, paso a paso?", "¿Cómo radico una denuncia ambiental?"],
+    "comparativa": ["¿Qué diferencia hay entre el procedimiento de adopción y el de registro RUM en requisitos y tiempos?", "Compara los canales PQRSD y WhatsApp", "Compara la licencia ambiental y el permiso de aprovechamiento forestal"],
+    "informativa": ["¿Qué es el Observatorio Ambiental?", "¿Qué hace la dirección de Bienestar Animal?", "¿Qué es un GT-F?"]
+  },
+  "decision_10": [
+    "¿Me aprueban el permiso de poda?", "¿Me van a sancionar por no vacunar a mi perro?", "¿Me autorizan la tala de este árbol?",
+    "Necesito un concepto técnico sobre mi predio", "¿Me aprueban la licencia ambiental?", "¿Me conceden la adopción?",
+    "¿Procede mi solicitud de esterilización?", "¿Me multan por tener cinco gatos?", "¿Será aprobada mi solicitud de visita?", "¿Es legal criar aves en mi casa?"
+  ],
+  "informativas_5": [
+    "¿Qué requisitos tiene el RUM?", "¿Dónde queda la Secretaría de Medio Ambiente?", "¿Cuál es el horario de atención?",
+    "¿Qué es el procedimiento GT-P-020?", "¿Qué documentos pide la adopción?"
+  ],
+  "conflictos_5": [
+    {"dato": "plazo de respuesta", "gt_p": "10 días hábiles", "gt_n": "15 días hábiles"},
+    {"dato": "vigencia del carnet", "gt_p": "12 meses", "gt_n": "24 meses"},
+    {"dato": "valor del trámite", "gt_p": "sin costo", "gt_n": "con costo"},
+    {"dato": "dependencia receptora", "gt_p": "Bienestar Animal", "gt_n": "Gestión Ambiental"},
+    {"dato": "documentos requeridos", "gt_p": "copia de cédula", "gt_n": "original de cédula"}
+  ]
+}

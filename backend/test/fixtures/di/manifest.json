@@ -1,0 +1,261 @@
+{
+  "version": "1",
+  "adapter": "double",
+  "nota": "Cantidades de contracts/acceptance.md. Datos sintéticos. adapter=double no cuenta como aceptación real de AWS.",
+  "responsable_manual": null,
+  "identidad": {
+    "git": null,
+    "hash_cambios": null,
+    "corpus": null,
+    "contactos_revision": null,
+    "tarifas": null,
+    "prompt": null,
+    "matriz_hash": null
+  },
+  "casos": [
+    {
+      "id": "DI-01",
+      "requisito": "RF-C3-DI-01",
+      "cantidades": {
+        "analisis": 5,
+        "tramites": 5
+      },
+      "estado": "pendiente"
+    },
+    {
+      "id": "DI-02",
+      "requisito": "RF-C3-DI-02",
+      "cantidades": {
+        "clasificaciones": 12,
+        "simples_con_historial_10": 3
+      },
+      "estado": "pendiente"
+    },
+    {
+      "id": "DI-03",
+      "requisito": "RF-C3-DI-03",
+      "cantidades": {
+        "rutas": 9
+      },
+      "estado": "pendiente"
+    },
+    {
+      "id": "DI-04",
+      "requisito": "RF-C3-DI-04",
+      "cantidades": {
+        "ausentes": 5,
+        "presentes": 5
+      },
+      "estado": "pendiente"
+    },
+    {
+      "id": "DI-05",
+      "requisito": "RF-C3-DI-05",
+      "cantidades": {
+        "barrido": 1
+      },
+      "estado": "pendiente"
+    },
+    {
+      "id": "DI-06",
+      "requisito": "RF-C3-DI-06",
+      "cantidades": {
+        "reranker_apagado": 3
+      },
+      "estado": "pendiente"
+    },
+    {
+      "id": "DI-07",
+      "requisito": "RF-C3-DI-07",
+      "cantidades": {
+        "respuestas": 10
+      },
+      "estado": "pendiente"
+    },
+    {
+      "id": "DI-08",
+      "requisito": "RF-C3-DI-08",
+      "cantidades": {
+        "respuestas": 10,
+        "con_fuente_sobrante": 3
+      },
+      "estado": "pendiente"
+    },
+    {
+      "id": "DI-09",
+      "requisito": "RF-C3-DI-09",
+      "cantidades": {
+        "decision": 10,
+        "informativas": 5
+      },
+      "estado": "pendiente"
+    },
+    {
+      "id": "DI-10",
+      "requisito": "RF-C3-DI-10",
+      "cantidades": {
+        "tono": 10
+      },
+      "estado": "pendiente"
+    },
+    {
+      "id": "DI-11",
+      "requisito": "RF-C3-DI-11",
+      "cantidades": {
+        "conflictos": 5
+      },
+      "estado": "pendiente"
+    },
+    {
+      "id": "DI-12",
+      "requisito": "RF-C3-DI-12",
+      "cantidades": {
+        "trazas": 5
+      },
+      "estado": "pendiente"
+    },
+    {
+      "id": "DI-13",
+      "requisito": "RF-C3-DI-13",
+      "cantidades": {
+        "documentos": 5,
+        "con_tablas": 2
+      },
+      "estado": "pendiente"
+    },
+    {
+      "id": "DI-14",
+      "requisito": "RF-C3-DI-14",
+      "cantidades": {
+        "situaciones": 3
+      },
+      "estado": "pendiente"
+    },
+    {
+      "id": "DI-15",
+      "requisito": "RF-C3-DI-15",
+      "cantidades": {
+        "seguimientos": 5,
+        "autonomas": 5
+      },
+      "estado": "pendiente"
+    },
+    {
+      "id": "DI-16",
+      "requisito": "RF-C3-DI-16",
+      "cantidades": {
+        "consultas": 10,
+        "por_modelo": 5
+      },
+      "estado": "pendiente"
+    },
+    {
+      "id": "DI-17",
+      "requisito": "RF-C3-DI-17",
+      "cantidades": {
+        "preguntas_por_modelo": 10,
+        "minimo_por_direccion": 3
+      },
+      "estado": "pendiente"
+    },
+    {
+      "id": "DI-18",
+      "requisito": "RF-C3-DI-18",
+      "cantidades": {
+        "cortes": 6,
+        "normales": 3
+      },
+      "estado": "pendiente"
+    },
+    {
+      "id": "DI-19",
+      "requisito": "RF-C3-DI-19",
+      "cantidades": {
+        "en_curso": 5,
+        "informativas": 5
+      },
+      "estado": "pendiente"
+    },
+    {
+      "id": "DI-20",
+      "requisito": "RF-C3-DI-20",
+      "cantidades": {
+        "ajenas": 4,
+        "propias": 4
+      },
+      "estado": "pendiente"
+    },
+    {
+      "id": "DI-21",
+      "requisito": "RF-C3-DI-21",
+      "cantidades": {
+        "insuficientes": 4,
+        "completas": 4
+      },
+      "estado": "pendiente"
+    },
+    {
+      "id": "DI-22",
+      "requisito": "RF-C3-DI-22",
+      "cantidades": {
+        "ofensivas": 4,
+        "neutras": 4
+      },
+      "estado": "pendiente"
+    },
+    {
+      "id": "DI-23",
+      "requisito": "RF-C3-DI-23",
+      "cantidades": {
+        "con_pii": 4,
+        "sin_pii": 4,
+        "turnos_seguidos": 3
+      },
+      "estado": "pendiente"
+    },
+    {
+      "id": "DI-24",
+      "requisito": "RF-C3-DI-24",
+      "cantidades": {
+        "consultas": 8
+      },
+      "estado": "pendiente"
+    },
+    {
+      "id": "DI-25",
+      "requisito": "RF-C3-DI-25",
+      "cantidades": {
+        "respuestas": 9,
+        "por_estructura": 3
+      },
+      "estado": "pendiente"
+    },
+    {
+      "id": "DI-26",
+      "requisito": "RNF-C3-DI-01",
+      "cantidades": {
+        "consultas": 15,
+        "por_tipo_dato": 5
+      },
+      "estado": "pendiente"
+    },
+    {
+      "id": "DI-27",
+      "requisito": "RNF-C3-DI-02",
+      "cantidades": {
+        "consultas_trafico": 20,
+        "conexiones_otros_proveedores": 0
+      },
+      "estado": "pendiente"
+    },
+    {
+      "id": "DI-28",
+      "requisito": "RNF-C3-DI-03",
+      "cantidades": {
+        "largas": 10,
+        "por_modelo": 5
+      },
+      "estado": "pendiente"
+    }
+  ]
+}
