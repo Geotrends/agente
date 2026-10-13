@@ -1,0 +1,76 @@
+@import "./brandTokens.css";
+
+/* Panel Geobot: solo tokens del Observatorio (guia-estilo.md). Sin CSS global del host. */
+.chat-panel {
+  font-family: var(--obs-font);
+  color: var(--obs-deep);
+  background: var(--obs-surface);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+.chat-panel .chat-header {
+  display: flex; align-items: center; gap: 0.625rem;
+  padding: 0.625rem 0.75rem;
+  background: var(--obs-deep); color: #ffffff;
+}
+.chat-panel .chat-header p, .chat-panel .chat-header h1 { margin: 0; color: #ffffff; }
+.chat-panel .chat-header p { font-size: 0.75rem; }
+.chat-panel .chat-title { margin: 0; font-size: 1rem; line-height: 1.2; }
+.chat-panel .brand-logo { width: 36px; height: 36px; border-radius: 50%; background: #ffffff; flex: none; }
+.chat-panel .chat-close { margin-left: auto; min-width: 44px; min-height: 44px; }
+.chat-panel .button {
+  background: var(--obs-green); color: #ffffff; border: 1px solid var(--obs-green);
+  border-radius: 999px; padding: 0.5rem 0.875rem; font: inherit; cursor: pointer; min-height: 44px;
+}
+.chat-panel .button:disabled { opacity: 0.6; cursor: not-allowed; }
+.chat-panel .button:focus-visible, .chat-panel a:focus-visible, .chat-panel .input:focus-visible {
+  outline: 3px solid var(--obs-deep); outline-offset: 2px; box-shadow: 0 0 0 5px #ffffff;
+}
+.chat-panel .icon-button { background: linear-gradient(90deg, var(--obs-accent-from), var(--obs-accent-to)); color: var(--obs-deep); }
+.chat-panel .message.assistant { background: var(--obs-cream); color: var(--obs-deep); }
+.chat-panel .message.user { background: var(--obs-mint); color: var(--obs-deep); }
+.chat-panel a { color: var(--obs-green); text-decoration: underline; }
+.chat-panel .external-indicator { font-size: 0.85em; }
+.chat-panel .channel-list { margin: 0.5rem 0; padding-left: 1.1rem; overflow-wrap: anywhere; }
+.chat-panel .query-status { min-height: 1.5rem; display: flex; gap: 0.5rem; align-items: center; padding: 0 0.75rem; }
+.chat-panel .query-failure, .chat-panel .channels-unavailable {
+  margin: 0.5rem 0.75rem; padding: 0.75rem; background: var(--obs-mint); border: 1px solid var(--obs-green); border-radius: 8px;
+}
+.chat-panel .dot-animation .dot { animation: geobot-pulse 1s infinite ease-in-out; }
+@keyframes geobot-pulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .chat-panel .dot-animation .dot { animation: none; }
+}
+.chat-route { height: 100dvh; margin: 0; padding: 0; }
+.chat-route .chat-panel { height: 100dvh; }
+
+/* Contenido de respuestas (RF-C4-UI-03): tablas con scroll propio, sin mover el panel. */
+.chat-panel .markdown-content { overflow-wrap: anywhere; }
+.chat-panel .markdown-content p { margin: 0 0 0.5rem; }
+.chat-panel .markdown-content ul, .chat-panel .markdown-content ol { margin: 0 0 0.5rem; padding-left: 1.25rem; }
+.chat-panel .table-scroll { max-width: 100%; overflow-x: auto; margin: 0.25rem 0 0.5rem; -webkit-overflow-scrolling: touch; }
+.chat-panel .table-scroll:focus-visible { outline: 3px solid var(--obs-deep); outline-offset: 2px; }
+.chat-panel .table-scroll table { border-collapse: collapse; min-width: max-content; font-size: 0.8125rem; }
+.chat-panel .table-scroll th, .chat-panel .table-scroll td { border: 1px solid var(--obs-green); padding: 0.375rem 0.5rem; text-align: left; vertical-align: top; }
+.chat-panel .table-scroll th { background: var(--obs-mint); color: var(--obs-deep); }
+.chat-panel .messages, .chat-panel .message { max-width: 100%; }
+
+/* Diálogo de nueva conversación (modal dentro del iframe). */
+.chat-panel { position: relative; }
+.chat-panel .dialog-backdrop { position: absolute; inset: 0; z-index: 10; display: flex; align-items: center; justify-content: center; padding: 1rem; background: rgba(6, 35, 29, 0.55); }
+.chat-panel .dialog { background: var(--obs-surface); color: var(--obs-deep); border-radius: 12px; padding: 1rem; max-width: 22rem; width: 100%; }
+.chat-panel .dialog-actions { display: flex; gap: 0.5rem; justify-content: flex-end; flex-wrap: wrap; }
+.chat-panel .chat-new { margin-left: auto; font-size: 0.8125rem; }
+.chat-panel .chat-new + .chat-close { margin-left: 0; }
+
+/* Valoración (RF-C4-UI-06). */
+.chat-panel .feedback { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin-top: 0.5rem; }
+.chat-panel .feedback-label { font-size: 0.8125rem; }
+.chat-panel .feedback-reasons { border: 1px solid var(--obs-green); border-radius: 8px; padding: 0.5rem; width: 100%; }
+.chat-panel .feedback-reason { display: flex; gap: 0.5rem; align-items: center; min-height: 44px; }
+.chat-panel .feedback-thanks { margin: 0.5rem 0 0; font-weight: 600; }
+.chat-panel .feedback-error { margin: 0; width: 100%; }

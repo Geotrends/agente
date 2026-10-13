@@ -421,22 +421,6 @@ body {
   justify-content: flex-start;
 }
 
-.agent-gemini {
-  --agent-color: #4f46e5;
-}
-
-.agent-groq {
-  --agent-color: #e11d48;
-}
-
-.agent-ollama {
-  --agent-color: #0891b2;
-}
-
-.agent-deepseek {
-  --agent-color: #4d6bfe;
-}
-
 .agent-smart {
   --agent-color: #7c3aed;
 }
@@ -729,7 +713,8 @@ body {
   position: absolute;
   right: 0.75rem;
   bottom: 0.2rem;
-  color: #777777;
+  /* #777 daba 4,47:1 sobre blanco, por debajo del 4,5:1 de WCAG 1.4.3. */
+  color: #6b6b6b;
   font-size: 0.6875rem;
   pointer-events: none;
 }
@@ -752,9 +737,7 @@ body {
 }
 
 .input:focus {
-  outline: none;
   border-color: #8a8a8a;
-  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.08);
 }
 
 .button {
@@ -887,3 +870,93 @@ body {
 .md-table tbody tr:nth-child(even) {
   background: #fafafa;
 }
+
+/* ── Accesibilidad ───────────────────────────────────────────────────────── */
+
+/* Texto solo para lectores de pantalla (quién habla, avisos de límite). */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Foco visible con teclado (WCAG 2.4.7). El campo de la pregunta tenía
+   `outline: none` y una sombra del 8 % que apenas se distinguía. */
+:focus-visible {
+  outline: 2px solid #1f1f1f;
+  outline-offset: 2px;
+}
+
+.messages:focus-visible {
+  outline-offset: -2px;
+}
+
+/* "Fuentes consultadas" medía 20 px de alto: por debajo de los 24 px
+   de área táctil mínima (WCAG 2.5.8). */
+.sources summary {
+  min-height: 24px;
+  padding: 4px 0;
+  cursor: pointer;
+}
+
+/* Estado de la búsqueda. Siempre montado, aunque esté vacío: una región viva
+   que aparece ya con texto no se anuncia en varios lectores de pantalla. */
+.status-line {
+  margin: 6px 4px 0;
+}
+
+.status-line:empty {
+  margin: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dot {
+    animation: none;
+    opacity: 0.6;
+  }
+}
+
+/* Panel de administración (bloque 2): formularios accesibles, sin estilos de chat. */
+.admin-main { max-width: 44rem; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+.admin-form { display: grid; gap: 0.5rem; margin: 1rem 0; }
+.admin-form label { font-weight: 600; margin-top: 0.5rem; }
+.admin-error { color: #8a1c1c; font-weight: 600; margin: 0.25rem 0; }
+.admin-aviso { min-height: 1.5rem; font-weight: 600; }
+.admin-lista { padding-left: 1.25rem; }
+.admin-lista li { margin-bottom: 1.5rem; }
+.admin-acciones { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
+.admin-main :focus-visible { outline: 3px solid #1a56db; outline-offset: 2px; }
+
+/* Consentimiento y canales de atención inmediata (bloque 2). */
+.consent-box { padding: 0.75rem 1rem; border: 1px solid currentColor; border-radius: 8px; margin: 0.5rem 0; }
+.consent-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
+.consent-note { font-weight: 600; }
+.urgent-channels { margin: 0.5rem 0; }
+.urgent-channels h2 { font-size: 1rem; margin: 0 0 0.25rem; }
+.emergency-option { margin-top: 0.75rem; }
+.category-box { padding: 0.75rem 1rem; border: 1px solid currentColor; border-radius: 8px; margin: 0.5rem 0; }
+.category-box legend { font-weight: 600; }
+.category-box button[aria-pressed="true"] { outline: 2px solid currentColor; font-weight: 700; }
+.admin-nav { display: flex; flex-wrap: wrap; gap: 1rem; padding: 0.75rem 1rem; border-bottom: 1px solid currentColor; }
+.admin-nav a[aria-current="page"] { font-weight: 700; text-decoration: underline; }
+.admin-nav a:focus-visible { outline: 3px solid #1a56db; outline-offset: 2px; }
+
+/* Panel de administración (SPEC007): tablas, diálogos y estados accesibles. */
+.admin-main-wide { max-width: 72rem; }
+.admin-tabla-contenedor { overflow-x: auto; }
+.admin-tabla { border-collapse: collapse; width: 100%; }
+.admin-tabla th, .admin-tabla td { border: 1px solid currentColor; padding: 0.4rem 0.6rem; text-align: left; vertical-align: top; }
+.admin-tabla caption { text-align: left; font-weight: 700; padding: 0.4rem 0; }
+.admin-dialogo { border: 2px solid currentColor; border-radius: 0.5rem; padding: 1.25rem; max-width: 32rem; }
+.admin-dialogo::backdrop { background: rgba(0, 0, 0, 0.5); }
+.admin-salir { margin-left: auto; }
+.admin-filtros { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: end; margin: 1rem 0; }
+.admin-paginacion { display: flex; gap: 0.5rem; align-items: center; margin-top: 1rem; }
+.admin-main button:focus-visible, .admin-main select:focus-visible, .admin-main input:focus-visible,
+.admin-main textarea:focus-visible, .admin-dialogo :focus-visible { outline: 3px solid #1a56db; outline-offset: 2px; }

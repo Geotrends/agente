@@ -1,0 +1,19 @@
+/*
+ * Tokens de identidad del Observatorio (RNF-C4-UI-04). Cada valor sale de
+ * https://observatorioenvigado.geotrends.co/css/observatorio.css (`:root` y reglas citadas en
+ * specs/004-interfaz-plataforma/guia-estilo.md). No se añaden colores fuera de esta lista.
+ */
+:root {
+  --obs-cream: #fffdee;
+  --obs-mint: #e2fbce;
+  --obs-lime: #e3ef26;
+  --obs-green: #076653;
+  --obs-deep: #0c342c;
+  --obs-night: #06231d;
+  /* Botones activos del portal: degradado lima con texto --obs-deep. */
+  --obs-accent-from: #d8ff3e;
+  --obs-accent-to: #c6f51e;
+  --obs-surface: #ffffff;
+  --obs-muted: #3e6666;
+  --obs-font: "Segoe UI", sans-serif;
+}
