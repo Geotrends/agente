@@ -5,3 +5,14 @@ out
 .env.*
 *.tsbuildinfo
 .DS_Store
+
+.git/
+Dockerfile*
+.dockerignore
+*.log*
+.env*
+coverage/
+# Las suites se ejecutan en el checkout/CI; no forman parte del artefacto ciudadano.
+test/
+test-results/
+playwright-report/

@@ -5,18 +5,49 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "test": "node --import tsx --test test/di-*.test.ts test/di-*.test.mts",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "build:widget": "node scripts/build-widget.mjs",
+    "test:ui": "vitest run",
+    "test:ui:e2e": "playwright test",
+    "test:admin": "vitest run test/admin",
+    "test:admin:e2e": "playwright test -c playwright.admin.config.ts --grep-invert \"@a11y|@perf\"",
+    "test:admin:perf": "playwright test -c playwright.admin.config.ts --grep @perf",
+    "test:admin:a11y": "playwright test -c playwright.admin.config.ts --grep @a11y",
+    "build:admin": "NEXT_OUTPUT=export NEXT_DIST_DIR=out-admin NEXT_PUBLIC_AGENT_API_URL=/api/chat next build",
+    "build:e2e": "node scripts/build-widget.mjs && NEXT_OUTPUT=export NEXT_PUBLIC_AGENT_API_URL=/api/chat NEXT_PUBLIC_HOST_ORIGIN=http://localhost:4310 next build && node scripts/build-csp.mjs --out out --target csp-chat.e2e.conf --ancestor http://localhost:4310",
+    "test:pr:e2e": "node scripts/run-pr.mjs"
   },
   "dependencies": {
     "docx-preview": "^0.3.7",
-    "next": "^14.2.15",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "next": "^16.3.6",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "remark-gfm": "^4.0.1",
+    "remark-parse": "^11.0.0",
+    "unified": "^11.0.5"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.10.2",
+    "@playwright/test": "^1.55.1",
+    "@testing-library/dom": "^10.4.2",
+    "@testing-library/jest-dom": "^6.6.4",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/jsdom": "^30.0.0",
     "@types/node": "^22.7.5",
-    "@types/react": "^18.3.9",
-    "@types/react-dom": "^18.3.0",
-    "typescript": "^5.6.3"
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^4.7.0",
+    "axe-core": "^4.10.2",
+    "esbuild": "^0.25.12",
+    "jsdom": "^30.1.2",
+    "tsx": "^4.23.15",
+    "typescript": "^5.6.3",
+    "vitest": "^3.2.4"
+  },
+  "overrides": {
+    "playwright-core": "1.55.1"
   }
 }

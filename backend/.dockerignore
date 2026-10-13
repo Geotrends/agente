@@ -9,3 +9,10 @@ dist
 .env.*
 *.log
 .DS_Store
+
+.git/
+Dockerfile*
+.dockerignore
+*.log*
+.env*
+coverage/
