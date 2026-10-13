@@ -1,0 +1,40 @@
+# Run with a dedicated project name: docker compose -p spec006-validation -f docker-compose.validation.yml ...
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: geobot_admin
+      POSTGRES_PASSWORD: isolated-test-only
+      POSTGRES_DB: geobot_test
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U geobot_admin -d geobot_test']
+      interval: 2s
+      timeout: 5s
+      retries: 30
+    networks: [validation]
+  qdrant:
+    image: qdrant/qdrant:v1.19.2-unprivileged
+    tmpfs:
+      - /qdrant/storage:uid=1000,gid=1000
+    networks: [validation]
+  validation:
+    image: agente-spec006-validation:local
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.validation
+    init: true
+    depends_on:
+      postgres:
+        condition: service_healthy
+      qdrant:
+        condition: service_started
+    environment:
+      KB_TEST_ADMIN_URL: postgres://geobot_admin:isolated-test-only@postgres:5432/geobot_test
+      QDRANT_URL: http://qdrant:6333
+      AWS_EC2_METADATA_DISABLED: 'true'
+    networks: [validation]
+networks:
+  validation:
+    internal: true

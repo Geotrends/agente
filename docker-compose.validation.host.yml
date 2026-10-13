@@ -1,0 +1,9 @@
+# Solo regresiones nativas que necesitan Docker nginx; activar junto al compose aislado.
+services:
+  postgres:
+    ports: ['127.0.0.1:15436:5432']
+  qdrant:
+    ports: ['127.0.0.1:16336:6333']
+networks:
+  validation:
+    internal: false
