@@ -1,0 +1,11 @@
+{
+  "descripcion": "Fixtures sintéticos de SPEC007: cuentas, documentos y datos de prueba. Sin datos personales reales.",
+  "cuentas": [
+    { "email": "tecnico@prueba.gov.co", "perfil": "administrador técnico" },
+    { "email": "tecnico2@prueba.gov.co", "perfil": "administrador técnico" },
+    { "email": "gestor@prueba.gov.co", "perfil": "Gestor documental" },
+    { "email": "gestor2@prueba.gov.co", "perfil": "Gestor documental" }
+  ],
+  "contrasenaPrueba": "contraseña-segura-123",
+  "prohibido": ["AWS productivo", "datos personales reales", "escritura en el volumen C6"]
+}
