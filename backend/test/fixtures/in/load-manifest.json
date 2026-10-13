@@ -1,0 +1,837 @@
+{
+  "version": "1",
+  "spec": "005-integracion-c3-c4",
+  "caso": "N302/N303",
+  "nota": "Preguntas sintéticas. La respuesta larga es una convención de selección del arnés (≥700 y ≤2200 tokens visibles), no un requisito nuevo del producto. Base, calibración y respaldo en corpus se registran al ejecutar en el entorno real.",
+  "muestra": {
+    "total": 100,
+    "simples": 40,
+    "medias": 30,
+    "complejas": 30,
+    "autorizadas_con_10_pares": 10,
+    "largas": 10
+  },
+  "largaConvencion": {
+    "minTokens": 700,
+    "maxTokens": 2200
+  },
+  "oleadas": {
+    "cantidad": 3,
+    "tamano": 25,
+    "autorizadas": 15,
+    "conversaciones": 5,
+    "anonimas": 10,
+    "pausaMs": 120000,
+    "registrosPorDia": 75,
+    "autorizadosPorDia": 45,
+    "anonimosPorDia": 30
+  },
+  "corpus": {
+    "matrizHash": "22628bf0c3ecd851618a4e3fba8e73dcfb52bf4ad9d3f1c6ffc6c9b954d996f8",
+    "corpusHash": null,
+    "calibracion": null,
+    "respaldoVerificado": false
+  },
+  "preguntas": [
+    {
+      "id": "S001",
+      "kind": "simple",
+      "pregunta": "¿Qué es el RUM?",
+      "autorizada": true,
+      "conHistorial": true,
+      "larga": false
+    },
+    {
+      "id": "S002",
+      "kind": "media",
+      "pregunta": "¿Qué requisitos tiene el procedimiento de adopción y cuánto tiempo tarda?",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S003",
+      "kind": "compleja",
+      "pregunta": "Necesito un análisis detallado de las diferencias entre la licencia ambiental y el permiso de aprovechamiento forestal, con sus normas, plazos, costos y responsables",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S004",
+      "kind": "simple",
+      "pregunta": "¿Cuál es el horario de atención?",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S005",
+      "kind": "media",
+      "pregunta": "¿Cuál es el plazo y el procedimiento para pedir una visita técnica?",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S006",
+      "kind": "simple",
+      "pregunta": "Explica con el mayor detalle posible, paso a paso, todo el procedimiento de registro de una mascota en el RUM: requisitos, documentos, plazos, responsables, normas aplicables y qué ocurre si falta algo",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": true
+    },
+    {
+      "id": "S007",
+      "kind": "compleja",
+      "pregunta": "¿Qué dice el artículo 45 de la ley sobre sanciones y multas por incumplimiento y cuál es la diferencia entre ambas?",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S008",
+      "kind": "simple",
+      "pregunta": "¿Qué es un GT-F?",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S009",
+      "kind": "media",
+      "pregunta": "Necesito saber los requisitos y el plazo del registro de mi mascota",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S010",
+      "kind": "compleja",
+      "pregunta": "Compara el procedimiento de adopción con el de registro RUM, indicando requisitos, plazos y responsables, y explica qué normas aplican a cada uno y cómo se relacionan entre sí",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S011",
+      "kind": "simple",
+      "pregunta": "¿Cómo contacto a Bienestar Animal?",
+      "autorizada": true,
+      "conHistorial": true,
+      "larga": false
+    },
+    {
+      "id": "S012",
+      "kind": "media",
+      "pregunta": "¿Qué requisitos y plazo tiene la poda de un árbol?",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S013",
+      "kind": "compleja",
+      "pregunta": "Necesito un análisis detallado de las diferencias entre la licencia ambiental y el permiso de aprovechamiento forestal, con sus normas, plazos, costos y responsables",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S014",
+      "kind": "simple",
+      "pregunta": "¿Qué hace Gestión Ambiental?",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S015",
+      "kind": "media",
+      "pregunta": "¿Qué requisitos tiene el procedimiento de adopción y cuánto tiempo tarda?",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S016",
+      "kind": "simple",
+      "pregunta": "Necesito una explicación completa y ordenada del trámite de visita técnica: quién la solicita, cómo, en qué plazos, qué normas aplican, qué documentos se anexan y cómo se hace seguimiento",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": true
+    },
+    {
+      "id": "S017",
+      "kind": "compleja",
+      "pregunta": "¿Qué dice el artículo 45 de la ley sobre sanciones y multas por incumplimiento y cuál es la diferencia entre ambas?",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S018",
+      "kind": "simple",
+      "pregunta": "¿Qué es un trámite ambiental?",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S019",
+      "kind": "media",
+      "pregunta": "¿Cuál es el plazo y el procedimiento para pedir una visita técnica?",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S020",
+      "kind": "compleja",
+      "pregunta": "Compara el procedimiento de adopción con el de registro RUM, indicando requisitos, plazos y responsables, y explica qué normas aplican a cada uno y cómo se relacionan entre sí",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S021",
+      "kind": "simple",
+      "pregunta": "¿Qué es el RUM?",
+      "autorizada": true,
+      "conHistorial": true,
+      "larga": false
+    },
+    {
+      "id": "S022",
+      "kind": "media",
+      "pregunta": "Necesito saber los requisitos y el plazo del registro de mi mascota",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S023",
+      "kind": "compleja",
+      "pregunta": "Necesito un análisis detallado de las diferencias entre la licencia ambiental y el permiso de aprovechamiento forestal, con sus normas, plazos, costos y responsables",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S024",
+      "kind": "simple",
+      "pregunta": "¿Cuál es el horario de atención?",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S025",
+      "kind": "media",
+      "pregunta": "¿Qué requisitos y plazo tiene la poda de un árbol?",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S026",
+      "kind": "simple",
+      "pregunta": "Describe detalladamente cada etapa del procedimiento de adopción de animales, con los requisitos de cada una, los formatos, los responsables, los tiempos y las normas que lo respaldan",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": true
+    },
+    {
+      "id": "S027",
+      "kind": "compleja",
+      "pregunta": "¿Qué dice el artículo 45 de la ley sobre sanciones y multas por incumplimiento y cuál es la diferencia entre ambas?",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S028",
+      "kind": "simple",
+      "pregunta": "¿Qué es un GT-F?",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S029",
+      "kind": "media",
+      "pregunta": "¿Qué requisitos tiene el procedimiento de adopción y cuánto tiempo tarda?",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S030",
+      "kind": "compleja",
+      "pregunta": "Compara el procedimiento de adopción con el de registro RUM, indicando requisitos, plazos y responsables, y explica qué normas aplican a cada uno y cómo se relacionan entre sí",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S031",
+      "kind": "simple",
+      "pregunta": "¿Cómo contacto a Bienestar Animal?",
+      "autorizada": true,
+      "conHistorial": true,
+      "larga": false
+    },
+    {
+      "id": "S032",
+      "kind": "media",
+      "pregunta": "¿Cuál es el plazo y el procedimiento para pedir una visita técnica?",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S033",
+      "kind": "compleja",
+      "pregunta": "Necesito un análisis detallado de las diferencias entre la licencia ambiental y el permiso de aprovechamiento forestal, con sus normas, plazos, costos y responsables",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S034",
+      "kind": "simple",
+      "pregunta": "¿Qué hace Gestión Ambiental?",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S035",
+      "kind": "media",
+      "pregunta": "Necesito saber los requisitos y el plazo del registro de mi mascota",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S036",
+      "kind": "simple",
+      "pregunta": "Dame una guía exhaustiva sobre los permisos de aprovechamiento forestal: tipos, requisitos, documentos, plazos, costos, responsables, normas y diferencias entre cada tipo",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": true
+    },
+    {
+      "id": "S037",
+      "kind": "compleja",
+      "pregunta": "¿Qué dice el artículo 45 de la ley sobre sanciones y multas por incumplimiento y cuál es la diferencia entre ambas?",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S038",
+      "kind": "simple",
+      "pregunta": "¿Qué es un trámite ambiental?",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S039",
+      "kind": "media",
+      "pregunta": "¿Qué requisitos y plazo tiene la poda de un árbol?",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S040",
+      "kind": "compleja",
+      "pregunta": "Compara el procedimiento de adopción con el de registro RUM, indicando requisitos, plazos y responsables, y explica qué normas aplican a cada uno y cómo se relacionan entre sí",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S041",
+      "kind": "simple",
+      "pregunta": "¿Qué es el RUM?",
+      "autorizada": true,
+      "conHistorial": true,
+      "larga": false
+    },
+    {
+      "id": "S042",
+      "kind": "media",
+      "pregunta": "¿Qué requisitos tiene el procedimiento de adopción y cuánto tiempo tarda?",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S043",
+      "kind": "compleja",
+      "pregunta": "Necesito un análisis detallado de las diferencias entre la licencia ambiental y el permiso de aprovechamiento forestal, con sus normas, plazos, costos y responsables",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S044",
+      "kind": "simple",
+      "pregunta": "¿Cuál es el horario de atención?",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S045",
+      "kind": "media",
+      "pregunta": "¿Cuál es el plazo y el procedimiento para pedir una visita técnica?",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S046",
+      "kind": "simple",
+      "pregunta": "Explica de forma completa cómo se tramita una denuncia por maltrato animal, qué datos debe aportar quien denuncia, qué sigue después, quién responde, en cuánto tiempo y bajo qué normas",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": true
+    },
+    {
+      "id": "S047",
+      "kind": "compleja",
+      "pregunta": "¿Qué dice el artículo 45 de la ley sobre sanciones y multas por incumplimiento y cuál es la diferencia entre ambas?",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S048",
+      "kind": "simple",
+      "pregunta": "¿Qué es un GT-F?",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S049",
+      "kind": "media",
+      "pregunta": "Necesito saber los requisitos y el plazo del registro de mi mascota",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S050",
+      "kind": "compleja",
+      "pregunta": "Compara el procedimiento de adopción con el de registro RUM, indicando requisitos, plazos y responsables, y explica qué normas aplican a cada uno y cómo se relacionan entre sí",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S051",
+      "kind": "simple",
+      "pregunta": "¿Cómo contacto a Bienestar Animal?",
+      "autorizada": true,
+      "conHistorial": true,
+      "larga": false
+    },
+    {
+      "id": "S052",
+      "kind": "media",
+      "pregunta": "¿Qué requisitos y plazo tiene la poda de un árbol?",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S053",
+      "kind": "compleja",
+      "pregunta": "Necesito un análisis detallado de las diferencias entre la licencia ambiental y el permiso de aprovechamiento forestal, con sus normas, plazos, costos y responsables",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S054",
+      "kind": "simple",
+      "pregunta": "¿Qué hace Gestión Ambiental?",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S055",
+      "kind": "media",
+      "pregunta": "¿Qué requisitos tiene el procedimiento de adopción y cuánto tiempo tarda?",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S056",
+      "kind": "simple",
+      "pregunta": "Resume todo lo que debo saber sobre la poda de árboles en espacio público: quién autoriza, requisitos, procedimiento, plazos, normas, sanciones y excepciones",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": true
+    },
+    {
+      "id": "S057",
+      "kind": "compleja",
+      "pregunta": "¿Qué dice el artículo 45 de la ley sobre sanciones y multas por incumplimiento y cuál es la diferencia entre ambas?",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S058",
+      "kind": "simple",
+      "pregunta": "¿Qué es un trámite ambiental?",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S059",
+      "kind": "media",
+      "pregunta": "¿Cuál es el plazo y el procedimiento para pedir una visita técnica?",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S060",
+      "kind": "compleja",
+      "pregunta": "Compara el procedimiento de adopción con el de registro RUM, indicando requisitos, plazos y responsables, y explica qué normas aplican a cada uno y cómo se relacionan entre sí",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S061",
+      "kind": "simple",
+      "pregunta": "¿Qué es el RUM?",
+      "autorizada": true,
+      "conHistorial": true,
+      "larga": false
+    },
+    {
+      "id": "S062",
+      "kind": "media",
+      "pregunta": "Necesito saber los requisitos y el plazo del registro de mi mascota",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S063",
+      "kind": "compleja",
+      "pregunta": "Necesito un análisis detallado de las diferencias entre la licencia ambiental y el permiso de aprovechamiento forestal, con sus normas, plazos, costos y responsables",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S064",
+      "kind": "simple",
+      "pregunta": "¿Cuál es el horario de atención?",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S065",
+      "kind": "media",
+      "pregunta": "¿Qué requisitos y plazo tiene la poda de un árbol?",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S066",
+      "kind": "simple",
+      "pregunta": "Detalla el procedimiento completo para solicitar una licencia ambiental, incluyendo requisitos, estudios, plazos, responsables, normas y posibles resultados del trámite",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": true
+    },
+    {
+      "id": "S067",
+      "kind": "compleja",
+      "pregunta": "¿Qué dice el artículo 45 de la ley sobre sanciones y multas por incumplimiento y cuál es la diferencia entre ambas?",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S068",
+      "kind": "simple",
+      "pregunta": "¿Qué es un GT-F?",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S069",
+      "kind": "media",
+      "pregunta": "¿Qué requisitos tiene el procedimiento de adopción y cuánto tiempo tarda?",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S070",
+      "kind": "compleja",
+      "pregunta": "Compara el procedimiento de adopción con el de registro RUM, indicando requisitos, plazos y responsables, y explica qué normas aplican a cada uno y cómo se relacionan entre sí",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S071",
+      "kind": "simple",
+      "pregunta": "¿Cómo contacto a Bienestar Animal?",
+      "autorizada": true,
+      "conHistorial": true,
+      "larga": false
+    },
+    {
+      "id": "S072",
+      "kind": "media",
+      "pregunta": "¿Cuál es el plazo y el procedimiento para pedir una visita técnica?",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S073",
+      "kind": "compleja",
+      "pregunta": "Necesito un análisis detallado de las diferencias entre la licencia ambiental y el permiso de aprovechamiento forestal, con sus normas, plazos, costos y responsables",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S074",
+      "kind": "simple",
+      "pregunta": "¿Qué hace Gestión Ambiental?",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S075",
+      "kind": "media",
+      "pregunta": "Necesito saber los requisitos y el plazo del registro de mi mascota",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S076",
+      "kind": "simple",
+      "pregunta": "Explícame con ejemplos y en orden todas las obligaciones de un tenedor de animales de compañía según la normativa aplicable, y qué dependencia verifica cada una",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": true
+    },
+    {
+      "id": "S077",
+      "kind": "compleja",
+      "pregunta": "¿Qué dice el artículo 45 de la ley sobre sanciones y multas por incumplimiento y cuál es la diferencia entre ambas?",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S078",
+      "kind": "simple",
+      "pregunta": "¿Qué es un trámite ambiental?",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S079",
+      "kind": "media",
+      "pregunta": "¿Qué requisitos y plazo tiene la poda de un árbol?",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S080",
+      "kind": "compleja",
+      "pregunta": "Compara el procedimiento de adopción con el de registro RUM, indicando requisitos, plazos y responsables, y explica qué normas aplican a cada uno y cómo se relacionan entre sí",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S081",
+      "kind": "simple",
+      "pregunta": "¿Qué es el RUM?",
+      "autorizada": true,
+      "conHistorial": true,
+      "larga": false
+    },
+    {
+      "id": "S082",
+      "kind": "media",
+      "pregunta": "¿Qué requisitos tiene el procedimiento de adopción y cuánto tiempo tarda?",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S083",
+      "kind": "compleja",
+      "pregunta": "Necesito un análisis detallado de las diferencias entre la licencia ambiental y el permiso de aprovechamiento forestal, con sus normas, plazos, costos y responsables",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S084",
+      "kind": "simple",
+      "pregunta": "¿Cuál es el horario de atención?",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S085",
+      "kind": "media",
+      "pregunta": "¿Cuál es el plazo y el procedimiento para pedir una visita técnica?",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S086",
+      "kind": "simple",
+      "pregunta": "Describe con precisión cómo funciona el trámite de registro de un establecimiento que maneja animales, con documentos, plazos, inspecciones, responsables y normas",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": true
+    },
+    {
+      "id": "S087",
+      "kind": "compleja",
+      "pregunta": "¿Qué dice el artículo 45 de la ley sobre sanciones y multas por incumplimiento y cuál es la diferencia entre ambas?",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S088",
+      "kind": "simple",
+      "pregunta": "¿Qué es un GT-F?",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S089",
+      "kind": "media",
+      "pregunta": "Necesito saber los requisitos y el plazo del registro de mi mascota",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S090",
+      "kind": "compleja",
+      "pregunta": "Compara el procedimiento de adopción con el de registro RUM, indicando requisitos, plazos y responsables, y explica qué normas aplican a cada uno y cómo se relacionan entre sí",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S091",
+      "kind": "simple",
+      "pregunta": "¿Cómo contacto a Bienestar Animal?",
+      "autorizada": true,
+      "conHistorial": true,
+      "larga": false
+    },
+    {
+      "id": "S092",
+      "kind": "media",
+      "pregunta": "¿Qué requisitos y plazo tiene la poda de un árbol?",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S093",
+      "kind": "compleja",
+      "pregunta": "Necesito un análisis detallado de las diferencias entre la licencia ambiental y el permiso de aprovechamiento forestal, con sus normas, plazos, costos y responsables",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S094",
+      "kind": "simple",
+      "pregunta": "¿Qué hace Gestión Ambiental?",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S095",
+      "kind": "media",
+      "pregunta": "¿Qué requisitos tiene el procedimiento de adopción y cuánto tiempo tarda?",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S096",
+      "kind": "simple",
+      "pregunta": "Necesito un panorama completo de los procedimientos de Gestión Ambiental que puede iniciar un ciudadano, con requisitos, plazos, responsables y normas de cada uno",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": true
+    },
+    {
+      "id": "S097",
+      "kind": "compleja",
+      "pregunta": "¿Qué dice el artículo 45 de la ley sobre sanciones y multas por incumplimiento y cuál es la diferencia entre ambas?",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S098",
+      "kind": "simple",
+      "pregunta": "¿Qué es un trámite ambiental?",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S099",
+      "kind": "media",
+      "pregunta": "¿Cuál es el plazo y el procedimiento para pedir una visita técnica?",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    },
+    {
+      "id": "S100",
+      "kind": "compleja",
+      "pregunta": "Compara el procedimiento de adopción con el de registro RUM, indicando requisitos, plazos y responsables, y explica qué normas aplican a cada uno y cómo se relacionan entre sí",
+      "autorizada": false,
+      "conHistorial": false,
+      "larga": false
+    }
+  ]
+}

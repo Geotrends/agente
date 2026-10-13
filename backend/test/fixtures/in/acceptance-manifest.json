@@ -1,0 +1,594 @@
+{
+  "version": "1",
+  "spec": "005-integracion-c3-c4",
+  "nota": "Cantidades de specs/005-integracion-c3-c4/contracts/acceptance.md. Datos sintéticos. Un caso solo pasa a real_conforme con evidencia de TODOS sus componentes requeridos; un archivo o una prueba existente no es aceptación.",
+  "estados": [
+    "pendiente",
+    "controlado_conforme",
+    "real_conforme",
+    "fallo",
+    "descartado"
+  ],
+  "componentes": {
+    "C": "controlado con dobles explícitos",
+    "DB": "PostgreSQL real aislado",
+    "A": "AWS/rol/dos modelos reales",
+    "P": "entrada nginx y servicio desplegado",
+    "H": "Observatorio/Geoportal reales",
+    "B": "navegadores/lectores/dispositivos reales"
+  },
+  "datos": "sinteticos",
+  "identidad": {
+    "git": null,
+    "hash_cambios": null,
+    "corpus": null,
+    "matriz_hash": null,
+    "prompt_hash": null,
+    "imagenes": null
+  },
+  "casos": [
+    {
+      "id": "C301",
+      "requisito": "RF-C3-IN-01",
+      "cantidades": {
+        "conversaciones": 3,
+        "turnos_por_conversacion": 3,
+        "anonimas": 5,
+        "ids_no_emitidos": 3
+      },
+      "componentes_requeridos": [
+        "C",
+        "DB",
+        "A",
+        "P"
+      ],
+      "estado": "pendiente",
+      "resultados": [],
+      "nota": ""
+    },
+    {
+      "id": "C302",
+      "requisito": "RF-C3-IN-02",
+      "cantidades": {
+        "peticiones": 12,
+        "validas": 8,
+        "invalidas": 4,
+        "pares_enviados": 15,
+        "pares_efectivos": 10
+      },
+      "componentes_requeridos": [
+        "C",
+        "DB",
+        "A",
+        "P"
+      ],
+      "estado": "pendiente",
+      "resultados": [],
+      "nota": ""
+    },
+    {
+      "id": "C303",
+      "requisito": "RF-C3-IN-03",
+      "cantidades": {
+        "consultas": 10,
+        "autorizadas": 6,
+        "anonimas": 4
+      },
+      "componentes_requeridos": [
+        "C",
+        "DB",
+        "A",
+        "P"
+      ],
+      "estado": "pendiente",
+      "resultados": [],
+      "nota": ""
+    },
+    {
+      "id": "C304",
+      "requisito": "RF-C3-IN-04",
+      "cantidades": {
+        "casos": 9,
+        "validacion": 3,
+        "indisponibilidad": 3,
+        "tiempo": 2,
+        "interno": 1,
+        "limite_ms": 40000
+      },
+      "componentes_requeridos": [
+        "C",
+        "DB",
+        "P"
+      ],
+      "estado": "pendiente",
+      "resultados": [],
+      "nota": ""
+    },
+    {
+      "id": "C305",
+      "requisito": "RF-C3-IN-05",
+      "cantidades": {
+        "exitos": 8,
+        "registros": 8,
+        "campos": 9
+      },
+      "componentes_requeridos": [
+        "DB",
+        "C",
+        "A",
+        "P"
+      ],
+      "estado": "pendiente",
+      "resultados": [],
+      "nota": ""
+    },
+    {
+      "id": "C306",
+      "requisito": "RF-C3-IN-06",
+      "cantidades": {
+        "textos": 14,
+        "con_pii": 9,
+        "sin_pii": 5
+      },
+      "componentes_requeridos": [
+        "C",
+        "DB",
+        "A",
+        "P"
+      ],
+      "estado": "pendiente",
+      "resultados": [],
+      "nota": ""
+    },
+    {
+      "id": "C307",
+      "requisito": "RF-C3-IN-07",
+      "cantidades": {
+        "consultas_anonimas": 6,
+        "campos_conservados": 6
+      },
+      "componentes_requeridos": [
+        "DB",
+        "C",
+        "A",
+        "P"
+      ],
+      "estado": "pendiente",
+      "resultados": [],
+      "nota": ""
+    },
+    {
+      "id": "C308",
+      "requisito": "RF-C3-IN-08",
+      "cantidades": {
+        "fallos": 6,
+        "recuperadas": 2,
+        "autorizadas_sin_id": 2,
+        "avisos": 1
+      },
+      "componentes_requeridos": [
+        "C",
+        "DB",
+        "P"
+      ],
+      "estado": "pendiente",
+      "resultados": [],
+      "nota": ""
+    },
+    {
+      "id": "C309",
+      "requisito": "RF-C3-IN-09",
+      "cantidades": {
+        "envios": 12,
+        "guardados": 7,
+        "rechazados": 5
+      },
+      "componentes_requeridos": [
+        "DB",
+        "C",
+        "P"
+      ],
+      "estado": "pendiente",
+      "resultados": [],
+      "nota": ""
+    },
+    {
+      "id": "C310",
+      "requisito": "RF-C3-IN-10",
+      "cantidades": {
+        "lecturas": 3,
+        "limite_ms": 2000,
+        "llamadas_llm": 0
+      },
+      "componentes_requeridos": [
+        "DB",
+        "C",
+        "P"
+      ],
+      "estado": "pendiente",
+      "resultados": [],
+      "nota": ""
+    },
+    {
+      "id": "C401",
+      "requisito": "RF-C4-IN-01",
+      "cantidades": {
+        "recorridos": 6,
+        "autorizados": 1,
+        "anonimos": 0
+      },
+      "componentes_requeridos": [
+        "C",
+        "DB",
+        "B",
+        "P"
+      ],
+      "estado": "pendiente",
+      "resultados": [],
+      "nota": ""
+    },
+    {
+      "id": "C402",
+      "requisito": "RF-C4-IN-02",
+      "cantidades": {
+        "recorridos": 3,
+        "turnos_autorizados": 12,
+        "pares_en_turno_12": 10
+      },
+      "componentes_requeridos": [
+        "C",
+        "DB",
+        "B",
+        "A",
+        "P"
+      ],
+      "estado": "pendiente",
+      "resultados": [],
+      "nota": ""
+    },
+    {
+      "id": "C403",
+      "requisito": "RF-C4-IN-03",
+      "cantidades": {
+        "pruebas": 4,
+        "visible_ms": 40000,
+        "fallo_ms": 50000,
+        "ventana_fallo_ms": [
+          45000,
+          46000
+        ]
+      },
+      "componentes_requeridos": [
+        "C",
+        "B",
+        "P"
+      ],
+      "estado": "pendiente",
+      "resultados": [],
+      "nota": ""
+    },
+    {
+      "id": "C404",
+      "requisito": "RF-C4-IN-04",
+      "cantidades": {
+        "pruebas": 6,
+        "validacion": 2,
+        "internos": 2,
+        "proxy_html": 1,
+        "estructura_invalida": 1
+      },
+      "componentes_requeridos": [
+        "C",
+        "P",
+        "B"
+      ],
+      "estado": "pendiente",
+      "resultados": [],
+      "nota": ""
+    },
+    {
+      "id": "C405",
+      "requisito": "RF-C4-IN-05",
+      "cantidades": {
+        "respuestas": 6,
+        "con_id": 2,
+        "autorizadas_sin_id": 2,
+        "anonimas": 2,
+        "con_controles": 2
+      },
+      "componentes_requeridos": [
+        "C",
+        "DB",
+        "B",
+        "P"
+      ],
+      "estado": "pendiente",
+      "resultados": [],
+      "nota": ""
+    },
+    {
+      "id": "C406",
+      "requisito": "RF-C4-IN-06",
+      "cantidades": {
+        "fallos_recuperaciones": 4,
+        "inicial_ms": 5000
+      },
+      "componentes_requeridos": [
+        "C",
+        "P",
+        "B"
+      ],
+      "estado": "pendiente",
+      "resultados": [],
+      "nota": ""
+    },
+    {
+      "id": "N301",
+      "requisito": "RNF-C3-IN-01",
+      "cantidades": {
+        "conservada_dias": "11m29d",
+        "depurada_dias": "12m1d",
+        "ejecuciones_automaticas": 2
+      },
+      "componentes_requeridos": [
+        "DB",
+        "P"
+      ],
+      "estado": "pendiente",
+      "resultados": [],
+      "nota": ""
+    },
+    {
+      "id": "N302",
+      "requisito": "RNF-C3-IN-02",
+      "cantidades": {
+        "dias": 2,
+        "secuenciales_por_dia": 100,
+        "simples": 40,
+        "medias": 30,
+        "complejas": 30,
+        "con_historial": 10,
+        "largas": 10,
+        "p95_ms": 20000,
+        "silencio_max_ms": 40000
+      },
+      "componentes_requeridos": [
+        "A",
+        "P"
+      ],
+      "estado": "pendiente",
+      "resultados": [],
+      "nota": ""
+    },
+    {
+      "id": "N303",
+      "requisito": "RNF-C3-IN-03",
+      "cantidades": {
+        "dias": 2,
+        "oleadas_por_dia": 3,
+        "tamano_oleada": 25,
+        "autorizadas": 15,
+        "conversaciones": 5,
+        "anonimas": 10,
+        "pausa_ms": 120000,
+        "registros_por_dia": 75,
+        "registros_total": 150,
+        "p95_ms": 20000,
+        "errores": 0
+      },
+      "componentes_requeridos": [
+        "A",
+        "P"
+      ],
+      "estado": "pendiente",
+      "resultados": [],
+      "nota": ""
+    },
+    {
+      "id": "N304",
+      "requisito": "RNF-C3-IN-04",
+      "cantidades": {
+        "origenes": 8,
+        "validos": 2,
+        "rechazos": 6,
+        "llamadas_llm": 0,
+        "registros": 0
+      },
+      "componentes_requeridos": [
+        "C",
+        "P"
+      ],
+      "estado": "pendiente",
+      "resultados": [],
+      "nota": ""
+    },
+    {
+      "id": "N305",
+      "requisito": "RNF-C3-IN-05",
+      "cantidades": {
+        "consultas_30s": 62,
+        "permitidas": 60,
+        "rechazadas": 2,
+        "ventana_5min_por_min": 60
+      },
+      "componentes_requeridos": [
+        "C",
+        "P"
+      ],
+      "estado": "pendiente",
+      "resultados": [],
+      "nota": ""
+    },
+    {
+      "id": "N306",
+      "requisito": "RNF-C3-IN-06",
+      "cantidades": {
+        "cuerpos": 6,
+        "limite_bytes": 131072
+      },
+      "componentes_requeridos": [
+        "C",
+        "P"
+      ],
+      "estado": "pendiente",
+      "resultados": [],
+      "nota": ""
+    },
+    {
+      "id": "N307",
+      "requisito": "RNF-C3-IN-07",
+      "cantidades": {
+        "llaves_en_repo_imagen_env": 0,
+        "modelos_con_rol": 2
+      },
+      "componentes_requeridos": [
+        "A",
+        "P"
+      ],
+      "estado": "pendiente",
+      "resultados": [],
+      "nota": ""
+    },
+    {
+      "id": "N308",
+      "requisito": "RNF-C3-IN-08",
+      "cantidades": {
+        "acciones": 1,
+        "arn": 2,
+        "exitos": 2,
+        "denegaciones": 4
+      },
+      "componentes_requeridos": [
+        "A"
+      ],
+      "estado": "pendiente",
+      "resultados": [],
+      "nota": ""
+    },
+    {
+      "id": "N309",
+      "requisito": "RNF-C3-IN-09",
+      "cantidades": {},
+      "componentes_requeridos": [],
+      "estado": "descartado",
+      "resultados": [],
+      "nota": "Descartado por la fuente; sin trabajo de rotación de llaves. Excluido de los 30 activos."
+    },
+    {
+      "id": "N310",
+      "requisito": "RNF-C3-IN-10",
+      "cantidades": {
+        "escenarios": 8,
+        "fallos": 4,
+        "exitos": 2,
+        "reinicio": 1,
+        "revision": 1,
+        "fugas": 0
+      },
+      "componentes_requeridos": [
+        "C"
+      ],
+      "estado": "pendiente",
+      "resultados": [],
+      "nota": ""
+    },
+    {
+      "id": "N311",
+      "requisito": "RNF-C3-IN-11",
+      "cantidades": {
+        "inyecciones": 9,
+        "pregunta": 3,
+        "historial": 3,
+        "fragmentos": 3
+      },
+      "componentes_requeridos": [
+        "C",
+        "A"
+      ],
+      "estado": "pendiente",
+      "resultados": [],
+      "nota": ""
+    },
+    {
+      "id": "N312",
+      "requisito": "RNF-C3-IN-12",
+      "cantidades": {
+        "clases": 4,
+        "repeticion_invocaciones": 2
+      },
+      "componentes_requeridos": [
+        "C",
+        "DB",
+        "P",
+        "A"
+      ],
+      "estado": "pendiente",
+      "resultados": [],
+      "nota": ""
+    },
+    {
+      "id": "N313",
+      "requisito": "RNF-C3-IN-13",
+      "cantidades": {
+        "destinos": 2,
+        "condiciones": 3,
+        "muestras_por_celda": 30,
+        "total": 180,
+        "razon_p95_max": 1.2,
+        "errores": 0
+      },
+      "componentes_requeridos": [
+        "H",
+        "A",
+        "P"
+      ],
+      "estado": "pendiente",
+      "resultados": [],
+      "nota": ""
+    },
+    {
+      "id": "N401",
+      "requisito": "RNF-C4-IN-01",
+      "cantidades": {
+        "recorridos_por_navegador": 3,
+        "navegadores": [
+          "Chrome",
+          "Firefox"
+        ],
+        "ocultaciones": 5,
+        "textos_en_storage": 0
+      },
+      "componentes_requeridos": [
+        "C",
+        "B",
+        "P"
+      ],
+      "estado": "pendiente",
+      "resultados": [],
+      "nota": ""
+    },
+    {
+      "id": "N402",
+      "requisito": "RNF-C4-IN-02",
+      "cantidades": {
+        "pruebas": 6,
+        "validas": 2,
+        "bloqueos": 3,
+        "cabecera": 1,
+        "moviles_reales": [
+          "Safari iOS",
+          "Chrome Android"
+        ]
+      },
+      "componentes_requeridos": [
+        "C",
+        "P",
+        "H",
+        "B"
+      ],
+      "estado": "pendiente",
+      "resultados": [],
+      "nota": ""
+    }
+  ]
+}
