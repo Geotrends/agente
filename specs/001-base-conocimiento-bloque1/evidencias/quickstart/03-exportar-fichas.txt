@@ -1,0 +1,3 @@
+docker compose exec kb-worker node dist/kb/cli.js exportar-fichas --salida /app/var/exports/fichas
+229 archivos en /app/var/exports/fichas.
+exit=0

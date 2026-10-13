@@ -1,0 +1,4 @@
+# /ready del backend (stack limpio, sin publicar)
+503 {"ready":false,"index":"error","providers":"ok"}
+# chat sin base publicada
+{"error":"Falta el token de sesión.","code":"no_token"}

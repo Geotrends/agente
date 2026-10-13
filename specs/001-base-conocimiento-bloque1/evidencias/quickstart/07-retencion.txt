@@ -1,0 +1,39 @@
+## antes (sembradas: 11 y 14 meses)
+ verif | proc | notif 
+-------+------+-------
+     2 |    2 |     3
+(1 row)
+
+docker compose exec kb-worker node dist/kb/cli.js purgar-retencion
+{
+  limite: '2025-09-08T18:58:45.173Z',
+  meses: 13,
+  filasPorTabla: {
+    kb_verificacion: 1,
+    kb_procesamiento: 1,
+    kb_notificacion: 1,
+    informes: 0
+  }
+}
+## despues
+ verif | proc | notif 
+-------+------+-------
+     1 |    1 |     2
+(1 row)
+
+    url     
+------------
+ seed://11m
+(1 row)
+
+ clave_elemento 
+----------------
+ seed-11m
+(1 row)
+
+     objeto     |   estado    
+----------------+-------------
+ seed-11m-rev   | revisada
+ seed-14m-norev | no_revisada
+(2 rows)
+

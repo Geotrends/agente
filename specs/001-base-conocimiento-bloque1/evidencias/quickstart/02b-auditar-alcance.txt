@@ -1,0 +1,10 @@
+docker compose exec kb-worker node dist/kb/cli.js auditar-alcance
+{
+  ok: true,
+  filas: 584,
+  publicados: 584,
+  puntosSinFila: [],
+  filasSinPuntos: [],
+  fueraDeReglas: []
+}
+exit=0

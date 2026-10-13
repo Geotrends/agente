@@ -1,0 +1,18 @@
+## sincronizar con corrida en proceso
+docker compose exec kb-worker node dist/kb/cli.js sincronizar
+[kb-worker] Corrida 11111111-2222-3333-4444-555555555555: la está procesando otro proceso; se deja el informe en su sitio.
+┌─────────┬────────────────────────────────────────┬─────────────┬────────────────┬─────────────────┬─────────────────────┬───────┬──────────┬───────────┐
+│ (index) │ corrida                                │ yaProcesada │ verificaciones │ elementosNuevos │ versionesPendientes │ bajas │ omitidos │ enProceso │
+├─────────┼────────────────────────────────────────┼─────────────┼────────────────┼─────────────────┼─────────────────────┼───────┼──────────┼───────────┤
+│ 0       │ '11111111-2222-3333-4444-555555555555' │ false       │ 0              │ 0               │ 0                   │ []    │ 0        │ true      │
+└─────────┴────────────────────────────────────────┴─────────────┴────────────────┴─────────────────┴─────────────────────┴───────┴──────────┴───────────┘
+La corrida 11111111-2222-3333-4444-555555555555 la está procesando otro proceso (kb-worker); consulta el avance con kb estado.
+## abandonada: sincronizar la retoma
+[kb-worker] Corrida 11111111-2222-3333-4444-555555555555: 0 verificaciones, 0 nuevos, 0 versiones pendientes, 0 bajas.
+│ 0       │ '11111111-2222-3333-4444-555555555555' │ false       │ 0              │ 0               │ 0                   │ []    │ 0        │
+11111111-2222-3333-4444-555555555555.json
+  estado   
+-----------
+ procesada
+(1 row)
+

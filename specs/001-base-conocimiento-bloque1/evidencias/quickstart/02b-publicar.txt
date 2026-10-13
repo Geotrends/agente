@@ -1,0 +1,3 @@
+docker compose exec kb-worker node dist/kb/cli.js publicar --todos-pendientes
+Publicados: 414.
+exit=0

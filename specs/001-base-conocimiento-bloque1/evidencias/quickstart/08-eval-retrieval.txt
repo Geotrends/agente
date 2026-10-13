@@ -1,0 +1,27 @@
+
+> agent-backend@1.0.0 eval:retrieval
+> node --import tsx scripts/eval-retrieval.ts test/fixtures/golden-set-acotado.json --baseline=test/fixtures/baseline-acotado.json
+
+
+═══ EVALUACIÓN DE RECUPERACIÓN (A-12) ═══
+
+38 preguntas revisadas · 0 pendiente(s) sin incluir
+
+Recuperación (preguntas factuales)
+  14 preguntas
+  recall@8     92.9 %
+  MRR        0.6845
+  nDCG@8     0.7512
+
+  1 con recall 0 — ninguna fuente correcta apareció en el top-8:
+    ac13
+
+Abstención (preguntas fuera de alcance)
+  24 preguntas
+  se abstuvieron  0 / 24
+  (con este MIN_RERANK_SCORE el sistema no abstuvo ninguna — sube el umbral, o revisa
+   si el reranker cayó a la ruta de reserva sin logit que filtrar.)
+
+Frente a la línea base: recall@8 +14.3 pts · MRR -0.0298 · nDCG@8 0.0182
+✓ Sin regresión de recall@8 mayor a 2 puntos.
+exit=0

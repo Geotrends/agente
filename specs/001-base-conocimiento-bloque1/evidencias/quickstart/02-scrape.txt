@@ -1,0 +1,988 @@
+docker compose --profile setup run --rm --build --entrypoint python scraper main.py --output /data --manual 
+ Image geobot-scraper:latest Building 
+#1 [internal] load local bake definitions
+#1 reading from stdin 572B done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile
+#2 transferring dockerfile: 2.86kB done
+#2 DONE 0.0s
+
+#3 [internal] load metadata for docker.io/library/python:3.12-slim
+#3 DONE 0.4s
+
+#4 [internal] load .dockerignore
+#4 transferring context: 102B done
+#4 DONE 0.0s
+
+#5 [ 1/12] FROM docker.io/library/python:3.12-slim@sha256:05cda9777409a9c3ffddd94a4c476b79f0769a0b4857f0c7ed9226b6800b0d6f
+#5 resolve docker.io/library/python:3.12-slim@sha256:05cda9777409a9c3ffddd94a4c476b79f0769a0b4857f0c7ed9226b6800b0d6f done
+#5 DONE 0.0s
+
+#6 [internal] load build context
+#6 transferring context: 1.92kB done
+#6 DONE 0.0s
+
+#7 [ 5/12] RUN pip install --no-cache-dir -r requirements.txt
+#7 CACHED
+
+#8 [10/12] COPY scripts ./scripts
+#8 CACHED
+
+#9 [ 6/12] RUN playwright install --with-deps chromium
+#9 CACHED
+
+#10 [ 7/12] RUN set -eu;     case "amd64" in       amd64) sha=a53ae236602c7338aba3fbaff40bda6300eae3b9fedb8261eb06cfe3724430c1 ;;       arm64) sha=02aa0cb229ba09050cba6638059dadb9eedc2276632ea43d6a57a2f8c1629dd5 ;;       *) echo "arquitectura no soportada: amd64" >&2; exit 1 ;;     esac;     apt-get update && apt-get install -y --no-install-recommends curl ca-certificates;     curl -fsSLo /usr/local/bin/supercronic       "https://github.com/aptible/supercronic/releases/download/v0.2.49/supercronic-linux-amd64";     echo "${sha}  /usr/local/bin/supercronic" | sha256sum -c -;     chmod 0755 /usr/local/bin/supercronic;     apt-get purge -y curl && rm -rf /var/lib/apt/lists/*
+#10 CACHED
+
+#11 [11/12] COPY certs ./certs
+#11 CACHED
+
+#12 [ 9/12] COPY scraper ./scraper
+#12 CACHED
+
+#13 [ 8/12] COPY main.py entrypoint.sh ./
+#13 CACHED
+
+#14 [ 3/12] WORKDIR /app
+#14 CACHED
+
+#15 [ 2/12] RUN python -m venv /opt/venv
+#15 CACHED
+
+#16 [ 4/12] COPY requirements.txt ./
+#16 CACHED
+
+#17 [12/12] RUN useradd --system --uid 10001 geobot     && mkdir -p /data /data/runs     && chown geobot:geobot /data /data/runs
+#17 CACHED
+
+#18 exporting to image
+#18 exporting layers done
+#18 exporting manifest sha256:46f18d4d70cc9c341da26cd3bdaf264e51b22bda1e6d3ac90145e13906b7e83d done
+#18 exporting config sha256:9871af962583a2a7e602c1ed19978bc93330f347327c707c2b59fae75890f19a done
+#18 exporting attestation manifest sha256:c66891d1b1e3b94253de98783daa5feddac27d196638b4f87752b8a8c97395a5 done
+#18 exporting manifest list sha256:2b6bf15e9acb2ea86191e48777d71d7e3b174bf8bea1c3e830d5086bc0ff65d5 done
+#18 naming to docker.io/library/geobot-scraper:latest done
+#18 unpacking to docker.io/library/geobot-scraper:latest done
+#18 DONE 0.0s
+
+#19 resolving provenance for metadata file
+#19 DONE 0.0s
+ Image geobot-scraper:latest Built 
+ Container geobot_limpio-scraper-run-4f4777000423 Creating 
+ Container geobot_limpio-scraper-run-4f4777000423 Created 
+[ambientometro] [ROBOTS] https://ambientometroenvigado.com/robots.txt (200)
+[ambientometro] [PAGE] https://ambientometroenvigado.com/observatorio/
+[ambientometro] [PAGE] https://ambientometroenvigado.com/biblioteca-boletines/
+[ambientometro] [PAGE] https://ambientometroenvigado.com/secreatria-de-medio-ambiente-y-desarrollo-rural/informacion-ambiental/
+[ambientometro] [PAGE] https://ambientometroenvigado.com/observatorio/indicadores-en-tiempo-real/
+[ambientometro] [PAGE] https://ambientometroenvigado.com/observatorio/indicadores-recurso-natural/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2020/12/Fauna.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2020/12/Esterilizacio%CC%81n.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2020/12/siembra.jpg
+[ambientometro] [ERROR] http_404 https://ambientometroenvigado.com/observatorio/consumo-servicios-publicos/
+[ambientometro] [PAGE] https://ambientometroenvigado.com/desarrollo-rural-y-agropecuario/
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2025/
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2025/calidad-de-aire/
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2025/calidad-de-aire/enero/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2025/02/Boletines-de-Calidad-de-Aire-Enero-2025.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2025/calidad-de-aire/febrero/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2025/03/Boletines-Calidad-de-Aire-Febrero-2025.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2025/calidad-de-aire/marzo/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2025/04/Boletines-de-Calidad-de-Aire-Marzo-2025.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2025/calidad-de-aire/abril/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2025/05/Boletines-de-Calidad-de-Aire-Abril-2025.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2025/calidad-de-aire/mayo/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2025/06/Calidad-de-Aire-Mayo-2025.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2025/calidad-de-aire/junio/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2025/07/Calidad-de-Aire-Junio.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2025/calidad-de-aire/julio/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2025/08/Boletines-de-Calidad-de-Aire-Julio-2025.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2025/calidad-de-aire/agosto/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2025/09/Boletines-CalidadAire-Agosto-2025.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2025/calidad-de-aire/septiembre/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2025/10/Boletines-CalidadAire-Septiembre.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2025/calidad-de-aire/octubre/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2025/11/Boletines-Calidad-de-Aire-Octubre2025-1.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2025/calidad-de-aire/noviembre/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2025/12/Boletines-Calidad-de-Aire-Noviembre-2025.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2025/ruido/
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2025/ruido/enero/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2025/02/Boletin-Mensual-Ruido-Enero-2025.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2025/ruido/febrero/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2025/03/Boletin_Ruido_Febrero.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2025/ruido/marzo/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2025/04/Boletin_Ruido_01_31-Marzo.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2025/ruido/abril/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2025/05/Boletin_Ruido-Abril-2025.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2025/ruido/mayo/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2025/06/Boletin_Ruido_01_31-mayo.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2025/ruido/junio/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2025/07/Boletin_Ruido_01_30-Junio.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2025/ruido/julio/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2025/08/Boletin_Ruido_01_31-Julio-1.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2025/ruido/agosto/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2025/09/Boletin-Mensual-Ruido-Agosto-2025.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2025/ruido/septiembre/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2025/10/Boletin_Ruido_01_30-septiembre.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2025/ruido/octubre/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2025/11/Boletin_Ruido_01_31-Octubre.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2025/ruido/noviembre/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2025/12/Boletin_Ruido_01-30-noviembre-2025.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2025/meteorologia/
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2025/meteorologia/enero/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2025/02/Boletines-Meteorologicos-Enero-2025.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2025/meteorologia/febrero/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2025/03/Boletin-condiciones-meteorologicas-Febrero-2025.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2025/meteorologia/marzo/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2025/04/Boletines-de-Condiciones-Meteorologicas-Marzo-2025.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2025/meteorologia/abril/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2025/05/Boletin-Meteorologia-Abril-2025.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2025/meteorologia/mayo/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2025/06/Condiciones-Meteorologicas-Mayo-2025.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2025/meteorologia/junio/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2025/08/BoletinesMeteorologico-Junio-2025__.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2025/meteorologia/julio/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2025/08/Boletin-Condiciones-Meteorologicas-Julio-2025.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2025/meteorologia/agosto/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2025/09/Boletin-Condiciones-Meteorologicas-Agosto-2025.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2025/meteorologia/septiembre/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2025/10/Boletines-Meteorologicos-Septiembre-2025.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2025/meteorologia/octubre/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2025/11/Boletines-Meteorologicos-Octubre-2025.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2025/meteorologia/noviembre/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2025/12/Boletines-Condiciones-Meteorologicas-Noviembre-2025-1.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/educacion/
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/educacion/cartillas/
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/educacion/cartillas/cartilla-la-ayura/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2024/07/CARTILLA-LA-AYURA-EN-CUENTOS-Y-DIBUJOS_.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/manual-de-buenas-practicas/
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/manual-de-buenas-practicas/sector-transporte/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/MANUAL-DE-BUENAS-PRACTICAS-AMBIENTALES-SECTOR-TRANSPORTE-2022.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/manual-de-buenas-practicas/sector-gastronomico-tipo-restaurantes-y-ventas-de-comidas/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/MANUAL-DE-BUENAS-PRACTICAS-AMBIENTALES-SECTOR-GASTRONOMICO-RESTAURANTES-VENTAS-DE-COMIDAS-2021.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/manual-de-buenas-practicas/sector-de-la-transformacion-madera-metal/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/SECTOR-DE-LA-TRANSFORMACION-MADERA-METAL-Cerrajerias-y-Carpinterias2021.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/manual-de-buenas-practicas/sector-comercial-bares-y-discotecas/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/MANUAL-DE-BUENAS-PRACTICAS-AMBIENTALES-SECTOR-COMERCIAL-BARES-Y-DISCOTECAS-2022.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/manual-de-buenas-practicas/sector-de-la-confeccion-textiles-asociados/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/MANUAL-DE-BUENAS-PRACTICAS-AMBIENTALES-SECTOR-DE-LA-CONFECCION-Y-TEXTILES-Y-ASOCIADOS-2022.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2024/
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2024/calidad-del-aire-2024/
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2024/calidad-del-aire-2024/enero/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2024/07/Boletines-Calidad-de-Aire-Enero-2024.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2024/calidad-del-aire-2024/febrero/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2024/07/Boletines-Calidad-de-Aire-Febrero-2024.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2024/calidad-del-aire-2024/marzo/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2024/07/Boletines-Calidad-de-Aire-Marzo-2024-1.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2024/calidad-del-aire-2024/abril/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2024/07/Boletines-Calidad-de-Aire-Abril-2024-1.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2024/calidad-del-aire-2024/mayo/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2024/07/Boletines-Calidad-de-Aire-Mayo-2024-1.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2024/calidad-del-aire-2024/junio/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2024/07/Boletines-Calidad-de-Aire-Junio-2024-1.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2024/calidad-del-aire-2024/julio/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2024/08/Boletin-de-Calidad-de-Aire-Julio-2024.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2024/calidad-del-aire-2024/agosto/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2024/09/Calidad-de-Aire-Agosto-2024.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2024/calidad-del-aire-2024/septiembre/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2024/10/Calidad-de-Aire-Septiembre-2024.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2024/calidad-del-aire-2024/octubre/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2024/11/Boletin-Calidad-de-Aire-octubre-2024-1.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2024/calidad-del-aire-2024/noviembre/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2024/12/Boletines-Calidad-de-Aire-Noviembre.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2024/calidad-del-aire-2024/diciembre/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2025/01/Boletines-de-Calidad-de-Aire-Diciembre-2024.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2024/meteorologia-2024/
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2024/meteorologia-2024/enero/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2024/07/Boletin_perico_01-31-de-enero-de-2024.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2024/meteorologia-2024/febrero/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2024/07/Boletines-condiciones-meteorologicas-febrero-2024.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2024/meteorologia-2024/marzo/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2024/07/Boletines-condiciones-meteorologicas-marzo-2024.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2024/meteorologia-2024/abril/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2024/07/Boletines-condiciones-meteorologicas-abril-2024.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2024/meteorologia-2024/mayo/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2024/07/Boletines-condiciones-meteorologicas-mayo-2024.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2024/meteorologia-2024/junio/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2024/07/Boletines-condiciones-meteorologicas-junio-2024.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2024/meteorologia-2024/julio/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2024/08/Boletin-de-Condiciones-meteorologicas-Julio-2024.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2024/meteorologia-2024/agosto/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2024/09/Condiciones-Meteorologicas-Agosto-2024.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2024/meteorologia-2024/septiembre/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2024/10/Condiciones-Meteorologicas-Septiembre-2024.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2024/meteorologia-2024/octubre/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2024/11/Boletin-Meteorologico-octubre-de-2024.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2024/meteorologia-2024/noviembre/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2024/12/Boletines-Condiciones-Meteorologicas-Noviembre.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2024/meteorologia-2024/diciembre/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2025/01/Boletines-Meteorologicos-Diciembre-2024.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2024/ruido-2024/
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2024/ruido-2024/enero/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2024/07/Boletin_Ruido_01_31-enero.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2024/ruido-2024/febrero/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2024/07/Boletin_Ruido_01_29-de-febrero-2024.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2024/ruido-2024/marzo/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2024/07/Boletin_Ruido_01_31-de-marzo-2024.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2024/ruido-2024/abril/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2024/07/Boletin_Ruido_01_30-de-abril-2024.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2024/ruido-2024/mayo/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2024/07/Boletin_Ruido_01_31-de-Mayo-2024.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2024/ruido-2024/junio/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2024/07/Boletin_Ruido_01_30-de-Junio-2024.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2024/ruido-2024/julio/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2024/08/Boletin_Ruido_01_31-de-Julio-2024.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2024/ruido-2024/agosto/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2024/09/Boletin_Ruido_01_31-de-agosto-2024.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2024/ruido-2024/septiembre/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2024/10/Boletin_Ruido_01_30-de-septiembre-2024.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2024/ruido-2024/octubre/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2024/11/Boletin-Ruido-octubre-2024.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2024/ruido-2024/noviembre/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2024/12/Boletin_Ruido-Noviembre-2024.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2024/ruido-2024/diciembre/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2025/01/Boletin-Mensual-Ruido-Diciembre-2024.pdf
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2023/
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2023/calidad-de-aire-2023/
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2023/calidad-de-aire-2023/enero/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-Mensual-Calidad-de-Aire-1-31-enero-2023.pdf
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-semanal-Calidad-de-Aire-2-08.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-semanal-Calidad-de-Aire-9-15-Enero.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-semanal-Calidad-de-Aire-16-22-Enero.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-semanal-Calidad-de-Aire-23-29-Enero.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2023/calidad-de-aire-2023/febrero/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-Mensual-Calidad-de-Aire-1-28-febrero-2023.pdf
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-semanal-Calidad-de-Aire-30-Enero-5-febrero.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-semanal-Calidad-de-Aire-6-12-febrero.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-semanal-Calidad-de-Aire-13-19-febrero.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-semanal-Calidad-de-Aire-20-26-febrero.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2023/calidad-de-aire-2023/marzo/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_CalidadDeAire_01-31-de-marzo-de-2023.pdf
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-semanal-Calidad-de-Aire-27-febrero-05-marzo.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-semanal-Calidad-de-Aire-06-12-marzo.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-semanal-Calidad-de-Aire-13-19-marzo.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-semanal-Calidad-de-Aire-20-26-marzo.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2023/calidad-de-aire-2023/abril/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-Mensual-Calidad-de-Aire-1-30-abril-2023.pdf
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-semanal-Calidad-de-Aire-27-marzo-02-de-abril.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-semanal-Calidad-de-Aire-03-09-abril.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-semanal-Calidad-de-Aire-10-16-abril.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-semanal-Calidad-de-Aire-17-23-abril.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-semanal-Calidad-de-Aire-24-30-abril.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2023/calidad-de-aire-2023/mayo/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-Mensual-Calidad-de-Aire-1-31-Mayo-2023.pdf
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-semanal-Calidad-de-Aire-1-7-mayo.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-semanal-Calidad-de-Aire-8-14-mayo.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-semanal-Calidad-de-Aire-15-21-mayo.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-semanal-Calidad-de-Aire-22-28-mayo.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2023/calidad-de-aire-2023/junio/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-Mensual-Calidad-de-Aire-1-30-Junio-2023.pdf
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-semanal-Calidad-de-Aire-29-mayo-04-junio.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-semanal-Calidad-de-Aire-05-11-junio.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-semanal-Calidad-de-Aire-12-18-junio.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-semanal-Calidad-de-Aire-19-25-junio.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2023/calidad-de-aire-2023/julio/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/09/Boletin-Mensual-Calidad-de-Aire-1-31-Julio-2023.pdf
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/09/Boletin-semanal-Calidad-de-Aire-26-junio-02-julio.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/09/Boletin-semanal-Calidad-de-Aire-03-09-julio.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/09/Boletin-semanal-Calidad-de-Aire-10-16-julio.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/09/Boletin-semanal-Calidad-de-Aire-17-23-julio.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/09/Boletin-semanal-Calidad-de-Aire-24-30-julio.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2023/calidad-de-aire-2023/agosto/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/09/Boletin-Mensual-Calidad-de-Aire-1-31-agosto-2023.pdf
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/09/Boletin-semanal-Calidad-de-Aire-31-julio-07-de-agosto.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2023/calidad-de-aire-2023/septiembre/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/12/Calidad-de-aire-mes-Septiembre.pdf
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/09/Condiciones-Meteorologicas-28-agosto-03-septiembre.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/09/Condiciones-Meteorologicas-04-10-septiembre.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/09/Condiciones-Meteorologicas-11-17-septiembre.jpg.png
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2023/calidad-de-aire-2023/octubre/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/12/Boletin-Calidad-de-aire-01-31-octubre.pdf
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/12/Boletin-de-calidad-de-aire-09-15-de-octubre.png
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/12/Boletin-Semanal-de-Calidad-de-Aire-16-22-de-octubre.png
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/12/Boletin-Semanal-de-Calidad-de-Aire-23-29-de-octubre.png
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2023/calidad-de-aire-2023/noviembre/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/12/Boletin-Mensual-Calidad-de-Aire-1-30-noviembre-2023.pdf
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/12/Boletin-Semanal-de-Calidad-de-Aire-30-de-octubre-05-nov.png
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/12/Boletin-Semanal-de-Calidad-de-Aire-06-12-noviembre.png
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/12/Boletin-Semanal-de-Calidad-de-Aire-13-19-noviembre.png
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/12/Boletin-semanal-Calidad-de-Aire-20-26-Noviembre.png
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2023/calidad-de-aire-2023/diciembre/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/12/Boletin-semanal-Calidad-de-Aire-27-Noviembre-03-diciembre-.png
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2023/meteorologia-2023/
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2023/meteorologia-2023/enero/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_colegiolasalle_01-31-de-enero-de-2023.pdf
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Condiciones-Meteorologicas_-2-15-Enero-2023.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Condiciones-Meteorologicas_-16-22-Enero-2023.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Condiciones-Meteorologicas_23-29-enero.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2023/meteorologia-2023/febrero/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_colegiolasalle_01-28-de-febrero-de-2023.pdf
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Condiciones-Meteorologicas_30-Enero-5-febrero.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Condiciones-Meteorologicas-20-26-febrero.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Condiciones-Meteorologicas_6-12-febrero.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2023/meteorologia-2023/marzo/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_colegiolasalle_01-31-de-marzo-de-2023.pdf
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Condiciones-Meteorologicas-27febrero-05-marzo.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Condiciones-Meteorologicas-06-12-marzo.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Condiciones-Meteorologicas-13-19-marzo.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Condiciones-Meteorologicas-20-26-marzo.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2023/meteorologia-2023/abril/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_colegiolasalle_01-30-de-abril-de-2023.pdf
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Condiciones-Meteorologicas-27-marzo-02-abril.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Condiciones-Meteorologicas-03-09-abril.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Condiciones-Meteorologicas-10-16-abril.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Condiciones-Meteorologicas-17-23-abril.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Condiciones-Meteorologicas-24-30-abril.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2023/meteorologia-2023/mayo/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_colegiolasalle_01-31-de-mayo-de-2023.pdf
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Condiciones-Meteorologicas-1-7-mayo.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Condiciones-Meteorologicas-8-14-mayo.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Condiciones-Meteorologicas-15-21-mayo.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Condiciones-Meteorologicas-22-28-mayo.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2023/meteorologia-2023/junio/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_colegiolasalle_01-30-de-junio-de-2023.pdf
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Condiciones-Meteorologicas-29-mayo-04-junio.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Condiciones-Meteorologicas-05-11-junio.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Condiciones-Meteorologicas-12-18-junio.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Condiciones-Meteorologicas-19-25-junio.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2023/meteorologia-2023/julio/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/09/consolidados_01-31-de-julio-de-2023-1.pdf
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/09/Condiciones-Meteorologicas-26-junio-02-julio.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Condiciones-Meteorologicas-03-09-julio.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/09/Condiciones-Meteorologicas-10-16-julio-1.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/09/Condiciones-Meteorologicas-17-23-julio-1.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/09/Condiciones-Meteorologicas-24-30-julio-1.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2023/meteorologia-2023/agosto/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/09/consolidados_01-31-de-agosto-de-2023-1.pdf
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/09/Condiciones-Meteorologicas-14-20-agosto-1.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/09/Condiciones-Meteorologicas-21-27-agosto-1.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/09/Condiciones-Meteorologicas-31-julio-06-agosto-1.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2023/meteorologia-2023/septiembre/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/12/Boletin_ElSalado_01-30-de-septiembre-de-2023.pdf
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/09/Condiciones-Meteorologicas-28-agosto-03-septiembre-1.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/09/Condiciones-Meteorologicas-04-10-septiembre-1.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/09/Condiciones-Meteorologicas-11-17-septiembre.jpg-1.png
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/12/Condiciones-Meteorologicas-18-24-septiembre.png
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/12/Condiciones-Meteorologicas-25-septiembre-01-octubre.png
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2023/meteorologia-2023/octubre/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/12/Boletin-Mensual-Colegio-La-Salle-1-31-octubre-2023.pdf
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/12/Condiciones-Meteorologicas-25-septiembre-01-octubre-1.png
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/12/Condiciones-Meteorologicas-02-08-octubre.png
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/12/Condiciones-Meteorologicas-09-15-octubre.png
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/12/Boletin-Semanal-de-Calidad-de-Aire-16-22-de-octubre-1.png
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/12/Boletin-Semanal-de-Calidad-de-Aire-23-29-de-octubre-1.png
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2023/meteorologia-2023/noviembre/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/12/Consolidado-Estacion-Meteorologica-La-Salle-Noviembre.pdf
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/12/Boletin-Semanal-de-Condiciones-Meteorologicas-30-de-octubre-05-noviembre.png
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/12/Boletin-Semanal-de-Condiciones-Meteorologicas-06-12-noviembre.png
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/12/Boletin-Semanal-de-Condiciones-Meteorologicas-13-19-noviembre.png
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/12/Boletin-Semanal-de-Condiciones-meteorologicas-20-26-Noviembre.png
+[ambientometro] [SKIP] pagina sin contenido util https://ambientometroenvigado.com/docs/boletines-2023/meteorologia-2023/diciembre/
+[ambientometro] [JS?] contenido escaso; revisar manualmente https://ambientometroenvigado.com/docs/boletines-2023/meteorologia-2023/diciembre/
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2023/ruido-2023/
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2023/ruido-2023/enero/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Ruido_01_31-enero-2023.pdf
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Quincenal_Ruido_2-15-enero.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Semanal_Ruido_-16-22-enero.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Semanal_Ruido_-23-29-enero.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2023/ruido-2023/febrero/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/BoletinConsolidado_Ruido_01_28-febrero.pdf
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Semanal_Ruido_-30-Enero-5-febrero.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Semanal_Ruido_-6-12-febrero.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Semanal_Ruido_-13-19-febrero.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Semanal_Ruido_-30-Enero-5-febrero-1.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2023/ruido-2023/marzo/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Ruido_Consolidado_01_31-marzo.pdf
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Semanal_Ruido_27-febrero-05-marzo.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Semanal_Ruido_06-12-marzo.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Semanal_Ruido_13-19-marzo.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Semanal_Ruido_20-26-marzo.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2023/ruido-2023/abril/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Ruido_01_30-abril.pdf
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Semanal_Ruido_27-marzo-02-abril.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Semanal_Ruido_03-09-abril.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Semanal_Ruido_10-16-abril.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Semanal_Ruido_17-23-abril.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Semanal_Ruido_24-30-abril.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2023/ruido-2023/mayo/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Ruido_01_31-mayo.pdf
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Semanal_Ruido_1-7-mayo.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Semanal_Ruido_8-14-mayo.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Semanal_Ruido_15-21-mayo.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Semanal_Ruido_22-28-mayo.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2023/ruido-2023/junio/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Ruido_01_30-junio.pdf
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Semanal_Ruido_29-mayo-04-junio.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Semanal_Ruido_05-11-junio.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Semanal_Ruido_12-18-junio.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Semanal_Ruido_19-25-junio.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2023/ruido-2023/julio/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/09/consolidado-Ruido-Julio.pdf
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Semanal_Ruido_03-09-julio.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/09/Boletin_Semanal_Ruido_10-16-julio.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/09/Boletin_Semanal_Ruido_17-23-julio.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/09/Boletin_Semanal_Ruido_24-30-de-julio.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2023/ruido-2023/agosto/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/09/Boletin-mensual-Ruido-Agosto.pdf
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/09/Boletin_Semanal_Ruido_7-13-agosto.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/09/Boletin_Semanal_Ruido_14-20-de-agosto.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/09/Boletin_Semanal_Ruido_21-27-de-agosto.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/09/Boletin_Semanal_Ruido_31-julio-06-de-agosto.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2023/ruido-2023/septiembre/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/12/Boletin-Ruido_01-30-de-septiembre-de-2023.pdf
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/09/Boletin_Semanal_Ruido_28-de-agosto-03-septiembre.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/09/Boletin_Semanal_Ruido_04-10-de-septiembre.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/09/Boletin_Semanal_Ruido_11-17-septiembre.png
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/12/Boletin-de-Ruido-18-24-septiembre.png
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2023/ruido-2023/octubre/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/12/Boletin-Ruido-01-31-octubre.pdf
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/12/Boletin-de-Ruido-02-08-octubre.png
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/12/Boletin-de-Ruido-09-15-octubre.png
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/12/Boletin-Semanal-de-Ruido-16-22-Octubre.png
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/12/Boletin-Semanal-de-Ruido-23-29-Octubre.png
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2023/ruido-2023/noviembre/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/12/Boletin-Mensual-Ruido-1-31-noviembre-2023.pdf
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/12/Boletin-Semanal-de-Ruido-30-Octubre-05-noviembre.png
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/12/Boletin-Semanal-de-Ruido-06-12-noviembre.png
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/12/Boletin-Semanal-de-Ruido-13-19-noviembre.png
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/12/Boletin_Semanal_Ruido_20-26-noviembre.png
+[ambientometro] [SKIP] pagina sin contenido util https://ambientometroenvigado.com/docs/boletines-2023/ruido-2023/diciembre/
+[ambientometro] [JS?] contenido escaso; revisar manualmente https://ambientometroenvigado.com/docs/boletines-2023/ruido-2023/diciembre/
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/2022-2/
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/2022-2/calidad-de-aire-2022/
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/2022-2/calidad-de-aire-2022/enero/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_CalidadDeAire_01-14-de-enero-de-2022.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_CalidadDeAire_01-31-de-enero-de-2022.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/2022-2/calidad-de-aire-2022/febrero/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Consolidado-BAM-fEBRERO-2022.pdf
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-Calidad-de-Aire-Febrero.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_indoorRural_Febrero.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_indoorUrbano_Febrero.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/2022-2/calidad-de-aire-2022/marzo/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_CalidadDeAire_01-31-de-marzo-de-2022.pdf
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Consolidado-Anual-BAM-2022.xlsx.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Consolidado-Calidad-de-Aire-Indoor-Rural.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Consolidado-Calidad-de-Aire-Indoor-Urbano.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/2022-2/calidad-de-aire-2022/abril/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-semanal-Calidad-de-Aire-18-24-abril.pdf
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_CalidadDeAire_01-30-de-abril-de-2022.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_indoorRural_AbriL.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Semanal-BAM-18-24-de-abril.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Consolidado-BAM-Abril-2022.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Grafica-Calidad-de-Aire-V2.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Grafica-Calidad-de-Aire.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/2022-2/calidad-de-aire-2022/mayo/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_CalidadDeAire_01-31-de-mayo-de-2022.pdf
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-semanal-Calidad-de-Aire-02-08-mayo.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-semanal-Calidad-de-Aire-25-1-Mayo.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-semanal-Calidad-de-Aire-16-22-mayo.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-semanal-Calidad-de-Aire-23-29-mayo.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/2022-2/calidad-de-aire-2022/junio/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-Consolidado-Calidad-de-Aire-1-30-de-Junio.pdf
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-semanal-Calidad-de-Aire-06-12-junio.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-semanal-Calidad-de-Aire-13-19-junio.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-semanal-Calidad-de-Aire-20-26-junio.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-semanal-Calidad-de-Aire-30-05-junio.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/2022-2/calidad-de-aire-2022/julio/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_CalidadDeAire_01-31-de-julio-de-2022.pdf
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-semanal-Calidad-de-Aire-04-10-julio.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-semanal-Calidad-de-Aire-11-17-julio.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-semanal-Calidad-de-Aire-18-24-julio.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-semanal-Calidad-de-Aire-25-31-julio.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-semanal-Calidad-de-Aire-27-03-julio.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/2022-2/calidad-de-aire-2022/agosto/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-de-Calidad-de-Aire-Agosto.pdf
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-semanal-Calidad-de-Aire-1-7-agosto.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-semanal-Calidad-de-Aire-8-14-agosto.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-semanal-Calidad-de-Aire-15-21-agosto.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-semanal-Calidad-de-Aire-22-28-agosto.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/2022-2/calidad-de-aire-2022/septiembre/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-semanal-Calidad-de-Aire-1-30-septiembre.pdf
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-semanal-Calidad-de-Aire-5-11-septiembre.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-semanal-Calidad-de-Aire-12-18-septiembre.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-semanal-Calidad-de-Aire-19-25-septiembre.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-semanal-Calidad-de-Aire-29-agosto-04-septiembre.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/2022-2/calidad-de-aire-2022/octubre/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-semanal-Calidad-de-Aire-1-31-octubre-2.pdf
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-semanal-Calidad-de-Aire-03-09-octubre.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-semanal-Calidad-de-Aire-10-16-octubre.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-semanal-Calidad-de-Aire-17-23-octubre.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-semanal-Calidad-de-Aire-24-30-octubre.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-semanal-Calidad-de-Aire-26-02-octubre.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/2022-2/calidad-de-aire-2022/noviembre/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-semanal-Calidad-de-Aire-1-30-de-noviembre.pdf
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-semanal-Calidad-de-Aire-7-13-nov.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-semanal-Calidad-de-Aire-14-20-nov.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-semanal-Calidad-de-Aire-21-27-nov.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-semanal-Calidad-de-Aire-31-octubre-6-nov.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/2022-2/calidad-de-aire-2022/diciembre/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_indoorUrbano_Diciembre.pdf
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-Mensual-Calidad-de-Aire-1-31-diciembre.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-semanal-Calidad-de-Aire-28-nov-04-Dic.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/2022-2/meteorologia/
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/2022-2/meteorologia/enero/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_colegiolasalle_01-14-de-enero-de-2022.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_colegiolasalle_15-28-de-enero-de-2022.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_elsalado_01-14-de-enero-de-2022.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_elsalado_15-28-de-enero-de-2022.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_perico_01-14-de-enero-de-2022.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_perico_15-28-de-enero-de-2022.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/2022-2/meteorologia/febrero/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_colegiolasalle_01-28-de-febrero-de-2022.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_elsalado_01-28-de-febrero-de-2022.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_perico_01-28-de-febrero-de-2022.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/2022-2/meteorologia/marzo/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_colegiolasalle_01-31-de-marzo-de-202.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_elsalado_01-31-de-marzo-de-2022.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_perico_01-31-de-marzo-de-2022.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/2022-2/meteorologia/abril/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_colegiolasalle_01-30-de-abril-de-2022.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_elsalado_01-30-de-abril-de-2022.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_perico_01-30-de-abril-de-2022.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Condiciones-Meteorologicas_18-24-de-abril-de-2022.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/2022-2/meteorologia/mayo/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-Mensual-La-Salle.pdf
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Condiciones-Meteorologicas_02-08-de-mayo-de-2022.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Condiciones-Meteorologicas_09-15-de-mayo-de-2022.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Condiciones-Meteorologicas_16-22-de-mayo-de-2022.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Condiciones-Meteorologicas_23-29-de-mayo-de-2022.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Condiciones-Meteorologicas_25-01-de-mayo-de-2022.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/2022-2/meteorologia/junio/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-Consolidado-Junio-Colegio-La-Salle.pdf
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Condiciones-Meteorologicas_06-12-de-junio-de-2022.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Condiciones-Meteorologicas_13-19-de-junio-de-2022.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Condiciones-Meteorologicas_20-26-de-junio-de-2022.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Condiciones-Meteorologicas_30-05-de-junio-de-2022.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/2022-2/meteorologia/julio/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_colegiolasalle_01-31-de-julio-de-2022.pdf
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Condiciones-Meteorologicas_04-10-de-julio-de-2022.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Condiciones-Meteorologicas_11-17-de-julio-de-2022.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Condiciones-Meteorologicas_18-24-de-julio-de-2022.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Condiciones-Meteorologicas_25-31-de-julio-de-2022.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Condiciones-Meteorologicas_27-03-de-julio-de-2022.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/2022-2/meteorologia/agosto/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_colegiolasalle_01-31-de-agosto-de-2022.pdf
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Condiciones-Meteorologicas_1-7-de-agosto.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Condiciones-Meteorologicas_15-21-de-agosto.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Condiciones-Meteorologicas_22-28-de-agosto.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/2022-2/meteorologia/septiembre/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_colegiolasalle_01-30-de-septiembre-de-2022.pdf
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Condiciones-Meteorologicas_5-11-septiembre.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Condiciones-Meteorologicas_12-18-septiembre.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Condiciones-Meteorologicas_19-25-septiembre.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Condiciones-Meteorologicas_29-de-agosto-04-septiembre.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/2022-2/meteorologia/octubre/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_colegiolasalle_01-31-de-octubre-de-2022.pdf
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Condiciones-Meteorologicas_26-septiembre-2-octubre.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Condiciones-Meteorologicas_3-09-octubre.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Condiciones-Meteorologicas_17-23-octubre.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Condiciones-Meteorologicas_24-30-octubre.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/2022-2/meteorologia/noviembre/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_colegiolasalle_01-30-de-noviembre-de-2022.pdf
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Condiciones-Meteorologicas_31-octubre-6-nov.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Condiciones-Meteorologicas_-7-13-nov.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Condiciones-Meteorologicas_-14-20-nov.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Condiciones-Meteorologicas_-21-27-nov.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/2022-2/meteorologia/diciembre/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-Perico_01-31-de-diciembre-de-2022.pdf
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Condiciones-Meteorologicas_-28-Nov-04-Dic.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/2022-2/ruido/
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/2022-2/ruido/febrero/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Ruido_01_28-febrero.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/2022-2/ruido/marzo/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Ruido_01_31-marzo.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/2022-2/ruido/abril/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Consolidado-Ruido-Abril.pdf
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Semanal_Ruido_18_24abril.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Semanal_Ruido_18_24-V2.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/2022-2/ruido/mayo/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Consolidado_Ruido_01_31-Mayo.pdf
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Semanal_Ruido_02_08-mayo.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Semanal_Ruido_09_15-mayo.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Semanal_Ruido_16_22-mayo.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Semanal_Ruido_23_29-mayo.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Semanal_Ruido_25_01-mayo.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/2022-2/ruido/junio/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-Ruido-Consolidado-Junio.pdf
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Semanal_Ruido_06_12-junio.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Semanal_Ruido_13_19-junio.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Semanal_Ruido_20_26-junio.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Semanal_Ruido_30_05-junio.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/2022-2/ruido/julio/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Ruido_Consolidado-Julio.pdf
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Semanal_Ruido_04-10-julio.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Semanal_Ruido_11-17-julio.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Semanal_Ruido_18-24-julio.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Semanal_Ruido_25-31-julio.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Semanal_Ruido_27_03-julio.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/2022-2/ruido/agosto/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Ruido_Consolidado.01_31-Agosto.pdf
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Semanal_Ruido_01-07-agosto.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Semanal_Ruido_08-14-agosto.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Semanal_Ruido_15-21-agosto.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Semanal_Ruido_22-28-agosto.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/2022-2/ruido/septiembre/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-Consolidado-Ruido-Septiembre.pdf
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Semanal_Ruido_29-agosto-04-de-septiembre.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Semanal_Ruido_5-11-septiembre.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Semanal_Ruido_12-18-septiembre.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Semanal_Ruido_19-25-septiembre.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/2022-2/ruido/octubre/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Ruido_01_31-Octubre.pdf
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Semanal_Ruido_26-septiembre-2-octubre.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Semanal_Ruido_3-9-octubre.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Semanal_Ruido_10-16-octure.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Semanal_Ruido_17-23-octubre.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Semanal_Ruido_24-30-octubre.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/2022-2/ruido/noviembre/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Ruido_01_30-noviembre.pdf
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Semanal_Ruido_31-octubre-6-nov.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Semanal_Ruido_-7-13-nov.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Semanal_Ruido_-14-20-nov.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Semanal_Ruido_-21-27-nov.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/2022-2/ruido/diciembre/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Ruido_01_31-diciembre.pdf
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Semanal_Ruido_-28-nov-04-dic.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2021/
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2021/calidad-de-aire-indoor/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_indoor_28_03.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_indoor_ene-04_10.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Indoor_feb-01-07.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_indoor_feb-08_14.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_indoor_feb-15_21.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_indoor_12_18.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_indoor_Mayo.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_indoor-03-16.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Indoor_13-27.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Consolidado-JUNIO2021.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_ConsolidadoIndoor_junio.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_indoor-07-20-Junio.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Indoor_24mayo-07junio.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Indoor-21-Junio-04-Julio.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_indoor_julio.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_CalidadDeAire_Indoor05-18-de-julio-de-2021.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_CalidadDeAire_Indoor19-de-julio-01-de-agosto-de-2021.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Consolidado-Indoor-Agosto.jpeg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_CalidadDeAire_Indoor02-15-de-agosto-de-2021.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_CalidadDeAire_Indoor16-29-de-agosto-de-2021.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_CalidadDeAire_Indoor30-de-agosto-12-de-septiembre-de-2021.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_indoor_Septiembre.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_CalidadDeAire_Indoor13-26-de-septiembre-de-2021.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_CalidadDeAire_Indoor30-de-agosto-12-de-septiembre-de-2021-1.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_CalidadDeAire_Indoor11-24-de-octubre-de-2021.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_CalidadDeAire_Indoor27-de-septiembre-10-de-octubre-de-2021.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2021/calidad-de-aire-indoor-corantioquia/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_indoor-CORANTIOQUIA.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2021/est-meteorologica-colegio-comercial/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_colegiocomercial_2020-12-28-2021-01-03.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_colegiocomercial_2021-03-15_2021-03-21.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_colegiocomercial_2021-04-12-18.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_colegiocomercial_abril.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_colegiocomercial_2021-05-10-23.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_colegiocomercial_2021-05-13-27.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_colegiocomercial_2021-05-24_2021-06-07.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Colegiocomercial-24mayo-07-junio.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Comercial-07-20-Junio.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2021/est-meteorologica-colegio-la-salle/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_colegiolasalle_2020-12-28-2021-01-03.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_colegiolasalle_2021-01-04-2021-01-10.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_colegiolasalle_abril.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_colegiolasalle_Mayo.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_colegiolasalle_2021-05-10-23.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_colegiolasalle_2021-05-13-27.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_colegiolasalle_2021-05-24_2021-06-07.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_LaSalle-07-20-Junio.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_LaSalle-24mayo-07-junio.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_colegiolasalle-21-Junio-04-Julio.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_colegiolasalle_04-17-de-octubre-de-2021.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2021/est-meteorologica-cruz-del-porvenir/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_perico_2020-12-28-2021-01-03.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_perico_2021-01-04-2021-01-10.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_perico_abril.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_perico_Mayo.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_perico_2021-05-13-27.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_perico_2021-05-23.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_perico_2021-05-24_2021-06-07.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_perico-07-20-Junio.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_perico_24mayo_07junio.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Perico-21-Junio-04-Julio.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_perico_04-17-de-octubre-de-2021.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2021/est-meteorologica-parque-ecologico-el-salado/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_elsalado_2020-12-28-2021-01-03.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_elsalado_2021-01-04-2021-01-10.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_ESalado-07-20-Junio.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_ElSalado-21-Junio-04-Julio.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_elsalado_04-17-de-octubre-de-2021.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2021/estacion-de-calidad-de-aire/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_bam1020_1_28_03.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_bam1020_1_ene-04_10.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Contingencia-feb-Abr-2021.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_bam1020_1_01_24.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Consolidado2021-a-Marzo.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_bam1020_1_01_18-marzo.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_bam1020_1_15_21-marzo_-Semana11.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_bam1020_1_22_28-marzo_-Semana12.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_bam1020_Marzo.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_bam1020_Marzo2.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_bam1020_Semana-9.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_bam1020_Semana-10.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Contingencia-feb-Abr-2021-1.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_bam1020_1_04abril_-Semana13.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_bam1020_05_11abril_-Semana14.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_bam1020_Abril.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_bam1020_Semana15.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Consolidado2021-Abril.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Bam-31-mayo-14-junio.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Consolidado-JULIO2021.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_CalidadDeAire_12-25-de-julio-de-2021.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Consolidado-AGOSTO-2021.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_CalidadDeAire_26-de-julio-08-de-agosto-de-2021.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Consolidado-SEPTIEMBRE-2021.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_CalidadDeAire_06-19-de-septiembre-de-2021.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_CalidadDeAire_23-de-agosto-05-de-septiembre-de-2021.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Consolidado-BAM-Octubre-2021.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_CalidadDeAire_08-21-de-noviembre-de-2021.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Consolidado-BAM-Diciembre-2021.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2021/eventos-de-precipitacion/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-Luvia-abri29-Mayo2.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-Lluvia-20-de-junio.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin-Lluvia-22-septiembre.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/docs/boletines-2021/presion-sonora/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Ruido_28_03.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Ruido_enero_04_10.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Ruido_12_18.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Ruido_12_25.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Ruido_26_09.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Ruido_Mayo.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Consolidado_Ruido-Junio.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Ruido_14_27-junio.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Ruido_31mayo_14junio.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2023/07/Boletin_Ruido_11_24-Octubre.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/autoridad-ambiental/
+[ambientometro] [PAGE] https://ambientometroenvigado.com/secreatria-de-medio-ambiente-y-desarrollo-rural/informacion-ambiental/gestion-ambiental/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2022/12/Piezas-SIGAM1.png
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2022/12/Piezas-SIGAM2.png
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2022/12/Piezas-SIGAM3.png
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2022/12/Piezas-SIGAM4.png
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2022/12/Piezas-SIGAM5.png
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2022/12/Piezas-SIGAM6.png
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2022/12/Piezas-SIGAM7.png
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2022/12/Piezas-SIGAM8.png
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2022/12/Piezas-SIGAM9.png
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2022/12/Piezas-SIGAM10.png
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2022/12/Piezas-SIGAM11.png
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2022/12/Piezas-SIGAM12.png
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2022/12/Aire-e1583612335323.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2022/12/Aire-MES-e1583612305933.png
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2022/12/Atrevete-1-1-e1583612261259.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2022/12/Atrevete-e1583612242820.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2022/12/Atrevete-e1583612281445.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2022/12/aire-600x714-1.png
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2022/12/Educacion-600x713-1.png
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2022/12/Inspeccion-600x720-1.png
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2022/12/PSA-600x719-1.png
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2022/12/Recurso-hidrico-600x716-1.png
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2022/12/Ruido-600x713-1.png
+[ambientometro] [PAGE] https://ambientometroenvigado.com/secreatria-de-medio-ambiente-y-desarrollo-rural/informacion-ambiental/desarrollo-agropecuario/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2022/04/EXTENSION-AGROPECUARIA-1-e1649349418163.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2022/12/rural8.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2022/12/rural7.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2022/12/rural5.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2022/12/rural4.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2022/12/rural3.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2022/12/rural2.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2022/12/rural1.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/secreatria-de-medio-ambiente-y-desarrollo-rural/informacion-ambiental/ecosistemas-y-biodiversidad/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2022/12/Trogon-Trogon-personatus-Macho.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2022/12/Corredor-Regional-del-Tigrillo-Alto-del-Escobero.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2022/12/Copy-of-IMG_5458.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2022/12/Copy-of-IMG_2330.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2022/12/Bosques-de-Roble-de-Perico-1.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/secreatria-de-medio-ambiente-y-desarrollo-rural/informacion-ambiental/bienestar-animal/
+[ambientometro] [PAGE] https://ambientometroenvigado.com/secreatria-de-medio-ambiente-y-desarrollo-rural/informacion-ambiental/gestion-ambiental/
+[ambientometro] [PAGE] https://ambientometroenvigado.com/observatorio/monitoreo-de-fuentes-moviles/
+[ambientometro] [PAGE] https://ambientometroenvigado.com/calidad-del-aire/
+[ambientometro] [PAGE] https://ambientometroenvigado.com/calidad-del-aire-indoor/
+[ambientometro] [PAGE] https://ambientometroenvigado.com/variables-ambientales/
+[ambientometro] [PAGE] https://ambientometroenvigado.com/cambio-climatico/
+[ambientometro] [SKIP] pagina sin contenido util https://ambientometroenvigado.com/fauna-silvestre/
+[ambientometro] [SKIP] pagina sin contenido util https://ambientometroenvigado.com/fauna-domestica/
+[ambientometro] [SKIP] pagina sin contenido util https://ambientometroenvigado.com/monitoreo-de-biodiversidad/
+[ambientometro] [PAGE] https://ambientometroenvigado.com/registro-de-siembras/
+[ambientometro] [SKIP] pagina sin contenido util https://ambientometroenvigado.com/observatorio/indicadores-recurso-natural/sistema-de-arbolado-urbano-sau/
+[ambientometro] [PAGE] https://ambientometroenvigado.com/campanas-de-calidad-del-aire/
+[ambientometro] [SKIP] pagina sin contenido util https://ambientometroenvigado.com/recurso-hidrico/
+[ambientometro] [SKIP] pagina sin contenido util https://ambientometroenvigado.com/observatorio/indicadores-en-tiempo-real/precipitacion-colegio-leonardo-da-vinci/
+[ambientometro] [JS?] contenido escaso; revisar manualmente https://ambientometroenvigado.com/observatorio/indicadores-en-tiempo-real/precipitacion-colegio-leonardo-da-vinci/
+[ambientometro] [PAGE] https://ambientometroenvigado.com/secreatria-de-medio-ambiente-y-desarrollo-rural/informacion-ambiental/ecosistemas-y-biodiversidad/
+[ambientometro] [PAGE] https://ambientometroenvigado.com/observatorio/indicadores-recurso-natural/indicadores-vegetacion/
+[ambientometro] [PAGE] https://ambientometroenvigado.com/campanas/
+[ambientometro] [PAGE] https://ambientometroenvigado.com/observatorio/indicadores-recurso-natural/indicadores-fauna/
+[ambientometro] [PAGE] https://ambientometroenvigado.com/secreatria-de-medio-ambiente-y-desarrollo-rural/informacion-ambiental/ecosistemas-y-biodiversidad/objetos-de-conservacion/
+[ambientometro] [PAGE] https://ambientometroenvigado.com/ecozona-las-tres-lomas-2/
+[ambientometro] [PAGE] https://ambientometroenvigado.com/proyectos-ambientales/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2022/12/fb13a30c-5e97-41e0-8c69-835afca7ceb1.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2022/12/eee94ac5-7caa-4723-bbe8-16fcd03ad49c.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2022/12/def27492-984f-4575-abf1-cf89f6ba5f24.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2022/12/d808cc65-51c8-4596-af66-dfd907884d93.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2022/12/38c20d01-984a-439e-9945-c1f852015b0b.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2022/12/3b71b72d-d1b3-4b53-a76c-fa5a0e6d102d.jpg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/sensor-de-calidad-de-aire-indoor-colegio-leonardo-davinci/
+[ambientometro] [PAGE] https://ambientometroenvigado.com/observatorio/indicadores-en-tiempo-real/estacion-de-calidad-de-aire-medicion-de-material-particulado-pm2-5/
+[ambientometro] [ERROR] http_404 https://ambientometroenvigado.com/observatorio/indicadores-en-tiempo-real/estacion-de-calidad-de-aire-indoor-secretaria-de-medio-ambiente/
+[ambientometro] [SKIP] pagina sin contenido util https://ambientometroenvigado.com/calidad-del-aire-pm-25/
+[ambientometro] [JS?] contenido escaso; revisar manualmente https://ambientometroenvigado.com/calidad-del-aire-pm-25/
+[ambientometro] [SKIP] pagina sin contenido util https://ambientometroenvigado.com/presion-sonora/
+[ambientometro] [JS?] contenido escaso; revisar manualmente https://ambientometroenvigado.com/presion-sonora/
+[ambientometro] [PAGE] https://ambientometroenvigado.com/observatorio/indicadores-en-tiempo-real/estacion-de-calidad-de-aire-indoor-i-e-jose-manuel-restrepo/
+[ambientometro] [ERROR] http_404 https://ambientometroenvigado.com/observatorio/indicadores-en-tiempo-real/estacion-de-calidad-de-aire-indoor-crear-unidos/
+[ambientometro] [PAGE] https://ambientometroenvigado.com/secreatria-de-medio-ambiente-y-desarrollo-rural/informacion-ambiental/bienestar-animal/
+[ambientometro] [PAGE] https://ambientometroenvigado.com/observatorio/indicadores-en-tiempo-real/estacion-meteorologica-colegio-la-salle/
+[ambientometro] [ERROR] http_403 https://ambientometroenvigado.com/observatorio/indicadores-en-tiempo-real/estacion-meteorologica-secretaria-de-medio-ambiente-y-desarrollo-rural-y-agropecuario/?preview=true&preview_id=7041&preview_nonce=917adca788
+[ambientometro] [PAGE] https://ambientometroenvigado.com/observatorio/indicadores-en-tiempo-real/estacion-meteorologica-colegio-cruz-del-porvenir/
+[ambientometro] [PAGE] https://ambientometroenvigado.com/observatorio/indicadores-en-tiempo-real/estacion-meteorologica-parque-ecologico-el-salado/
+[ambientometro] [PAGE] https://ambientometroenvigado.com/ruido-ambiental/
+[ambientometro] [PAGE] https://ambientometroenvigado.com/plan-local-de-cambio-climatico/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2022/10/medidas-mitigacion-sec-medio-ambiente-envigado_compressed.pdf
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2022/10/medidas-adaptacion-sec-medio-ambiente-envigado_compressed.pdf
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2022/12/ICLEI1-e1631828237374.jpeg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2022/12/ICLEI6-e1631828122957.jpeg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2022/12/ICLEI3-e1631828217838.jpeg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2022/12/ICLEI4-e1631828324866.jpeg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2022/12/ICLEI2-e1631828196368.jpeg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2022/12/ICLEI5-e1631828173361.jpeg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/gestion-energetica-smada/
+[ambientometro] [PAGE] https://ambientometroenvigado.com/registro-de-mascotas-2/
+[ambientometro] [SKIP] pagina sin contenido util https://ambientometroenvigado.com/observatorio/indicadores-recurso-natural/sistema-de-arbolado-urbano-sau/
+[ambientometro] [SKIP] pagina sin contenido util https://ambientometroenvigado.com/campanas-de-calidad-de-aire/
+[ambientometro] [JS?] contenido escaso; revisar manualmente https://ambientometroenvigado.com/campanas-de-calidad-de-aire/
+[ambientometro] [PAGE] https://ambientometroenvigado.com/campana-de-adopcion-animales-de-compania/
+[ambientometro] [PAGE] https://ambientometroenvigado.com/secreatria-de-medio-ambiente-y-desarrollo-rural/informacion-ambiental/desarrollo-agropecuario/
+[ambientometro] [PAGE] https://ambientometroenvigado.com/campana-de-esterilizacion-de-caninos-y-felinos/
+[ambientometro] [PAGE] https://ambientometroenvigado.com/autoridad-ambiental/area-metropolitana/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2020/12/Solicitudes-y-tramites.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2020/12/Registro-Gestio%CC%81n-Ambiental.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2020/12/Residuos-peligrosos.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2020/12/Vertimientos.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2020/12/Aprovechamiento-forestal.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2020/12/Concesiones-Aguas.png
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2020/12/Aguas-subterraneas.png
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2020/12/Operaciones-forestales.png
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2020/12/Ocupacio%CC%81n-Cauce.png
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2020/12/A%CC%81rbole-en-riesgo.png
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2020/12/53.png
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2020/12/82.png
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2020/12/92.png
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2020/12/62.png
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2020/12/72.png
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2020/12/Aire1.jpeg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2020/12/Aire2.jpeg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2020/12/Aire3.jpeg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2020/12/Aire4.jpeg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2020/12/Aire5.jpeg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2020/12/Aire6.jpeg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2020/12/Aire7.jpeg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2020/12/Aire8.jpeg
+[ambientometro] [PAGE] https://ambientometroenvigado.com/ecozona-el-trianon/
+[ambientometro] [PAGE] https://ambientometroenvigado.com/ecozona-el-trianon/
+[ambientometro] [PAGE] https://ambientometroenvigado.com/ecozona-las-tres-lomas-2/
+[ambientometro] [SKIP] pagina sin contenido util https://ambientometroenvigado.com/sensor-de-calidad-de-aire-indoor-escuela-cruz-del-porvenir/
+[ambientometro] [JS?] contenido escaso; revisar manualmente https://ambientometroenvigado.com/sensor-de-calidad-de-aire-indoor-escuela-cruz-del-porvenir/
+[ambientometro] [PAGE] https://ambientometroenvigado.com/observatorio/indicadores-en-tiempo-real/estacion-de-calidad-de-aire-indoor-villa-grande/
+[ambientometro] [PAGE] https://ambientometroenvigado.com/observatorio/disposicion-de-residuos-solidos/
+[ambientometro] [PAGE] https://ambientometroenvigado.com/campana-de-adopcion/
+[ambientometro] [SKIP] pagina sin contenido util https://ambientometroenvigado.com/observatorio/indicadores-en-tiempo-real/presion-sonora-mcdonalds-2/
+[ambientometro] [SKIP] pagina sin contenido util https://ambientometroenvigado.com/observatorio/indicadores-en-tiempo-real/clinica-de-la-policia/
+[ambientometro] [PAGE] https://ambientometroenvigado.com/observatorio/indicadores-en-tiempo-real/presion-sonora-iue-2/
+[ambientometro] [PAGE] https://ambientometroenvigado.com/proyectos/
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2019/08/INFOGRA%CC%81FICO-HUELLASRESULTADOS2018_2019-01-e1583760807302.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2020/03/PERSONERIA_1-e1584462518885.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2020/03/MOVILIDAD_1-scaled-e1584462469680.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2020/03/INDER_1-e1584462441271.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2020/03/PERSONERIA_2-e1584463466254.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2020/03/OBRAS_PU%CC%81BLICAS_1-e1584462498603.jpg
+[ambientometro] [SKIP] duplicate https://ambientometroenvigado.com/wp-content/uploads/2020/03/ENVIASEO_2-scaled-e1584462412663.jpg
+[ambientometro] [SKIP] pagina sin contenido util https://ambientometroenvigado.com/gestion-energetica/
+[ambientometro] [SKIP] pagina sin contenido util https://ambientometroenvigado.com/observatorio/indicadores-en-tiempo-real/condiciones-meteorologicas/
+[ambientometro] [PAGE] https://ambientometroenvigado.com/autoridad-ambiental/corantioquia-2/
+[ambientometro] [PAGE] https://ambientometroenvigado.com/observatorio/indicadores-en-tiempo-real/estacion-de-calidad-de-aire-indoor-colegio-benedictino/
+[ambientometro] [SKIP] pagina sin contenido util https://ambientometroenvigado.com/observatorio/indicadores-en-tiempo-real/presion-sonora-escobero/
+[ambientometro] [SKIP] pagina sin contenido util https://ambientometroenvigado.com/observatorio/indicadores-en-tiempo-real/presion-sonora-la-botal-de-dia/
+[ambientometro] [SKIP] pagina sin contenido util https://ambientometroenvigado.com/calidad-de-aire/
+[ambientometro] [JS?] contenido escaso; revisar manualmente https://ambientometroenvigado.com/calidad-de-aire/
+[ambientometro] [PAGE] https://ambientometroenvigado.com/observatorio/indicadores-en-tiempo-real/presion-sonora-loma-del-chocho/
+[envigado_com] [ROBOTS] https://www.envigado.gov.co/robots.txt (200)
+[envigado_com] [PAGE] https://www.envigado.gov.co/politicas-y-lineamientos/servicio-al-ciudadano/
+[envigado_com] [PAGE] https://www.envigado.gov.co/contactenos/
+[envigado_com] [PAGE] https://www.envigado.gov.co/peticiones-quejas-reclamos/
+[envigado_com] [PAGE] https://www.envigado.gov.co/tema/tramites-y-servicios/secretaria-de-medio-ambiente-y-desarrollo-agropecuario/
+[gmas2_envigado] [ERROR] robots_error https://gmas2.envigado.gov.co/robots.txt
+[gmas2_envigado] [PAGE] https://gmas2.envigado.gov.co/gmas/VisualizacionDocumento.public?documento=0000010207
+[gmas2_envigado] [PAGE] https://gmas2.envigado.gov.co/gmas/VisualizacionDocumento.public?documento=0000010446
+[gmas2_envigado] [PAGE] https://gmas2.envigado.gov.co/gmas/VisualizacionDocumento.public?documento=0000002145
+[gmas2_envigado] [PAGE] https://gmas2.envigado.gov.co/gmas/VisualizacionDocumento.public?documento=0000010445
+[gmas2_envigado] [PAGE] https://gmas2.envigado.gov.co/gmas/VisualizacionDocumento.public?documento=0000002147
+[gmas2_envigado] [PAGE] https://gmas2.envigado.gov.co/gmas/VisualizacionDocumento.public?documento=0000004622
+[gmas2_envigado] [DEROGADO] https://gmas2.envigado.gov.co/gmas/VisualizacionDocumento.public?documento=0000002961
+[gmas2_envigado] [DEROGADO] https://gmas2.envigado.gov.co/gmas/VisualizacionDocumento.public?documento=0000000475
+[gmas2_envigado] [PAGE] https://gmas2.envigado.gov.co/gmas/VisualizacionDocumento.public?documento=0000012522
+[gmas2_envigado] [PAGE] https://gmas2.envigado.gov.co/gmas/VisualizacionDocumento.public?documento=0000013830
+[gmas2_envigado] [PAGE] https://gmas2.envigado.gov.co/gmas/VisualizacionDocumento.public?documento=0000000392
+[gmas2_envigado] [PAGE] https://gmas2.envigado.gov.co/gmas/VisualizacionDocumento.public?documento=0000013837
+[gmas2_envigado] [PAGE] https://gmas2.envigado.gov.co/gmas/VisualizacionDocumento.public?documento=0000001202
+[gmas2_envigado] [PAGE] https://gmas2.envigado.gov.co/gmas/VisualizacionDocumento.public?documento=0000001203
+[gmas2_envigado] [PAGE] https://gmas2.envigado.gov.co/gmas/VisualizacionDocumento.public?documento=0000001204
+[gmas2_envigado] [PAGE] https://gmas2.envigado.gov.co/gmas/VisualizacionDocumento.public?documento=0000000394
+[gmas2_envigado] [PAGE] https://gmas2.envigado.gov.co/gmas/VisualizacionDocumento.public?documento=0000013836
+[gmas2_envigado] [PAGE] https://gmas2.envigado.gov.co/gmas/VisualizacionDocumento.public?documento=0000000395
+[gmas2_envigado] [PAGE] https://gmas2.envigado.gov.co/gmas/VisualizacionDocumento.public?documento=0000010469
+[gmas2_envigado] [PAGE] https://gmas2.envigado.gov.co/gmas/VisualizacionDocumento.public?documento=0000005274
+[gmas2_envigado] [PAGE] https://gmas2.envigado.gov.co/gmas/VisualizacionDocumento.public?documento=0000001312
+[gmas2_envigado] [PAGE] https://gmas2.envigado.gov.co/gmas/VisualizacionDocumento.public?documento=0000000411
+[gmas2_envigado] [PAGE] https://gmas2.envigado.gov.co/gmas/VisualizacionDocumento.public?documento=0000004635
+[gmas2_envigado] [PAGE] https://gmas2.envigado.gov.co/gmas/VisualizacionDocumento.public?documento=0000001276
+[gmas2_envigado] [SKIP] duplicate https://gmas2.envigado.gov.co/gmas/downloadFile.public?repositorioArchivo=000000269746&ruta=%2Fdocumentacion%2F0000012522%2F0000000077
+[gmas2_envigado] [SKIP] duplicate https://gmas2.envigado.gov.co/gmas/downloadFile.public?repositorioArchivo=000000376826&ruta=%2Fdocumentacion%2F0000013830%2F0000000077
+[gmas2_envigado] [SKIP] duplicate https://gmas2.envigado.gov.co/gmas/downloadFile.public?repositorioArchivo=000000000317&ruta=%2Fdocumentacion%2F0000000392%2F0000000077
+[gmas2_envigado] [SKIP] duplicate https://gmas2.envigado.gov.co/gmas/downloadFile.public?repositorioArchivo=000000376754&ruta=%2Fdocumentacion%2F0000013837%2F0000000077
+[gmas2_envigado] [SKIP] duplicate https://gmas2.envigado.gov.co/gmas/downloadFile.public?repositorioArchivo=000000000932&ruta=%2Fdocumentacion%2F0000001202%2F0000000107
+[gmas2_envigado] [SKIP] duplicate https://gmas2.envigado.gov.co/gmas/downloadFile.public?repositorioArchivo=000000000933&ruta=%2Fdocumentacion%2F0000001203%2F0000000107
+[gmas2_envigado] [SKIP] duplicate https://gmas2.envigado.gov.co/gmas/downloadFile.public?repositorioArchivo=000000000934&ruta=%2Fdocumentacion%2F0000001204%2F0000000107
+[gmas2_envigado] [SKIP] duplicate https://gmas2.envigado.gov.co/gmas/downloadFile.public?repositorioArchivo=000000000319&ruta=%2Fdocumentacion%2F0000000394%2F0000000077
+[gmas2_envigado] [SKIP] duplicate https://gmas2.envigado.gov.co/gmas/downloadFile.public?repositorioArchivo=000000376832&ruta=%2Fdocumentacion%2F0000013836%2F0000000077
+[gmas2_envigado] [SKIP] duplicate https://gmas2.envigado.gov.co/gmas/downloadFile.public?repositorioArchivo=000000000320&ruta=%2Fdocumentacion%2F0000000395%2F0000000077
+[gmas2_envigado] [SKIP] duplicate https://gmas2.envigado.gov.co/gmas/downloadFile.public?repositorioArchivo=000000161206&ruta=%2Fdocumentacion%2F0000010469%2F0000000107
+[gmas2_envigado] [SKIP] duplicate https://gmas2.envigado.gov.co/gmas/downloadFile.public?repositorioArchivo=000000014423&ruta=%2Fdocumentacion%2F0000005274%2F0000000107
+[gmas2_envigado] [SKIP] duplicate https://gmas2.envigado.gov.co/gmas/downloadFile.public?repositorioArchivo=000000001026&ruta=%2Fdocumentacion%2F0000001312%2F0000000107
+[gmas2_envigado] [SKIP] duplicate https://gmas2.envigado.gov.co/gmas/downloadFile.public?repositorioArchivo=000000000336&ruta=%2Fdocumentacion%2F0000000411%2F0000000077
+[gmas2_envigado] [SKIP] duplicate https://gmas2.envigado.gov.co/gmas/downloadFile.public?repositorioArchivo=000000009185&ruta=%2Fdocumentacion%2F0000004635%2F0000000107
+[gmas2_envigado] [SKIP] duplicate https://gmas2.envigado.gov.co/gmas/downloadFile.public?repositorioArchivo=000000001005&ruta=%2Fdocumentacion%2F0000001276%2F0000000107
+Informe de corrida: /data/runs/bc840515-371b-477f-9e71-2ac517b5f8cc.json
+
+===================================================
+SCRAPING COMPLETADO
+===================================================
+
+AMBIENTOMETRO
+Paginas visitadas:      245
+Documentos evaluados:   583
+Documentos descargados: 0
+Markdown guardado:      225
+
+ENVIGADO.GOV.CO
+Paginas visitadas:      4
+Markdown guardado:      4
+
+GMAS2 ENVIGADO
+Paginas visitadas:      24
+Markdown guardado:      22
+
+Duplicados globales: 599
+Errores:             5
+
+Salida:
+/data
+===================================================
+Corrida terminada. El kb-worker la procesa solo; para forzarlo: make kb CMD="sincronizar"
+exit=0

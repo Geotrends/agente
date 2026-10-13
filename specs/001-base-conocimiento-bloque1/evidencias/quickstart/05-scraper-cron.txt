@@ -1,0 +1,2 @@
+scraper-1  | Scraper programado: '0 2 * * 0' (America/Bogota)
+scraper-1  | time="2026-10-08T13:09:18-05:00" level=info msg="read crontab: /tmp/crontab"

@@ -1,0 +1,315 @@
+
+> agent-backend@1.0.0 test:kb-integracion
+> node --import tsx --test --test-concurrency=1 test/kb-integracion/*.test.ts
+
+TAP version 13
+# Subtest: el estado queda listo con el alias publicado
+ok 1 - el estado queda listo con el alias publicado
+  ---
+  duration_ms: 601.043292
+  type: 'test'
+  ...
+# Subtest: BM25 recupera por término exacto y el denso por significado
+ok 2 - BM25 recupera por término exacto y el denso por significado
+  ---
+  duration_ms: 125.5425
+  type: 'test'
+  ...
+# Subtest: nunca devuelve puntos que no estén publicados
+ok 3 - nunca devuelve puntos que no estén publicados
+  ---
+  duration_ms: 53.850333
+  type: 'test'
+  ...
+# Subtest: los hits conservan los campos de cita del contrato
+ok 4 - los hits conservan los campos de cita del contrato
+  ---
+  duration_ms: 53.122542
+  type: 'test'
+  ...
+# [retrieval] El alias "kbprueba_870b907c_inexistente" no existe en Qdrant: el kb-worker todavía no creó la colección.
+# [retrieval] Consulta a Qdrant fallida: Not Found
+# Subtest: sin alias, el chat queda no disponible (nunca 'sin información')
+ok 5 - sin alias, el chat queda no disponible (nunca 'sin información')
+  ---
+  duration_ms: 10.161792
+  type: 'test'
+  ...
+# [documentLinks] Sin APP_DATABASE_URL: los códigos GT-F/GT-P quedan como texto, sin enlace.
+# Subtest: solo se enlazan códigos publicados; un formato enlaza a su descarga
+ok 6 - solo se enlazan códigos publicados; un formato enlaza a su descarga
+  ---
+  duration_ms: 112.793542
+  type: 'test'
+  ...
+# Subtest: sin base de datos los códigos quedan como texto, sin fallar
+ok 7 - sin base de datos los códigos quedan como texto, sin fallar
+  ---
+  duration_ms: 0.225166
+  type: 'test'
+  ...
+# Subtest: un escaneo ilegible se registra, se notifica y no crea elemento
+ok 8 - un escaneo ilegible se registra, se notifica y no crea elemento
+  ---
+  duration_ms: 1964.769
+  type: 'test'
+  ...
+# Subtest: un escaneo legible se carga como pendiente y, publicado, un descarte posterior no lo toca
+ok 9 - un escaneo legible se carga como pendiente y, publicado, un descarte posterior no lo toca
+  ---
+  duration_ms: 1654.784792
+  type: 'test'
+  ...
+# Subtest: las migraciones son idempotentes
+ok 10 - las migraciones son idempotentes
+  ---
+  duration_ms: 82.545
+  type: 'test'
+  ...
+# Subtest: un elemento de GMAS2 exige código, versión y fecha; el Observatorio admite N/A (FR-003)
+ok 11 - un elemento de GMAS2 exige código, versión y fecha; el Observatorio admite N/A (FR-003)
+  ---
+  duration_ms: 6.954042
+  type: 'test'
+  ...
+# Subtest: procedimiento de origen nunca vacío y URL solo https
+ok 12 - procedimiento de origen nunca vacío y URL solo https
+  ---
+  duration_ms: 4.825709
+  type: 'test'
+  ...
+# Subtest: solo puede haber una notificación sin revisar por tipo y objeto
+ok 13 - solo puede haber una notificación sin revisar por tipo y objeto
+  ---
+  duration_ms: 4.832125
+  type: 'test'
+  ...
+# Subtest: solo puede haber una indexación en curso
+ok 14 - solo puede haber una indexación en curso
+  ---
+  duration_ms: 4.366375
+  type: 'test'
+  ...
+# Subtest: el rol del chat solo lee la vista de códigos publicados (principio VII)
+ok 15 - el rol del chat solo lee la vista de códigos publicados (principio VII)
+  ---
+  duration_ms: 6.094458
+  type: 'test'
+  ...
+# Subtest: uuidv5 es determinista y con forma de UUID v5
+ok 16 - uuidv5 es determinista y con forma de UUID v5
+  ---
+  duration_ms: 0.509833
+  type: 'test'
+  ...
+# Subtest: asegurarColeccion crea el alias una sola vez
+ok 17 - asegurarColeccion crea el alias una sola vez
+  ---
+  duration_ms: 145.612917
+  type: 'test'
+  ...
+# Subtest: indexar una versión escribe un punto por fragmento con el payload del contrato
+ok 18 - indexar una versión escribe un punto por fragmento con el payload del contrato
+  ---
+  duration_ms: 12.813083
+  type: 'test'
+  ...
+# Subtest: borrar por elemento quita todas sus versiones
+ok 19 - borrar por elemento quita todas sus versiones
+  ---
+  duration_ms: 8.713292
+  type: 'test'
+  ...
+# Subtest: mover el alias es atómico: siempre apunta a alguna colección
+ok 20 - mover el alias es atómico: siempre apunta a alguna colección
+  ---
+  duration_ms: 121.5585
+  type: 'test'
+  ...
+# [kb-worker] Corrida 96e9eaa2-7e69-4009-be56-90b705f976b8: 0 verificaciones, 0 nuevos, 0 versiones pendientes, 0 bajas.
+# [kb-worker] Corrida e25f00d2-8dee-4159-9ebd-3396cd91f42a: 0 verificaciones, 0 nuevos, 0 versiones pendientes, 0 bajas.
+# Subtest: procesa en orden, mueve a procesados y rechaza el inválido con notificación
+ok 21 - procesa en orden, mueve a procesados y rechaza el inválido con notificación
+  ---
+  duration_ms: 83.548792
+  type: 'test'
+  ...
+# Subtest: las repetidas sin revisar se agrupan; revisada la anterior, se abre una nueva
+ok 22 - las repetidas sin revisar se agrupan; revisada la anterior, se abre una nueva
+  ---
+  duration_ms: 61.939583
+  type: 'test'
+  ...
+# Subtest: la descripción no lleva rutas, trazas ni datos personales
+ok 23 - la descripción no lleva rutas, trazas ni datos personales
+  ---
+  duration_ms: 0.159542
+  type: 'test'
+  ...
+# Subtest: postgres y qdrant no publican puertos en docker-compose.yml
+ok 24 - postgres y qdrant no publican puertos en docker-compose.yml
+  ---
+  duration_ms: 75.169291
+  type: 'test'
+  ...
+# Subtest: app_reader solo lee kb.v_codigos_publicados
+ok 25 - app_reader solo lee kb.v_codigos_publicados
+  ---
+  duration_ms: 9.305041
+  type: 'test'
+  ...
+# Subtest: las descripciones de notificaciones, los detalles y la auditoría no llevan rutas ni datos personales
+ok 26 - las descripciones de notificaciones, los detalles y la auditoría no llevan rutas ni datos personales
+  ---
+  duration_ms: 9.581666
+  type: 'test'
+  ...
+# Subtest: durante la reconstrucción, el chat responde siempre y con la colección completa
+ok 27 - durante la reconstrucción, el chat responde siempre y con la colección completa
+  ---
+  duration_ms: 2125.917292
+  type: 'test'
+  ...
+# Subtest: un fallo a mitad borra la colección nueva, deja el alias y notifica
+ok 28 - un fallo a mitad borra la colección nueva, deja el alias y notifica
+  ---
+  duration_ms: 196.068917
+  type: 'test'
+  ...
+# Subtest: una segunda indexación mientras hay una en curso se rechaza
+ok 29 - una segunda indexación mientras hay una en curso se rechaza
+  ---
+  duration_ms: 8.836791
+  type: 'test'
+  ...
+# Subtest: una publicación masiva reconstruye la colección y publica todo o nada
+ok 30 - una publicación masiva reconstruye la colección y publica todo o nada
+  ---
+  duration_ms: 371.090958
+  type: 'test'
+  ...
+# Subtest: conserva 11 meses, borra 14 revisados y nunca una notificación sin revisar
+ok 31 - conserva 11 meses, borra 14 revisados y nunca una notificación sin revisar
+  ---
+  duration_ms: 88.907583
+  type: 'test'
+  ...
+# [config] KB_RETENCION_MESES="11" está fuera del rango [12, 120]; se aplica 12.
+# Subtest: KB_RETENCION_MESES=11 se recorta a 12: lo de 11 meses y medio sigue
+ok 32 - KB_RETENCION_MESES=11 se recorta a 12: lo de 11 meses y medio sigue
+  ---
+  duration_ms: 2.871292
+  type: 'test'
+  ...
+# Subtest: una corrida crea la matriz en pendiente, con los 12 campos y N/A solo en el Observatorio
+ok 33 - una corrida crea la matriz en pendiente, con los 12 campos y N/A solo en el Observatorio
+  ---
+  duration_ms: 106.902
+  type: 'test'
+  ...
+# Subtest: publicar indexa sin cambiar la fecha de carga y la auditoría de alcance pasa
+ok 34 - publicar indexa sin cambiar la fecha de carga y la auditoría de alcance pasa
+  ---
+  duration_ms: 149.313959
+  type: 'test'
+  ...
+# Subtest: un informe completo sin un vinculado lo da de baja, con notificación y sin puntos
+ok 35 - un informe completo sin un vinculado lo da de baja, con notificación y sin puntos
+  ---
+  duration_ms: 18.563542
+  type: 'test'
+  ...
+# Subtest: si un GT-P del alcance falta en un informe completo, se notifica procedimiento_faltante
+ok 36 - si un GT-P del alcance falta en un informe completo, se notifica procedimiento_faltante
+  ---
+  duration_ms: 0.412875
+  type: 'test'
+  ...
+# Subtest: US2: la versión de un procedimiento es su ficha de 10 campos (RF-C3-IV-05)
+ok 37 - US2: la versión de un procedimiento es su ficha de 10 campos (RF-C3-IV-05)
+  ---
+  duration_ms: 0.753917
+  type: 'test'
+  ...
+# Subtest: US2: un formato diligenciado no se carga, se notifica y sigue la versión publicada (RF-C3-IV-10)
+ok 38 - US2: un formato diligenciado no se carga, se notifica y sigue la versión publicada (RF-C3-IV-10)
+  ---
+  duration_ms: 12.308667
+  type: 'test'
+  ...
+# Subtest: US2: exportar-fichas escribe la ficha y la página publicadas, y audita (RF-C3-IV-05, IV-06)
+ok 39 - US2: exportar-fichas escribe la ficha y la página publicadas, y audita (RF-C3-IV-05, IV-06)
+  ---
+  duration_ms: 2.022417
+  type: 'test'
+  ...
+# Subtest: US6: la exportación de la matriz real tiene una fila por elemento y N/A solo donde corresponde (RF-C3-IV-12)
+ok 40 - US6: la exportación de la matriz real tiene una fila por elemento y N/A solo donde corresponde (RF-C3-IV-12)
+  ---
+  duration_ms: 33.330291
+  type: 'test'
+  ...
+# Subtest: registro: cada enlace del informe genera una fila en kb_verificacion
+ok 41 - registro: cada enlace del informe genera una fila en kb_verificacion
+  ---
+  duration_ms: 293.590042
+  type: 'test'
+  ...
+# Subtest: cambio: cambio_detectado deja una versión pendiente y la publicada intacta
+ok 42 - cambio: cambio_detectado deja una versión pendiente y la publicada intacta
+  ---
+  duration_ms: 12.219875
+  type: 'test'
+  ...
+# Subtest: error: se notifica verificacion_fallida, se agrupa y no pierde la versión publicada
+ok 43 - error: se notifica verificacion_fallida, se agrupa y no pierde la versión publicada
+  ---
+  duration_ms: 18.823375
+  type: 'test'
+  ...
+# Subtest: padre con error: los vinculados publicados se conservan y no hay fuera_de_alcance
+ok 44 - padre con error: los vinculados publicados se conservan y no hay fuera_de_alcance
+  ---
+  duration_ms: 8.085583
+  type: 'test'
+  ...
+# Subtest: derogado: sale de la búsqueda, queda marcado y se notifica
+ok 45 - derogado: sale de la búsqueda, queda marcado y se notifica
+  ---
+  duration_ms: 12.457334
+  type: 'test'
+  ...
+# Subtest: un derogado que vuelve a vigente espera aprobación y, publicado, se recupera de nuevo
+ok 46 - un derogado que vuelve a vigente espera aprobación y, publicado, se recupera de nuevo
+  ---
+  duration_ms: 14.587875
+  type: 'test'
+  ...
+# Subtest: un GT-P derogado deja sin origen a sus vinculados, que salen con fuera_de_alcance
+ok 47 - un GT-P derogado deja sin origen a sus vinculados, que salen con fuera_de_alcance
+  ---
+  duration_ms: 17.0055
+  type: 'test'
+  ...
+# Subtest: vigilante: sin corrida programada en más de 7 días se emite verificacion_atrasada
+ok 48 - vigilante: sin corrida programada en más de 7 días se emite verificacion_atrasada
+  ---
+  duration_ms: 3.584125
+  type: 'test'
+  ...
+# Subtest: notificaciones y revisar: se listan, se marcan revisadas y la acción queda auditada
+ok 49 - notificaciones y revisar: se listan, se marcan revisadas y la acción queda auditada
+  ---
+  duration_ms: 2.904209
+  type: 'test'
+  ...
+1..49
+# tests 49
+# suites 0
+# pass 49
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 12259.169708
+exit=0

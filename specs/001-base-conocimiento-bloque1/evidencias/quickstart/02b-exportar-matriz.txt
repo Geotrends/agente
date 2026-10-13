@@ -1,0 +1,3 @@
+docker compose exec kb-worker node dist/kb/cli.js exportar-matriz
+584 filas en /app/var/exports/matriz-documental-2026-10-08.xlsx
+exit=0

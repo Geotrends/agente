@@ -1,0 +1,18 @@
+## sincronizar con corrida en proceso
+docker compose exec kb-worker node dist/kb/cli.js sincronizar
+No hay informes pendientes en /app/data/runs.
+(sin resultados)
+## estado
+  ultimaCorrida: {
+    id: '11111111-2222-3333-4444-555555555555',
+    estado: 'en_proceso',
+    terminadaEn: 2026-10-08T19:36:00.489Z,
+    programada: false,
+--
+  corridasEnProceso: [ { id: '11111111-2222-3333-4444-555555555555', verificaciones: 0 } ]
+}
+## publicar
+docker compose exec kb-worker node dist/kb/cli.js publicar --todos-pendientes
+La corrida 11111111-2222-3333-4444-555555555555 se está procesando (0 verificaciones hasta ahora): publicar ahora cargaría una base incompleta. Espera a que termine (kb estado) o usa --forzar.
+make: *** [kb] Error 1
+exit=2

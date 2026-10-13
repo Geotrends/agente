@@ -1,0 +1,1664 @@
+
+> agent-backend@1.0.0 test
+> node --import tsx --test test/*.test.ts
+
+TAP version 13
+# [alert] event=provider_failed Groq falló
+# [alert] event=index_unavailable El índice no cargó.
+# [alert] event=chat_saturated Chat saturado.
+# [alert] event=provider_failed Groq falló.
+# [alert] event=chat_saturated Chat saturado. (+2 avisos iguales omitidos)
+# [alert] event=process_error Excepción.
+# [alert] No se pudo enviar el aviso: ECONNREFUSED
+# [alert] event=process_error Excepción.
+# [alert] El webhook respondió HTTP 500.
+# [alert] event=process_error Excepción no capturada.
+# Subtest: sin ALERT_WEBHOOK_URL no se llama a ningún webhook
+ok 1 - sin ALERT_WEBHOOK_URL no se llama a ningún webhook
+  ---
+  duration_ms: 2.00125
+  type: 'test'
+  ...
+# Subtest: el aviso va como {text} con el prefijo configurado
+ok 2 - el aviso va como {text} con el prefijo configurado
+  ---
+  duration_ms: 16.4315
+  type: 'test'
+  ...
+# Subtest: dentro del intervalo, el mismo aviso se omite y se cuenta en el siguiente
+ok 3 - dentro del intervalo, el mismo aviso se omite y se cuenta en el siguiente
+  ---
+  duration_ms: 0.4535
+  type: 'test'
+  ...
+# Subtest: un webhook caído o que responde error no rompe a quien avisa
+ok 4 - un webhook caído o que responde error no rompe a quien avisa
+  ---
+  duration_ms: 0.483333
+  type: 'test'
+  ...
+# Subtest: flushAlerts espera a los avisos en vuelo
+ok 5 - flushAlerts espera a los avisos en vuelo
+  ---
+  duration_ms: 1.447917
+  type: 'test'
+  ...
+# Subtest: el encabezado de fragmento lleva los campos que la regla 7 del prompt necesita para citar
+ok 6 - el encabezado de fragmento lleva los campos que la regla 7 del prompt necesita para citar
+  ---
+  duration_ms: 0.769625
+  type: 'test'
+  ...
+# Subtest: sin título, el encabezado cae al nombre de archivo y no a la ruta entera
+ok 7 - sin título, el encabezado cae al nombre de archivo y no a la ruta entera
+  ---
+  duration_ms: 0.128708
+  type: 'test'
+  ...
+# Subtest: un documento sin páginas no inventa el campo
+ok 8 - un documento sin páginas no inventa el campo
+  ---
+  duration_ms: 0.039916
+  type: 'test'
+  ...
+# Subtest: M-4: las fuentes agrupan por documento conservando TODAS las páginas citadas
+ok 9 - M-4: las fuentes agrupan por documento conservando TODAS las páginas citadas
+  ---
+  duration_ms: 0.355875
+  type: 'test'
+  ...
+# Subtest: un documento sin páginas no expone el campo pages
+ok 10 - un documento sin páginas no expone el campo pages
+  ---
+  duration_ms: 0.048917
+  type: 'test'
+  ...
+# Subtest: M-2: la pregunta que se sostiene sola no arrastra el tema anterior
+ok 11 - M-2: la pregunta que se sostiene sola no arrastra el tema anterior
+  ---
+  duration_ms: 0.425333
+  type: 'test'
+  ...
+# Subtest: M-2: sin historial nunca hay contexto previo
+ok 12 - M-2: sin historial nunca hay contexto previo
+  ---
+  duration_ms: 0.0835
+  type: 'test'
+  ...
+# Subtest: M-4: marcador FUENTES_USADAS vacío (saludo) no muestra ninguna fuente
+ok 13 - M-4: marcador FUENTES_USADAS vacío (saludo) no muestra ninguna fuente
+  ---
+  duration_ms: 0.043209
+  type: 'test'
+  ...
+# Subtest: M-4: sin marcador (usedPaths null) se muestran todas por seguridad
+ok 14 - M-4: sin marcador (usedPaths null) se muestran todas por seguridad
+  ---
+  duration_ms: 0.125792
+  type: 'test'
+  ...
+# Subtest: M-4: con fuentes citadas, se filtra solo a las usadas
+ok 15 - M-4: con fuentes citadas, se filtra solo a las usadas
+  ---
+  duration_ms: 0.633291
+  type: 'test'
+  ...
+# Subtest: M-4: cita que no encaja con ningún path cae a mostrar todas (no oculta evidencia)
+ok 16 - M-4: cita que no encaja con ningún path cae a mostrar todas (no oculta evidencia)
+  ---
+  duration_ms: 0.120583
+  type: 'test'
+  ...
+# Subtest: 'carne' de documento pasa a 'carnet', con artículo masculino
+ok 17 - 'carne' de documento pasa a 'carnet', con artículo masculino
+  ---
+  duration_ms: 1.172084
+  type: 'test'
+  ...
+# Subtest: 'carne' como alimento no se toca
+ok 18 - 'carne' como alimento no se toca
+  ---
+  duration_ms: 0.046666
+  type: 'test'
+  ...
+# Subtest: un token recién emitido se verifica e identifica al cliente
+ok 19 - un token recién emitido se verifica e identifica al cliente
+  ---
+  duration_ms: 6.645875
+  type: 'test'
+  ...
+# Subtest: dos sesiones anónimas son identidades distintas
+ok 20 - dos sesiones anónimas son identidades distintas
+  ---
+  duration_ms: 3.028375
+  type: 'test'
+  ...
+# Subtest: un token firmado con OTRO secreto se rechaza
+ok 21 - un token firmado con OTRO secreto se rechaza
+  ---
+  duration_ms: 1.619458
+  type: 'test'
+  ...
+# Subtest: un token con "alg": "none" se rechaza
+ok 22 - un token con "alg": "none" se rechaza
+  ---
+  duration_ms: 0.49025
+  type: 'test'
+  ...
+# Subtest: un token caducado se rechaza
+ok 23 - un token caducado se rechaza
+  ---
+  duration_ms: 2.521875
+  type: 'test'
+  ...
+# Subtest: basura y cadena vacía no verifican
+ok 24 - basura y cadena vacía no verifican
+  ---
+  duration_ms: 0.264708
+  type: 'test'
+  ...
+# Subtest: un token con scope "corpus" no verifica: ese alcance ya no existe
+ok 25 - un token con scope "corpus" no verifica: ese alcance ya no existe
+  ---
+  duration_ms: 6.180666
+  type: 'test'
+  ...
+# Subtest: la cabecera Authorization se interpreta con y sin mayúsculas
+ok 26 - la cabecera Authorization se interpreta con y sin mayúsculas
+  ---
+  duration_ms: 0.133917
+  type: 'test'
+  ...
+# Subtest: BM25 invertido: reproduce la fórmula BM25 de referencia
+ok 27 - BM25 invertido: reproduce la fórmula BM25 de referencia
+  ---
+  duration_ms: 3.970667
+  type: 'test'
+  ...
+# Subtest: BM25 invertido: normaliza acentos y mayúsculas
+ok 28 - BM25 invertido: normaliza acentos y mayúsculas
+  ---
+  duration_ms: 0.586958
+  type: 'test'
+  ...
+# Subtest: BM25 invertido: coincide por token completo, no por subcadena
+ok 29 - BM25 invertido: coincide por token completo, no por subcadena
+  ---
+  duration_ms: 0.278375
+  type: 'test'
+  ...
+# Subtest: BM25 invertido: descarta palabras vacías y términos de una letra
+ok 30 - BM25 invertido: descarta palabras vacías y términos de una letra
+  ---
+  duration_ms: 0.197292
+  type: 'test'
+  ...
+# Subtest: BM25 invertido: un término ausente no devuelve nada
+ok 31 - BM25 invertido: un término ausente no devuelve nada
+  ---
+  duration_ms: 0.335125
+  type: 'test'
+  ...
+# Subtest: BM25 invertido: los términos raros pesan más que los frecuentes
+ok 32 - BM25 invertido: los términos raros pesan más que los frecuentes
+  ---
+  duration_ms: 0.131584
+  type: 'test'
+  ...
+# Subtest: BM25 invertido: más ocurrencias del término puntúan más
+ok 33 - BM25 invertido: más ocurrencias del término puntúan más
+  ---
+  duration_ms: 0.107834
+  type: 'test'
+  ...
+# Subtest: BM25 invertido: normaliza por longitud del documento
+ok 34 - BM25 invertido: normaliza por longitud del documento
+  ---
+  duration_ms: 0.232125
+  type: 'test'
+  ...
+# Subtest: BM25 invertido: ordena descendente y desempata por id ascendente
+ok 35 - BM25 invertido: ordena descendente y desempata por id ascendente
+  ---
+  duration_ms: 0.627208
+  type: 'test'
+  ...
+# Subtest: BM25 invertido: solo devuelve puntajes positivos
+ok 36 - BM25 invertido: solo devuelve puntajes positivos
+  ---
+  duration_ms: 1.24375
+  type: 'test'
+  ...
+# Subtest: BM25 invertido: cubrir más términos de la consulta vale más
+ok 37 - BM25 invertido: cubrir más términos de la consulta vale más
+  ---
+  duration_ms: 0.227333
+  type: 'test'
+  ...
+# Subtest: BM25 invertido: es determinista
+ok 38 - BM25 invertido: es determinista
+  ---
+  duration_ms: 0.1175
+  type: 'test'
+  ...
+# Subtest: BM25 invertido: tolera el corpus vacío y los documentos vacíos
+ok 39 - BM25 invertido: tolera el corpus vacío y los documentos vacíos
+  ---
+  duration_ms: 0.073209
+  type: 'test'
+  ...
+# Subtest: BM25 invertido: los términos repetidos en la consulta no cuentan dos veces
+ok 40 - BM25 invertido: los términos repetidos en la consulta no cuentan dos veces
+  ---
+  duration_ms: 0.065125
+  type: 'test'
+  ...
+# Subtest: NaiveBM25: reproduce la fórmula BM25 de referencia
+ok 41 - NaiveBM25: reproduce la fórmula BM25 de referencia
+  ---
+  duration_ms: 0.341375
+  type: 'test'
+  ...
+# Subtest: NaiveBM25: normaliza acentos y mayúsculas
+ok 42 - NaiveBM25: normaliza acentos y mayúsculas
+  ---
+  duration_ms: 0.044792
+  type: 'test'
+  ...
+# Subtest: NaiveBM25: coincide por token completo, no por subcadena
+ok 43 - NaiveBM25: coincide por token completo, no por subcadena
+  ---
+  duration_ms: 0.035208
+  type: 'test'
+  ...
+# Subtest: NaiveBM25: descarta palabras vacías y términos de una letra
+ok 44 - NaiveBM25: descarta palabras vacías y términos de una letra
+  ---
+  duration_ms: 0.03425
+  type: 'test'
+  ...
+# Subtest: NaiveBM25: un término ausente no devuelve nada
+ok 45 - NaiveBM25: un término ausente no devuelve nada
+  ---
+  duration_ms: 0.048333
+  type: 'test'
+  ...
+# Subtest: NaiveBM25: los términos raros pesan más que los frecuentes
+ok 46 - NaiveBM25: los términos raros pesan más que los frecuentes
+  ---
+  duration_ms: 0.027958
+  type: 'test'
+  ...
+# Subtest: NaiveBM25: más ocurrencias del término puntúan más
+ok 47 - NaiveBM25: más ocurrencias del término puntúan más
+  ---
+  duration_ms: 0.022625
+  type: 'test'
+  ...
+# Subtest: NaiveBM25: normaliza por longitud del documento
+ok 48 - NaiveBM25: normaliza por longitud del documento
+  ---
+  duration_ms: 0.10025
+  type: 'test'
+  ...
+# Subtest: NaiveBM25: ordena descendente y desempata por id ascendente
+ok 49 - NaiveBM25: ordena descendente y desempata por id ascendente
+  ---
+  duration_ms: 0.061584
+  type: 'test'
+  ...
+# Subtest: NaiveBM25: solo devuelve puntajes positivos
+ok 50 - NaiveBM25: solo devuelve puntajes positivos
+  ---
+  duration_ms: 0.060042
+  type: 'test'
+  ...
+# Subtest: NaiveBM25: cubrir más términos de la consulta vale más
+ok 51 - NaiveBM25: cubrir más términos de la consulta vale más
+  ---
+  duration_ms: 0.106916
+  type: 'test'
+  ...
+# Subtest: NaiveBM25: es determinista
+ok 52 - NaiveBM25: es determinista
+  ---
+  duration_ms: 0.142666
+  type: 'test'
+  ...
+# Subtest: NaiveBM25: tolera el corpus vacío y los documentos vacíos
+ok 53 - NaiveBM25: tolera el corpus vacío y los documentos vacíos
+  ---
+  duration_ms: 0.131
+  type: 'test'
+  ...
+# Subtest: NaiveBM25: los términos repetidos en la consulta no cuentan dos veces
+ok 54 - NaiveBM25: los términos repetidos en la consulta no cuentan dos veces
+  ---
+  duration_ms: 0.134875
+  type: 'test'
+  ...
+# Subtest: las dos implementaciones son idénticas, no solo equivalentes
+ok 55 - las dos implementaciones son idénticas, no solo equivalentes
+  ---
+  duration_ms: 1.879125
+  type: 'test'
+  ...
+# Subtest: el índice invertido acota el rango y el top-k como lo hacía filtrar después
+ok 56 - el índice invertido acota el rango y el top-k como lo hacía filtrar después
+  ---
+  duration_ms: 1.686083
+  type: 'test'
+  ...
+# Subtest: el acumulador queda limpio entre consultas
+ok 57 - el acumulador queda limpio entre consultas
+  ---
+  duration_ms: 0.217416
+  type: 'test'
+  ...
+# Subtest: la referencia de la fórmula es coherente con un cálculo hecho a mano
+ok 58 - la referencia de la fórmula es coherente con un cálculo hecho a mano
+  ---
+  duration_ms: 0.179625
+  type: 'test'
+  ...
+# Subtest: el contrato cubre el corpus de referencia completo
+ok 59 - el contrato cubre el corpus de referencia completo
+  ---
+  duration_ms: 0.137
+  type: 'test'
+  ...
+# Subtest: normalizeHistory: recorta un turno individual a MAX_TURN_CHARS
+ok 60 - normalizeHistory: recorta un turno individual a MAX_TURN_CHARS
+  ---
+  duration_ms: 0.665708
+  type: 'test'
+  ...
+# Subtest: normalizeHistory: recorta el historial completo a MAX_TOTAL_CHARS empezando por el mas antiguo
+ok 61 - normalizeHistory: recorta el historial completo a MAX_TOTAL_CHARS empezando por el mas antiguo
+  ---
+  duration_ms: 0.287125
+  type: 'test'
+  ...
+# Subtest: normalizeHistory: ignora turnos con role invalido o contenido vacio
+ok 62 - normalizeHistory: ignora turnos con role invalido o contenido vacio
+  ---
+  duration_ms: 0.670625
+  type: 'test'
+  ...
+# Subtest: serializeHistoryAsText: un turno "assistant" fabricado queda como texto, nunca como rol assistant
+ok 63 - serializeHistoryAsText: un turno "assistant" fabricado queda como texto, nunca como rol assistant
+  ---
+  duration_ms: 0.106417
+  type: 'test'
+  ...
+# Subtest: serializeHistoryAsText: historial vacio no agrega ningun bloque
+ok 64 - serializeHistoryAsText: historial vacio no agrega ningun bloque
+  ---
+  duration_ms: 0.041792
+  type: 'test'
+  ...
+# Subtest: buildOpenAiMessages: exactamente dos mensajes (system + user), nunca uno por turno
+ok 65 - buildOpenAiMessages: exactamente dos mensajes (system + user), nunca uno por turno
+  ---
+  duration_ms: 0.125916
+  type: 'test'
+  ...
+# Subtest: embedHistoryInMessage: sin historial devuelve el mensaje intacto
+ok 66 - embedHistoryInMessage: sin historial devuelve el mensaje intacto
+  ---
+  duration_ms: 0.0365
+  type: 'test'
+  ...
+# Subtest: logChatInteraction: diez escrituras concurrentes conservan las diez filas y diez ids distintos
+ok 67 - logChatInteraction: diez escrituras concurrentes conservan las diez filas y diez ids distintos
+  ---
+  duration_ms: 9.119334
+  type: 'test'
+  ...
+# Subtest: logChatInteraction: un fallo de escritura no rompe la cadena para las siguientes
+ok 68 - logChatInteraction: un fallo de escritura no rompe la cadena para las siguientes
+  ---
+  duration_ms: 0.86075
+  type: 'test'
+  ...
+# Subtest: A-11: los datos personales no llegan al disco
+ok 69 - A-11: los datos personales no llegan al disco
+  ---
+  duration_ms: 1.625583
+  type: 'test'
+  ...
+# Subtest: A-11: cada fila lleva fecha y hash de la pregunta
+ok 70 - A-11: cada fila lleva fecha y hash de la pregunta
+  ---
+  duration_ms: 2.121667
+  type: 'test'
+  ...
+# Subtest: A-11: migrar un CSV antiguo enmascara también lo ya guardado
+ok 71 - A-11: migrar un CSV antiguo enmascara también lo ya guardado
+  ---
+  duration_ms: 1.737375
+  type: 'test'
+  ...
+# [chatlog] retención de 90 días: se descartan 1 interacciones.
+# Subtest: A-11: la retención descarta lo viejo y conserva lo reciente
+ok 72 - A-11: la retención descarta lo viejo y conserva lo reciente
+  ---
+  duration_ms: 1.010708
+  type: 'test'
+  ...
+# Subtest: A-11: una fila sin fecha legible no se borra por no poder fecharla
+ok 73 - A-11: una fila sin fecha legible no se borra por no poder fecharla
+  ---
+  duration_ms: 0.562458
+  type: 'test'
+  ...
+# Subtest: cuotas por IP y global persisten sin guardar la IP original
+ok 74 - cuotas por IP y global persisten sin guardar la IP original
+  ---
+  duration_ms: 12.398083
+  type: 'test'
+  ...
+# [traffic] daily_limit_rejected scope=ip client=3f8fb474c25f day=2026-09-24 count=1 limit=1
+# Subtest: el cupo diario se reinicia al cambiar el día UTC
+ok 75 - el cupo diario se reinicia al cambiar el día UTC
+  ---
+  duration_ms: 2.819125
+  type: 'test'
+  ...
+# [traffic] ip_block_started client=32f58100f6c4 until=2026-09-25T10:00:00.000Z reason=long_messages
+# [traffic] ip_block_expired client=32f58100f6c4
+# [traffic] chat_queue_full active=2 queued=2
+# [alert] event=chat_saturated Chat saturado (chat_queue_full): 2 consultas en curso y 2 esperando; los ciudadanos reciben 503. Si se repite, sube CHAT_MAX_CONCURRENT o la capacidad de la VM.
+# Subtest: la consulta larga posterior al límite bloquea la IP durante 24 horas
+ok 76 - la consulta larga posterior al límite bloquea la IP durante 24 horas
+  ---
+  duration_ms: 4.632292
+  type: 'test'
+  ...
+# Subtest: la cola es FIFO, se acota y retira clientes desconectados
+ok 77 - la cola es FIFO, se acota y retira clientes desconectados
+  ---
+  duration_ms: 0.649291
+  type: 'test'
+  ...
+# [traffic] chat_queue_timeout active=1 queued=0
+# [traffic] chat_queue_busy active=1 queued=0 estimated_ms=10000 max_wait_ms=1000
+# Subtest: una espera que vence sale de la cola con código estable
+ok 78 - una espera que vence sale de la cola con código estable
+  ---
+  duration_ms: 101.921875
+  type: 'test'
+  ...
+# Subtest: sin plaza y con una espera estimada mayor que maxWaitMs, se rechaza de inmediato
+ok 79 - sin plaza y con una espera estimada mayor que maxWaitMs, se rechaza de inmediato
+  ---
+  duration_ms: 0.27725
+  type: 'test'
+  ...
+# Subtest: con plaza libre, maxWaitMs no impide la admisión
+ok 80 - con plaza libre, maxWaitMs no impide la admisión
+  ---
+  duration_ms: 0.147292
+  type: 'test'
+  ...
+# [traffic] chat_queue_timeout active=1 queued=0
+# Subtest: maxWaitMs acota la espera por debajo de CHAT_QUEUE_TIMEOUT_MS
+ok 81 - maxWaitMs acota la espera por debajo de CHAT_QUEUE_TIMEOUT_MS
+  ---
+  duration_ms: 100.960083
+  type: 'test'
+  ...
+# Subtest: M-3: el frontmatter YAML deja de ser el fragmento nº 1 y aporta el título
+ok 82 - M-3: el frontmatter YAML deja de ser el fragmento nº 1 y aporta el título
+  ---
+  duration_ms: 1.580292
+  type: 'test'
+  ...
+# Subtest: M-3: corta en frontera de artículo, no a mitad de inciso
+ok 83 - M-3: corta en frontera de artículo, no a mitad de inciso
+  ---
+  duration_ms: 0.240458
+  type: 'test'
+  ...
+# Subtest: M-3: "el artículo 5 dice" en mitad de un párrafo no abre sección
+ok 84 - M-3: "el artículo 5 dice" en mitad de un párrafo no abre sección
+  ---
+  duration_ms: 0.137125
+  type: 'test'
+  ...
+# Subtest: M-3: una tabla repite su encabezado en cada fragmento
+ok 85 - M-3: una tabla repite su encabezado en cada fragmento
+  ---
+  duration_ms: 0.254917
+  type: 'test'
+  ...
+# Subtest: M-4: el fragmento sabe en qué página del PDF empieza
+ok 86 - M-4: el fragmento sabe en qué página del PDF empieza
+  ---
+  duration_ms: 0.593792
+  type: 'test'
+  ...
+# Subtest: M-4: un documento sin páginas no inventa número
+ok 87 - M-4: un documento sin páginas no inventa número
+  ---
+  duration_ms: 0.179125
+  type: 'test'
+  ...
+# Subtest: una sección más larga que el límite se sigue partiendo por tamaño
+ok 88 - una sección más larga que el límite se sigue partiendo por tamaño
+  ---
+  duration_ms: 0.309166
+  type: 'test'
+  ...
+# Subtest: no se pierde contenido al fragmentar
+ok 89 - no se pierde contenido al fragmentar
+  ---
+  duration_ms: 0.080958
+  type: 'test'
+  ...
+# Subtest: un documento vacío no produce fragmentos rotos
+ok 90 - un documento vacío no produce fragmentos rotos
+  ---
+  duration_ms: 0.449
+  type: 'test'
+  ...
+# Subtest: se abre al tercer fallo seguido y avisa solo al abrirse
+ok 91 - se abre al tercer fallo seguido y avisa solo al abrirse
+  ---
+  duration_ms: 1.097416
+  type: 'test'
+  ...
+# Subtest: un éxito en medio reinicia la cuenta
+ok 92 - un éxito en medio reinicia la cuenta
+  ---
+  duration_ms: 0.359875
+  type: 'test'
+  ...
+# Subtest: los errores de configuración no abren el circuito
+ok 93 - los errores de configuración no abren el circuito
+  ---
+  duration_ms: 0.4495
+  type: 'test'
+  ...
+# Subtest: tras la espera, una sola consulta de prueba; si responde, se cierra
+ok 94 - tras la espera, una sola consulta de prueba; si responde, se cierra
+  ---
+  duration_ms: 0.328167
+  type: 'test'
+  ...
+# Subtest: si la prueba falla, se vuelve a abrir sin repetir el aviso
+ok 95 - si la prueba falla, se vuelve a abrir sin repetir el aviso
+  ---
+  duration_ms: 0.600125
+  type: 'test'
+  ...
+# Subtest: una prueba que no aclara nada (p. ej. un 401) deja probar a la siguiente
+ok 96 - una prueba que no aclara nada (p. ej. un 401) deja probar a la siguiente
+  ---
+  duration_ms: 0.173208
+  type: 'test'
+  ...
+# Subtest: intFromEnv: ausente o vacío usa el defecto, sin avisar
+ok 97 - intFromEnv: ausente o vacío usa el defecto, sin avisar
+  ---
+  duration_ms: 0.612708
+  type: 'test'
+  ...
+# Subtest: intFromEnv: valor válido se respeta
+ok 98 - intFromEnv: valor válido se respeta
+  ---
+  duration_ms: 0.092833
+  type: 'test'
+  ...
+# Subtest: intFromEnv: un valor no numérico cae al defecto Y avisa
+ok 99 - intFromEnv: un valor no numérico cae al defecto Y avisa
+  ---
+  duration_ms: 0.099959
+  type: 'test'
+  ...
+# Subtest: intFromEnv: fuera de rango se recorta al extremo y avisa
+ok 100 - intFromEnv: fuera de rango se recorta al extremo y avisa
+  ---
+  duration_ms: 0.097167
+  type: 'test'
+  ...
+# Subtest: intFromEnv: no repite el mismo aviso una y otra vez
+ok 101 - intFromEnv: no repite el mismo aviso una y otra vez
+  ---
+  duration_ms: 0.054458
+  type: 'test'
+  ...
+# Subtest: floatFromEnv: respeta decimales y recorta fuera de rango
+ok 102 - floatFromEnv: respeta decimales y recorta fuera de rango
+  ---
+  duration_ms: 0.11125
+  type: 'test'
+  ...
+# Subtest: floatFromEnv: valores negativos legítimos se admiten si el rango los permite
+ok 103 - floatFromEnv: valores negativos legítimos se admiten si el rango los permite
+  ---
+  duration_ms: 0.036416
+  type: 'test'
+  ...
+# Subtest: boolFromEnv: solo true/false, el resto avisa
+ok 104 - boolFromEnv: solo true/false, el resto avisa
+  ---
+  duration_ms: 0.064041
+  type: 'test'
+  ...
+# Subtest: intListFromEnv: ordena, elimina duplicados y rechaza listas inválidas
+ok 105 - intListFromEnv: ordena, elimina duplicados y rechaza listas inválidas
+  ---
+  duration_ms: 0.232458
+  type: 'test'
+  ...
+# [Gemini] Error al generar contenido: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent: [400 Bad Request] API key not valid. Please pass a valid API key. [{"@type":"type.googleapis.com/google.rpc.ErrorInfo","reason":"API_KEY_INVALID","domain":"googleapis.com","metadata":{"service":"generativelanguage.googleapis.com"}},{"@type":"type.googleapis.com/google.rpc.LocalizedMessage","locale":"en-US","message":"API key not valid. Please pass a valid API key."}]
+# Subtest: la clave de Gemini se lee en cada llamada, no al importar el módulo
+ok 106 - la clave de Gemini se lee en cada llamada, no al importar el módulo
+  ---
+  duration_ms: 381.212208
+  type: 'test'
+  ...
+# Subtest: diversify: respeta el tope por documento cuando hay alternativas de sobra
+ok 107 - diversify: respeta el tope por documento cuando hay alternativas de sobra
+  ---
+  duration_ms: 2.752458
+  type: 'test'
+  ...
+# Subtest: diversify: el tope cede antes que el cupo cuando no hay alternativas suficientes
+ok 108 - diversify: el tope cede antes que el cupo cuando no hay alternativas suficientes
+  ---
+  duration_ms: 0.736416
+  type: 'test'
+  ...
+# Subtest: diversify: si NO hay alternativas, rellena y devuelve lo mismo que sin diversificar
+ok 109 - diversify: si NO hay alternativas, rellena y devuelve lo mismo que sin diversificar
+  ---
+  duration_ms: 0.828667
+  type: 'test'
+  ...
+# Subtest: diversify: descarta un casi-duplicado cuando hay con qué reemplazarlo
+ok 110 - diversify: descarta un casi-duplicado cuando hay con qué reemplazarlo
+  ---
+  duration_ms: 2.476209
+  type: 'test'
+  ...
+# Subtest: diversify: un casi-duplicado SÍ entra si no hay nada más con que llenar el cupo
+ok 111 - diversify: un casi-duplicado SÍ entra si no hay nada más con que llenar el cupo
+  ---
+  duration_ms: 0.174542
+  type: 'test'
+  ...
+# Subtest: diversify: funciona sobre candidatos sin logit del reranker (ruta de reserva RRF)
+ok 112 - diversify: funciona sobre candidatos sin logit del reranker (ruta de reserva RRF)
+  ---
+  duration_ms: 0.113625
+  type: 'test'
+  ...
+# Subtest: diversify: lista vacía no revienta
+ok 113 - diversify: lista vacía no revienta
+  ---
+  duration_ms: 0.040375
+  type: 'test'
+  ...
+# Subtest: shingles/jaccard: identidad, disyunción y solapamiento parcial
+ok 114 - shingles/jaccard: identidad, disyunción y solapamiento parcial
+  ---
+  duration_ms: 0.1065
+  type: 'test'
+  ...
+# Subtest: shingles: ignora tildes y palabras vacías, para que dos copias del mismo texto coincidan
+ok 115 - shingles: ignora tildes y palabras vacías, para que dos copias del mismo texto coincidan
+  ---
+  duration_ms: 7.084875
+  type: 'test'
+  ...
+# Subtest: el archivo descargable gana sobre la página, aunque difieran los ceros a la izquierda
+ok 116 - el archivo descargable gana sobre la página, aunque difieran los ceros a la izquierda
+  ---
+  duration_ms: 0.578792
+  type: 'test'
+  ...
+# Subtest: un procedimiento GT-P sin archivo enlaza a su página
+ok 117 - un procedimiento GT-P sin archivo enlaza a su página
+  ---
+  duration_ms: 0.047834
+  type: 'test'
+  ...
+# Subtest: el código sale del nombre de archivo cuando no hay título
+ok 118 - el código sale del nombre de archivo cuando no hay título
+  ---
+  duration_ms: 0.034875
+  type: 'test'
+  ...
+# Subtest: un documento que solo menciona un código no se queda con su enlace
+ok 119 - un documento que solo menciona un código no se queda con su enlace
+  ---
+  duration_ms: 0.030625
+  type: 'test'
+  ...
+# Subtest: dentro de negrita y de celdas de tabla también se enlaza
+ok 120 - dentro de negrita y de celdas de tabla también se enlaza
+  ---
+  duration_ms: 0.080917
+  type: 'test'
+  ...
+# Subtest: enlaces relativos copiados de GMAS se apuntan a la URL del catálogo
+ok 121 - enlaces relativos copiados de GMAS se apuntan a la URL del catálogo
+  ---
+  duration_ms: 0.075916
+  type: 'test'
+  ...
+# Subtest: enlaces javascript:downloadFile(...) de GMAS se apuntan a la URL del catálogo
+ok 122 - enlaces javascript:downloadFile(...) de GMAS se apuntan a la URL del catálogo
+  ---
+  duration_ms: 0.082458
+  type: 'test'
+  ...
+# Subtest: un enlace no navegable sin código conocido queda como texto
+ok 123 - un enlace no navegable sin código conocido queda como texto
+  ---
+  duration_ms: 0.031667
+  type: 'test'
+  ...
+# Subtest: no toca enlaces http(s) ya escritos, código en línea ni URLs
+ok 124 - no toca enlaces http(s) ya escritos, código en línea ni URLs
+  ---
+  duration_ms: 0.136875
+  type: 'test'
+  ...
+# Subtest: códigos desconocidos o parciales quedan como texto
+ok 125 - códigos desconocidos o parciales quedan como texto
+  ---
+  duration_ms: 0.2265
+  type: 'test'
+  ...
+# Subtest: códigos con guion no separable (U+2011) o en dash también se enlazan
+ok 126 - códigos con guion no separable (U+2011) o en dash también se enlazan
+  ---
+  duration_ms: 0.181166
+  type: 'test'
+  ...
+# Subtest: el índice desde la vista de códigos publicados normaliza códigos y exige https
+ok 127 - el índice desde la vista de códigos publicados normaliza códigos y exige https
+  ---
+  duration_ms: 4.822167
+  type: 'test'
+  ...
+# Subtest: detecta una capa de texto rota, con cada carácter duplicado
+ok 128 - detecta una capa de texto rota, con cada carácter duplicado
+  ---
+  duration_ms: 0.454625
+  type: 'test'
+  ...
+# Subtest: NO marca una tabla de mediciones como basura
+ok 129 - NO marca una tabla de mediciones como basura
+  ---
+  duration_ms: 0.083375
+  type: 'test'
+  ...
+# Subtest: NO marca prosa normal
+ok 130 - NO marca prosa normal
+  ---
+  duration_ms: 0.043833
+  type: 'test'
+  ...
+# Subtest: NO marca una tabla presupuestal, que mezcla cifras y prosa
+ok 131 - NO marca una tabla presupuestal, que mezcla cifras y prosa
+  ---
+  duration_ms: 0.037041
+  type: 'test'
+  ...
+# Subtest: una muestra demasiado corta nunca se marca: no hay con qué decidir
+ok 132 - una muestra demasiado corta nunca se marca: no hay con qué decidir
+  ---
+  duration_ms: 0.077542
+  type: 'test'
+  ...
+# Subtest: los separadores de página de pdf-parse no cuentan como contenido
+ok 133 - los separadores de página de pdf-parse no cuentan como contenido
+  ---
+  duration_ms: 0.044417
+  type: 'test'
+  ...
+# Subtest: ruido de OCR sobre letra manuscrita sí se marca
+ok 134 - ruido de OCR sobre letra manuscrita sí se marca
+  ---
+  duration_ms: 0.074458
+  type: 'test'
+  ...
+# Subtest: recallAt: una sola ruta relevante, presente o ausente
+ok 135 - recallAt: una sola ruta relevante, presente o ausente
+  ---
+  duration_ms: 0.602458
+  type: 'test'
+  ...
+# Subtest: recallAt: varias rutas relevantes cuenta la fracción encontrada
+ok 136 - recallAt: varias rutas relevantes cuenta la fracción encontrada
+  ---
+  duration_ms: 0.102542
+  type: 'test'
+  ...
+# Subtest: recallAt: sin rutas relevantes declaradas, 0 por definición (no NaN)
+ok 137 - recallAt: sin rutas relevantes declaradas, 0 por definición (no NaN)
+  ---
+  duration_ms: 0.040792
+  type: 'test'
+  ...
+# Subtest: recallAt: solo cuenta dentro de los primeros `at`
+ok 138 - recallAt: solo cuenta dentro de los primeros `at`
+  ---
+  duration_ms: 0.085125
+  type: 'test'
+  ...
+# Subtest: reciprocalRank: 1/posición del primer acierto, 1-based
+ok 139 - reciprocalRank: 1/posición del primer acierto, 1-based
+  ---
+  duration_ms: 0.508958
+  type: 'test'
+  ...
+# Subtest: reciprocalRank: con varias rutas relevantes, se queda con la primera que aparece
+ok 140 - reciprocalRank: con varias rutas relevantes, se queda con la primera que aparece
+  ---
+  duration_ms: 0.030583
+  type: 'test'
+  ...
+# Subtest: ndcgAt: un único acierto en la posición 1 es nDCG perfecto
+ok 141 - ndcgAt: un único acierto en la posición 1 es nDCG perfecto
+  ---
+  duration_ms: 0.093583
+  type: 'test'
+  ...
+# Subtest: ndcgAt: el mismo acierto más abajo vale menos, calculado a mano
+ok 142 - ndcgAt: el mismo acierto más abajo vale menos, calculado a mano
+  ---
+  duration_ms: 0.060417
+  type: 'test'
+  ...
+# Subtest: ndcgAt: dos relevantes, el orden ideal los pone primero — verificado a mano
+ok 143 - ndcgAt: dos relevantes, el orden ideal los pone primero — verificado a mano
+  ---
+  duration_ms: 0.159667
+  type: 'test'
+  ...
+# Subtest: ndcgAt: sin ningún acierto es 0, no división por cero
+ok 144 - ndcgAt: sin ningún acierto es 0, no división por cero
+  ---
+  duration_ms: 0.232791
+  type: 'test'
+  ...
+# Subtest: scoreCase: factual delega en las tres métricas
+ok 145 - scoreCase: factual delega en las tres métricas
+  ---
+  duration_ms: 0.062792
+  type: 'test'
+  ...
+# Subtest: scoreCase: abstención solo mide si hits vino vacío
+ok 146 - scoreCase: abstención solo mide si hits vino vacío
+  ---
+  duration_ms: 0.036042
+  type: 'test'
+  ...
+# Subtest: scoreCase: no evaluable no lleva ninguna métrica, sea lo que sea que devuelva la busqueda
+ok 147 - scoreCase: no evaluable no lleva ninguna métrica, sea lo que sea que devuelva la busqueda
+  ---
+  duration_ms: 0.038666
+  type: 'test'
+  ...
+# Subtest: aggregate: promedios calculados a mano sobre un conjunto pequeño y mixto
+ok 148 - aggregate: promedios calculados a mano sobre un conjunto pequeño y mixto
+  ---
+  duration_ms: 0.373333
+  type: 'test'
+  ...
+# Subtest: aggregate: señala una abstención cuya pregunta en realidad sí tenía fuente relevante
+ok 149 - aggregate: señala una abstención cuya pregunta en realidad sí tenía fuente relevante
+  ---
+  duration_ms: 0.04125
+  type: 'test'
+  ...
+# Subtest: aggregate: conjunto vacío da promedios en 0, no NaN
+ok 150 - aggregate: conjunto vacío da promedios en 0, no NaN
+  ---
+  duration_ms: 0.03375
+  type: 'test'
+  ...
+# Subtest: el GT-F-011 real, tal como se descarga de GMAS2, está en blanco
+ok 151 - el GT-F-011 real, tal como se descarga de GMAS2, está en blanco
+  ---
+  duration_ms: 1.784542
+  type: 'test'
+  ...
+# Subtest: una copia diligenciada se rechaza, con un motivo por campo
+ok 152 - una copia diligenciada se rechaza, con un motivo por campo
+  ---
+  duration_ms: 0.417667
+  type: 'test'
+  ...
+# Subtest: marcadores de espacio, etiquetas seguidas y correos institucionales no son diligenciamiento
+ok 153 - marcadores de espacio, etiquetas seguidas y correos institucionales no son diligenciamiento
+  ---
+  duration_ms: 0.218041
+  type: 'test'
+  ...
+# Subtest: la configuración del repositorio carga y trae los 6 GT-P del alcance
+ok 154 - la configuración del repositorio carga y trae los 6 GT-P del alcance
+  ---
+  duration_ms: 2.703042
+  type: 'test'
+  ...
+# Subtest: una configuración inválida enumera todos sus errores
+ok 155 - una configuración inválida enumera todos sus errores
+  ---
+  duration_ms: 0.21475
+  type: 'test'
+  ...
+# Subtest: hosts permitidos: dominio con subdominios, host exacto y solo https (RF-C3-AD-15)
+ok 156 - hosts permitidos: dominio con subdominios, host exacto y solo https (RF-C3-AD-15)
+  ---
+  duration_ms: 0.113667
+  type: 'test'
+  ...
+# Subtest: dirección por sección: gana el prefijo más largo; sin coincidencia, general
+ok 157 - dirección por sección: gana el prefijo más largo; sin coincidencia, general
+  ---
+  duration_ms: 0.160166
+  type: 'test'
+  ...
+# Subtest: el contrato fija 12 columnas con sus encabezados, en orden
+ok 158 - el contrato fija 12 columnas con sus encabezados, en orden
+  ---
+  duration_ms: 1.114125
+  type: 'test'
+  ...
+# Subtest: la hoja se llama 'Matriz documental', con encabezados y una fila por elemento
+ok 159 - la hoja se llama 'Matriz documental', con encabezados y una fila por elemento
+  ---
+  duration_ms: 55.961084
+  type: 'test'
+  ...
+# Subtest: N/A solo en las columnas 1, 7 y 8 y solo en filas del Observatorio; la columna 12 lleva la fuente
+ok 160 - N/A solo en las columnas 1, 7 y 8 y solo en filas del Observatorio; la columna 12 lleva la fuente
+  ---
+  duration_ms: 5.214208
+  type: 'test'
+  ...
+# Subtest: una celda que empieza por = + - o @ sale con apóstrofo
+ok 161 - una celda que empieza por = + - o @ sale con apóstrofo
+  ---
+  duration_ms: 4.428834
+  type: 'test'
+  ...
+# Subtest: el nombre del archivo usa la fecha de America/Bogota, no la UTC
+ok 162 - el nombre del archivo usa la fecha de America/Bogota, no la UTC
+  ---
+  duration_ms: 3.431417
+  type: 'test'
+  ...
+# Subtest: la ficha de un procedimiento tiene exactamente los 10 campos, en orden
+ok 163 - la ficha de un procedimiento tiene exactamente los 10 campos, en orden
+  ---
+  duration_ms: 2.596875
+  type: 'test'
+  ...
+# Subtest: una lista vacía se escribe [] y nunca se omite
+ok 164 - una lista vacía se escribe [] y nunca se omite
+  ---
+  duration_ms: 0.139792
+  type: 'test'
+  ...
+# Subtest: la página lleva URL, fecha de acceso y la misma huella de su versión
+ok 165 - la página lleva URL, fecha de acceso y la misma huella de su versión
+  ---
+  duration_ms: 0.398333
+  type: 'test'
+  ...
+# Subtest: la confianza es la media por palabra con conf >= 0 (TSV sintético)
+ok 166 - la confianza es la media por palabra con conf >= 0 (TSV sintético)
+  ---
+  duration_ms: 0.879375
+  type: 'test'
+  ...
+# Subtest: el umbral de 80 caracteres nativos: 79 pasa por OCR, 80 no
+ok 167 - el umbral de 80 caracteres nativos: 79 pasa por OCR, 80 no
+  ---
+  duration_ms: 1391.400334
+  type: 'test'
+  ...
+# Subtest: una imagen y un DOCX escaneado pasan por OCR
+ok 168 - una imagen y un DOCX escaneado pasan por OCR
+  ---
+  duration_ms: 333.525667
+  type: 'test'
+  ...
+# Subtest: el escaneo legible se carga y el ilegible se descarta, con su confianza
+ok 169 - el escaneo legible se carga y el ilegible se descarta, con su confianza
+  ---
+  duration_ms: 1455.298792
+  type: 'test'
+  ...
+# Subtest: un PDF con 80 o más caracteres de texto basura se carga con calidad_nativa_baja
+ok 170 - un PDF con 80 o más caracteres de texto basura se carga con calidad_nativa_baja
+  ---
+  duration_ms: 3.987459
+  type: 'test'
+  ...
+# Subtest: un TXT corto nunca pasa por OCR (XLSX y DOC tampoco: solo PDF, DOCX e imágenes lo admiten)
+ok 171 - un TXT corto nunca pasa por OCR (XLSX y DOC tampoco: solo PDF, DOCX e imágenes lo admiten)
+  ---
+  duration_ms: 1.4515
+  type: 'test'
+  ...
+# Subtest: un informe válido se normaliza a tipos estrictos
+ok 172 - un informe válido se normaliza a tipos estrictos
+  ---
+  duration_ms: 1.189
+  type: 'test'
+  ...
+# Subtest: se rechaza un informe sin run_id o con un resultado desconocido
+ok 173 - se rechaza un informe sin run_id o con un resultado desconocido
+  ---
+  duration_ms: 0.599375
+  type: 'test'
+  ...
+# Subtest: un error nunca trae archivo ni hash (regla 1)
+ok 174 - un error nunca trae archivo ni hash (regla 1)
+  ---
+  duration_ms: 0.214084
+  type: 'test'
+  ...
+# Subtest: los .tmp se ignoran: son informes a medio escribir
+ok 175 - los .tmp se ignoran: son informes a medio escribir
+  ---
+  duration_ms: 6.544875
+  type: 'test'
+  ...
+# Subtest: cada GT-P recibe su dirección del mapa
+ok 176 - cada GT-P recibe su dirección del mapa
+  ---
+  duration_ms: 1.049708
+  type: 'test'
+  ...
+# Subtest: un vinculado hereda la dirección de su GT-P
+ok 177 - un vinculado hereda la dirección de su GT-P
+  ---
+  duration_ms: 0.893
+  type: 'test'
+  ...
+# Subtest: con dos orígenes de direcciones distintas gana el primero por código y se listan ambos
+ok 178 - con dos orígenes de direcciones distintas gana el primero por código y se listan ambos
+  ---
+  duration_ms: 0.341709
+  type: 'test'
+  ...
+# Subtest: páginas por prefijo más largo, PDF por su página padre y general por defecto
+ok 179 - páginas por prefijo más largo, PDF por su página padre y general por defecto
+  ---
+  duration_ms: 0.163708
+  type: 'test'
+  ...
+# Subtest: el contenido del Observatorio lleva como origen el nombre de su fuente
+ok 180 - el contenido del Observatorio lleva como origen el nombre de su fuente
+  ---
+  duration_ms: 0.046834
+  type: 'test'
+  ...
+# Subtest: alcance: GT-P semilla, vinculados F/N/MG; fuera: otros GT-P, MG no citados y hosts ajenos
+ok 181 - alcance: GT-P semilla, vinculados F/N/MG; fuera: otros GT-P, MG no citados y hosts ajenos
+  ---
+  duration_ms: 0.231125
+  type: 'test'
+  ...
+# Subtest: tipo y clave: código para GMAS2, URL normalizada para el resto
+ok 182 - tipo y clave: código para GMAS2, URL normalizada para el resto
+  ---
+  duration_ms: 0.087
+  type: 'test'
+  ...
+# Subtest: el hash de término es determinista y de 32 bits sin signo
+ok 183 - el hash de término es determinista y de 32 bits sin signo
+  ---
+  duration_ms: 0.520458
+  type: 'test'
+  ...
+# Subtest: mismo tokenizador que el BM25 anterior: sin tildes, sin mayúsculas, sin stopwords
+ok 184 - mismo tokenizador que el BM25 anterior: sin tildes, sin mayúsculas, sin stopwords
+  ---
+  duration_ms: 3.34525
+  type: 'test'
+  ...
+# Subtest: tf saturado BM25 con k1=1,2 y b=0,75
+ok 185 - tf saturado BM25 con k1=1,2 y b=0,75
+  ---
+  duration_ms: 0.186042
+  type: 'test'
+  ...
+# Subtest: un documento más largo que el promedio pesa menos cada término
+ok 186 - un documento más largo que el promedio pesa menos cada término
+  ---
+  duration_ms: 0.266375
+  type: 'test'
+  ...
+# Subtest: índices ordenados y sin duplicados (formato que exige Qdrant)
+ok 187 - índices ordenados y sin duplicados (formato que exige Qdrant)
+  ---
+  duration_ms: 0.136042
+  type: 'test'
+  ...
+# Subtest: la pregunta anterior pesa menos que la actual, salvo términos repetidos
+ok 188 - la pregunta anterior pesa menos que la actual, salvo términos repetidos
+  ---
+  duration_ms: 0.21675
+  type: 'test'
+  ...
+# [Proveedor] unknown: reintentando en 500 ms
+# Subtest: sin clave configurada no se llama a la red
+ok 189 - sin clave configurada no se llama a la red
+  ---
+  duration_ms: 1.385
+  type: 'test'
+  ...
+# Subtest: respuesta correcta: devuelve el contenido recortado
+ok 190 - respuesta correcta: devuelve el contenido recortado
+  ---
+  duration_ms: 19.735333
+  type: 'test'
+  ...
+# Subtest: respuesta vacía o sin choices cae al mensaje de "no encuentro"
+ok 191 - respuesta vacía o sin choices cae al mensaje de "no encuentro"
+  ---
+  duration_ms: 2.757417
+  type: 'test'
+  ...
+# [Proveedor] quota: reintentando en 500 ms
+# Subtest: cortado por length sin contenido es fallo reintentable, no un "no encuentro" falso
+ok 192 - cortado por length sin contenido es fallo reintentable, no un "no encuentro" falso
+  ---
+  duration_ms: 502.1275
+  type: 'test'
+  ...
+# Subtest: cortado por length CON contenido sigue siendo respuesta
+ok 193 - cortado por length CON contenido sigue siendo respuesta
+  ---
+  duration_ms: 0.489292
+  type: 'test'
+  ...
+# [Proveedor] unknown: reintentando en 500 ms
+# [Proveedor] network: reintentando en 500 ms
+# Subtest: la escalera de estados: 401, 403, 429 y genérico
+ok 194 - la escalera de estados: 401, 403, 429 y genérico
+  ---
+  duration_ms: 1004.54925
+  type: 'test'
+  ...
+# Subtest: un estado con mensaje propio del proveedor gana al genérico
+ok 195 - un estado con mensaje propio del proveedor gana al genérico
+  ---
+  duration_ms: 0.2035
+  type: 'test'
+  ...
+# Subtest: una excepción de red se traduce a mensaje, no se propaga
+ok 196 - una excepción de red se traduce a mensaje, no se propaga
+  ---
+  duration_ms: 501.376
+  type: 'test'
+  ...
+# Subtest: el cuerpo lleva el prompt del sistema y el mensaje del usuario
+ok 197 - el cuerpo lleva el prompt del sistema y el mensaje del usuario
+  ---
+  duration_ms: 0.415709
+  type: 'test'
+  ...
+# Subtest: csv: comillas escapadas y delimitador dentro de un campo
+ok 198 - csv: comillas escapadas y delimitador dentro de un campo
+  ---
+  duration_ms: 0.470708
+  type: 'test'
+  ...
+# Subtest: csv: salto de línea dentro de un campo entrecomillado no parte la fila
+ok 199 - csv: salto de línea dentro de un campo entrecomillado no parte la fila
+  ---
+  duration_ms: 0.058917
+  type: 'test'
+  ...
+# Subtest: csv: CRLF, líneas vacías al final y BOM de Excel
+ok 200 - csv: CRLF, líneas vacías al final y BOM de Excel
+  ---
+  duration_ms: 0.176875
+  type: 'test'
+  ...
+# Subtest: csv: registros con columnas faltantes quedan como cadena vacía
+ok 201 - csv: registros con columnas faltantes quedan como cadena vacía
+  ---
+  duration_ms: 0.084417
+  type: 'test'
+  ...
+# Subtest: csv: entradas vacías no revientan
+ok 202 - csv: entradas vacías no revientan
+  ---
+  duration_ms: 0.046458
+  type: 'test'
+  ...
+# Subtest: csv: parseCsvRow devuelve solo la primera fila
+ok 203 - csv: parseCsvRow devuelve solo la primera fila
+  ---
+  duration_ms: 0.039834
+  type: 'test'
+  ...
+# Subtest: enmascara los datos personales que llegan de verdad a un canal de atención
+ok 204 - enmascara los datos personales que llegan de verdad a un canal de atención
+  ---
+  duration_ms: 3.224083
+  type: 'test'
+  ...
+# Subtest: conserva la palabra que dice de qué dato se trata
+ok 205 - conserva la palabra que dice de qué dato se trata
+  ---
+  duration_ms: 0.136
+  type: 'test'
+  ...
+# Subtest: NO toca la numeración normativa, que es la que alimenta la evaluación
+ok 206 - NO toca la numeración normativa, que es la que alimenta la evaluación
+  ---
+  duration_ms: 0.093458
+  type: 'test'
+  ...
+# Subtest: un número largo suelto, sin ancla léxica, se deja en paz
+ok 207 - un número largo suelto, sin ancla léxica, se deja en paz
+  ---
+  duration_ms: 0.0925
+  type: 'test'
+  ...
+# Subtest: NO toca las cifras presupuestales, que es lo que más abunda en el corpus
+ok 208 - NO toca las cifras presupuestales, que es lo que más abunda en el corpus
+  ---
+  duration_ms: 0.051917
+  type: 'test'
+  ...
+# Subtest: enmascara varias apariciones en el mismo texto
+ok 209 - enmascara varias apariciones en el mismo texto
+  ---
+  duration_ms: 0.038875
+  type: 'test'
+  ...
+# Subtest: texto sin datos personales pasa intacto
+ok 210 - texto sin datos personales pasa intacto
+  ---
+  duration_ms: 0.080792
+  type: 'test'
+  ...
+# Subtest: provider catalog combines default and comma-separated models
+ok 211 - provider catalog combines default and comma-separated models
+  ---
+  duration_ms: 0.627459
+  type: 'test'
+  ...
+# Subtest: requested model must belong to its provider catalog
+ok 212 - requested model must belong to its provider catalog
+  ---
+  duration_ms: 0.355083
+  type: 'test'
+  ...
+# Subtest: auto-route lee proveedor y modelo de cada complejidad
+ok 213 - auto-route lee proveedor y modelo de cada complejidad
+  ---
+  duration_ms: 1.570709
+  type: 'test'
+  ...
+# Subtest: auto-route usa Groq para preguntas simples y medias
+ok 214 - auto-route usa Groq para preguntas simples y medias
+  ---
+  duration_ms: 2.02725
+  type: 'test'
+  ...
+# Subtest: auto-route usa DeepSeek para preguntas complejas
+ok 215 - auto-route usa DeepSeek para preguntas complejas
+  ---
+  duration_ms: 0.49575
+  type: 'test'
+  ...
+# Subtest: auto-route usa el reemplazo con su propio modelo si falta el principal
+ok 216 - auto-route usa el reemplazo con su propio modelo si falta el principal
+  ---
+  duration_ms: 0.398125
+  type: 'test'
+  ...
+# Subtest: cada complejidad conserva su propio reemplazo
+ok 217 - cada complejidad conserva su propio reemplazo
+  ---
+  duration_ms: 0.217709
+  type: 'test'
+  ...
+# Subtest: needsPreviousContext: preguntas que NO se sostienen solas
+ok 218 - needsPreviousContext: preguntas que NO se sostienen solas
+  ---
+  duration_ms: 1.44725
+  type: 'test'
+  ...
+# Subtest: needsPreviousContext: preguntas autocontenidas NO se tocan
+ok 219 - needsPreviousContext: preguntas autocontenidas NO se tocan
+  ---
+  duration_ms: 0.156417
+  type: 'test'
+  ...
+# Subtest: needsPreviousContext: la longitud deja de decidir
+ok 220 - needsPreviousContext: la longitud deja de decidir
+  ---
+  duration_ms: 0.202709
+  type: 'test'
+  ...
+# Subtest: tailAtWordBoundary: no parte palabras por la mitad
+ok 221 - tailAtWordBoundary: no parte palabras por la mitad
+  ---
+  duration_ms: 0.163167
+  type: 'test'
+  ...
+# Subtest: tailAtWordBoundary: textos cortos pasan intactos y una palabra larguísima no se pierde
+ok 222 - tailAtWordBoundary: textos cortos pasan intactos y una palabra larguísima no se pierde
+  ---
+  duration_ms: 0.249292
+  type: 'test'
+  ...
+# Subtest: weighQueryTerms: la pregunta anterior pesa menos que la actual
+ok 223 - weighQueryTerms: la pregunta anterior pesa menos que la actual
+  ---
+  duration_ms: 0.712584
+  type: 'test'
+  ...
+# Subtest: weighQueryTerms: un string suelto equivale a un solo tramo de peso 1
+ok 224 - weighQueryTerms: un string suelto equivale a un solo tramo de peso 1
+  ---
+  duration_ms: 0.380041
+  type: 'test'
+  ...
+# Subtest: weighQueryTerms: un tramo con peso 0 no aporta términos
+ok 225 - weighQueryTerms: un tramo con peso 0 no aporta términos
+  ---
+  duration_ms: 0.048667
+  type: 'test'
+  ...
+# Subtest: rankAndFilterByRelevance: descarta lo que no llega al umbral y ordena por logit
+ok 226 - rankAndFilterByRelevance: descarta lo que no llega al umbral y ordena por logit
+  ---
+  duration_ms: 0.535292
+  type: 'test'
+  ...
+# Subtest: rankAndFilterByRelevance: umbral muy alto puede dejar cero resultados (abstención)
+ok 227 - rankAndFilterByRelevance: umbral muy alto puede dejar cero resultados (abstención)
+  ---
+  duration_ms: 0.046375
+  type: 'test'
+  ...
+# Subtest: rankAndFilterByRelevance: sin umbral (muy negativo) no descarta nada, solo recorta a 8
+ok 228 - rankAndFilterByRelevance: sin umbral (muy negativo) no descarta nada, solo recorta a 8
+  ---
+  duration_ms: 0.068375
+  type: 'test'
+  ...
+# Subtest: rankAndFilterByRelevance: un candidato sin logit (rerank undefined) se trata como -Infinity
+ok 229 - rankAndFilterByRelevance: un candidato sin logit (rerank undefined) se trata como -Infinity
+  ---
+  duration_ms: 0.039167
+  type: 'test'
+  ...
+# Subtest: rankAndFilterByRelevance: ruta de reserva sin reranker (RRF) nunca la llama -- no filtra nada por diseño
+ok 230 - rankAndFilterByRelevance: ruta de reserva sin reranker (RRF) nunca la llama -- no filtra nada por diseño
+  ---
+  duration_ms: 0.079792
+  type: 'test'
+  ...
+# Subtest: BM25 matches whole normalized terms and rewards rare terms
+ok 231 - BM25 matches whole normalized terms and rewards rare terms
+  ---
+  duration_ms: 1.755333
+  type: 'test'
+  ...
+# Subtest: chunks cover tail and overlap without losing source text
+ok 232 - chunks cover tail and overlap without losing source text
+  ---
+  duration_ms: 0.140584
+  type: 'test'
+  ...
+# Subtest: M-11: un solapamiento de la mitad o más se rechaza, porque el bucle no terminaría
+ok 233 - M-11: un solapamiento de la mitad o más se rechaza, porque el bucle no terminaría
+  ---
+  duration_ms: 0.16225
+  type: 'test'
+  ...
+# Subtest: cosine similarity uses vector direction
+ok 234 - cosine similarity uses vector direction
+  ---
+  duration_ms: 0.098917
+  type: 'test'
+  ...
+# Subtest: RRF combines ranks rather than incomparable score scales
+ok 235 - RRF combines ranks rather than incomparable score scales
+  ---
+  duration_ms: 0.085542
+  type: 'test'
+  ...
+# Subtest: document preprocessing returns normalized Markdown for text files
+ok 236 - document preprocessing returns normalized Markdown for text files
+  ---
+  duration_ms: 8.190667
+  type: 'test'
+  ...
+# Subtest: document preprocessing converts every spreadsheet sheet to Markdown tables
+ok 237 - document preprocessing converts every spreadsheet sheet to Markdown tables
+  ---
+  duration_ms: 13.071541
+  type: 'test'
+  ...
+# Subtest: crawler CSV metadata enriches Markdown and document paths without indexing CSV files
+ok 238 - crawler CSV metadata enriches Markdown and document paths without indexing CSV files
+  ---
+  duration_ms: 3.247167
+  type: 'test'
+  ...
+# Subtest: automatic routing honors the only configured provider
+ok 239 - automatic routing honors the only configured provider
+  ---
+  duration_ms: 1.155166
+  type: 'test'
+  ...
+# [Reintentos] unknown: reintentando en 0 ms
+# Subtest: withRetry: un fallo transitorio seguido de éxito devuelve la respuesta
+ok 240 - withRetry: un fallo transitorio seguido de éxito devuelve la respuesta
+  ---
+  duration_ms: 0.60375
+  type: 'test'
+  ...
+# Subtest: withRetry: agotar los intentos devuelve el último fallo
+ok 241 - withRetry: agotar los intentos devuelve el último fallo
+  ---
+  duration_ms: 0.173333
+  type: 'test'
+  ...
+# Subtest: withRetry: un fallo NO reintentable se devuelve al primer intento
+ok 242 - withRetry: un fallo NO reintentable se devuelve al primer intento
+  ---
+  duration_ms: 0.088334
+  type: 'test'
+  ...
+# Subtest: withRetry: un éxito al primer intento no reintenta
+ok 243 - withRetry: un éxito al primer intento no reintenta
+  ---
+  duration_ms: 0.052375
+  type: 'test'
+  ...
+# Subtest: retryDelayMs: retroceso exponencial acotado por el máximo
+ok 244 - retryDelayMs: retroceso exponencial acotado por el máximo
+  ---
+  duration_ms: 0.0415
+  type: 'test'
+  ...
+# Subtest: retryDelayMs: Retry-After del proveedor gana, pero acotado
+ok 245 - retryDelayMs: Retry-After del proveedor gana, pero acotado
+  ---
+  duration_ms: 0.033292
+  type: 'test'
+  ...
+# Subtest: parseRetryAfter: segundos, fecha HTTP y basura
+ok 246 - parseRetryAfter: segundos, fecha HTTP y basura
+  ---
+  duration_ms: 0.929875
+  type: 'test'
+  ...
+# Subtest: la fábrica reintenta un 503 y devuelve la respuesta del segundo intento
+ok 247 - la fábrica reintenta un 503 y devuelve la respuesta del segundo intento
+  ---
+  duration_ms: 14.641292
+  type: 'test'
+  ...
+# Subtest: la fábrica NO reintenta un 401
+ok 248 - la fábrica NO reintenta un 401
+  ---
+  duration_ms: 0.363083
+  type: 'test'
+  ...
+# Subtest: withRetry: una señal abortada no inicia otro intento
+ok 249 - withRetry: una señal abortada no inicia otro intento
+  ---
+  duration_ms: 0.268375
+  type: 'test'
+  ...
+# Subtest: withRetry: el aborto interrumpe la espera entre intentos
+ok 250 - withRetry: el aborto interrumpe la espera entre intentos
+  ---
+  duration_ms: 21.85075
+  type: 'test'
+  ...
+# Subtest: la fábrica corta un proveedor colgado al vencer el plazo y lo reporta como timeout
+ok 251 - la fábrica corta un proveedor colgado al vencer el plazo y lo reporta como timeout
+  ---
+  duration_ms: 51.786042
+  type: 'test'
+  ...
+# [smart] provider=groq reason=Pregunta simple → Groq · llama-3.1-8b-instant. ok=false
+# Subtest: askSmartTutor no prueba el reemplazo cuando el plazo de la petición ya venció
+ok 252 - askSmartTutor no prueba el reemplazo cuando el plazo de la petición ya venció
+  ---
+  duration_ms: 81.460375
+  type: 'test'
+  ...
+# [Groq] network: reintentando en 0 ms
+# [smart] Groq fallo (timeout): plazo de la petición agotado
+# [smart] provider=deepseek reason=Pregunta simple → Groq · llama-3.1-8b-instant. Se uso DeepSeek · deepseek-v4-flash como reemplazo. ok=true
+# Subtest: un principal colgado no se come el presupuesto: el reemplazo conserva su parte
+ok 253 - un principal colgado no se come el presupuesto: el reemplazo conserva su parte
+  ---
+  duration_ms: 2001.076792
+  type: 'test'
+  ...
+# [smart] Groq fallo (network): The operation was aborted due to timeout
+# [smart] provider=deepseek reason=Pregunta simple → Groq · llama-3.1-8b-instant. Se uso DeepSeek · deepseek-v4-flash como reemplazo. ok=true
+# [smart] Groq fallo (network): The operation was aborted due to timeout
+# [smart] provider=deepseek reason=Pregunta simple → Groq · llama-3.1-8b-instant. Se uso DeepSeek · deepseek-v4-flash como reemplazo. ok=true
+# [alert] event=provider_degraded Groq · llama-3.1-8b-instant falló 3 veces seguidas (network): se omite 30 s y las consultas van al proveedor de reemplazo.
+# [smart] Groq fallo (network): The operation was aborted due to timeout
+# [smart] provider=deepseek reason=Pregunta simple → Groq · llama-3.1-8b-instant. Se uso DeepSeek · deepseek-v4-flash como reemplazo. ok=true
+# [smart] Groq fallo (circuit_open): circuito abierto: groq:llama-3.1-8b-instant
+# [smart] provider=deepseek reason=Pregunta simple → Groq · llama-3.1-8b-instant. Se uso DeepSeek · deepseek-v4-flash como reemplazo. ok=true
+# Subtest: tras tres fallos seguidos, el circuito se abre y el proveedor caído se salta
+ok 254 - tras tres fallos seguidos, el circuito se abre y el proveedor caído se salta
+  ---
+  duration_ms: 3008.593833
+  type: 'test'
+  ...
+# [config] RETRIEVAL_MAX_PER_DOCUMENT="999" está fuera del rango [1, 8]; se aplica 8.
+# [config] OCR_MIN_CONFIDENCE="60" está fuera del rango [80, 100]; se aplica 80.
+# [config] KB_RETENCION_MESES="11" está fuera del rango [12, 120]; se aplica 12.
+# Subtest: cada variable se declara una sola vez y con nombre único
+ok 255 - cada variable se declara una sola vez y con nombre único
+  ---
+  duration_ms: 0.333875
+  type: 'test'
+  ...
+# Subtest: los rangos declarados contienen a su propio valor por defecto
+ok 256 - los rangos declarados contienen a su propio valor por defecto
+  ---
+  duration_ms: 0.136625
+  type: 'test'
+  ...
+# Subtest: el valor se lee en el momento de la llamada, no al importar el módulo
+ok 257 - el valor se lee en el momento de la llamada, no al importar el módulo
+  ---
+  duration_ms: 0.083125
+  type: 'test'
+  ...
+# Subtest: un valor fuera de rango se recorta al extremo, no se descarta
+ok 258 - un valor fuera de rango se recorta al extremo, no se descarta
+  ---
+  duration_ms: 0.278666
+  type: 'test'
+  ...
+# Subtest: el diagnóstico distingue lo que viene del entorno de lo que es defecto
+ok 259 - el diagnóstico distingue lo que viene del entorno de lo que es defecto
+  ---
+  duration_ms: 0.191417
+  type: 'test'
+  ...
+# Subtest: OCR_MIN_CONFIDENCE no admite valores por debajo de 80
+ok 260 - OCR_MIN_CONFIDENCE no admite valores por debajo de 80
+  ---
+  duration_ms: 0.056208
+  type: 'test'
+  ...
+# Subtest: KB_RETENCION_MESES no admite valores por debajo de 12
+ok 261 - KB_RETENCION_MESES no admite valores por debajo de 12
+  ---
+  duration_ms: 0.075542
+  type: 'test'
+  ...
+# Subtest: topKByDot reproduce el ranking del escaneo exhaustivo anterior
+ok 262 - topKByDot reproduce el ranking del escaneo exhaustivo anterior
+  ---
+  duration_ms: 6.682542
+  type: 'test'
+  ...
+# Subtest: topKByDot desempata por id ascendente, como el ordenamiento total
+ok 263 - topKByDot desempata por id ascendente, como el ordenamiento total
+  ---
+  duration_ms: 0.102958
+  type: 'test'
+  ...
+# Subtest: topKByDot filtra durante el recorrido: el top-k es el de los admitidos
+ok 264 - topKByDot filtra durante el recorrido: el top-k es el de los admitidos
+  ---
+  duration_ms: 0.400709
+  type: 'test'
+  ...
+# Subtest: topKByDot respeta el rango [lo, hi) sin tocar el resto
+ok 265 - topKByDot respeta el rango [lo, hi) sin tocar el resto
+  ---
+  duration_ms: 0.615542
+  type: 'test'
+  ...
+# Subtest: topKByDot tolera menos vectores que k, rangos vacíos y dimensión errónea
+ok 266 - topKByDot tolera menos vectores que k, rangos vacíos y dimensión errónea
+  ---
+  duration_ms: 0.220333
+  type: 'test'
+  ...
+# Subtest: topKByDot es determinista
+ok 267 - topKByDot es determinista
+  ---
+  duration_ms: 0.182584
+  type: 'test'
+  ...
+# Subtest: topKByDot suma igual sea cual sea la dimensión, múltiplo de ocho o no
+ok 268 - topKByDot suma igual sea cual sea la dimensión, múltiplo de ocho o no
+  ---
+  duration_ms: 2.949584
+  type: 'test'
+  ...
+1..268
+# tests 268
+# suites 0
+# pass 268
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 20407.1025
+exit=0

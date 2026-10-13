@@ -1,0 +1,20 @@
+docker compose exec kb-worker node dist/kb/cli.js sincronizar --completa --medir
+(sin resultados)
+{
+  indexacionId: '19018b59-8638-416a-8895-022872e9d928',
+  coleccion: 'kb_chunks_20261008185107336',
+  anterior: 'kb_chunks_20261008184730321',
+  elementos: 584,
+  puntos: 3117,
+  avgdl: 99.04748155277511,
+  duracionEtapasMs: {
+    conversion: 8967,
+    ocr: 448410,
+    embeddings: 121169,
+    indexacion: 2657,
+    total_ms: 581203,
+    total_min: 9.69
+  },
+  promovidos: []
+}
+exit=0

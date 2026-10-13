@@ -1,0 +1,32 @@
+    decision    | count |  min  |  max  
+----------------+-------+-------+-------
+ descartado_ocr |   488 |  0.00 | 79.94
+ cargado        |  1168 | 80.09 | 96.08
+(2 rows)
+
+ cargados_ocr_conf_baja 
+------------------------
+                      0
+(1 row)
+
+ descartes 
+-----------
+       488
+(1 row)
+
+ notif_descarte_ocr 
+--------------------
+                244
+(1 row)
+
+    decision    | filas | claves 
+----------------+-------+--------
+ cargado        |  1168 |    584
+ descartado_ocr |   488 |    244
+(2 rows)
+
+ count 
+-------
+     0
+(1 row)
+

@@ -1,0 +1,30 @@
+
+> agent-backend@1.0.0 test:integration
+> node --import tsx test/http-smoke.ts
+
+[smart] provider=groq reason=Pregunta simple → Groq · llama-3.1-8b-instant. ok=true
+[documentLinks] Sin APP_DATABASE_URL: los códigos GT-F/GT-P quedan como texto, sin enlace.
+[Groq] quota: reintentando en 500 ms
+[smart] Groq fallo (quota): HTTP 429: quota
+[smart] provider=gemini reason=Pregunta simple → Groq · llama-3.1-8b-instant. Se uso Gemini · gemini-flash-latest como reemplazo. ok=true
+[chatLog] No se pudo registrar la interacción: Error: ENOTDIR: not a directory, mkdir '/var/folders/bt/wxl1c3t114zc_39rl924kzgr0000gn/T/geobot-http-aVyJHa/chat-interactions.csv/imposible/'
+    at async Object.mkdir (node:internal/fs/promises:860:10)
+    at async <anonymous> (/Users/geotrends/Desktop/DEV_LAOR/agente/backend/src/services/chatLog.ts:162:7) {
+  errno: -20,
+  code: 'ENOTDIR',
+  syscall: 'mkdir',
+  path: '/var/folders/bt/wxl1c3t114zc_39rl924kzgr0000gn/T/geobot-http-aVyJHa/chat-interactions.csv/imposible/'
+}
+[Groq] quota: reintentando en 500 ms
+[smart] Groq fallo (quota): HTTP 429: quota
+[Gemini] Error al generar contenido: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent: [429 ] 
+[gemini] intento fallido (quota); se reintenta en 500 ms.
+[Gemini] Error al generar contenido: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent: [429 ] 
+[smart] Gemini fallo (quota): [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent: [429 ] 
+[smart] provider=gemini reason=Pregunta simple → Groq · llama-3.1-8b-instant. Se uso Gemini · gemini-flash-latest como reemplazo. ok=false
+[chat] gemini (quota): [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent: [429 ] 
+[alert] event=provider_failed Consulta sin respuesta: gemini · gemini-flash-latest falló (quota). Detalle: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent: [429 ] 
+[chat] groq (unknown): HTTP 400: {"error":"model not allowed for org-geobot-interno"}
+[alert] event=provider_failed Consulta sin respuesta: groq · llama-3.1-8b-instant falló (unknown). Detalle: HTTP 400: {"error":"model not allowed for org-geobot-interno"}
+HTTP integration passed: unscoped chat, hybrid retrieval over Qdrant, sources, invalid input, publication/withdrawal reflected, relevance threshold/abstention, history embedded as text and backpressure.
+exit=0

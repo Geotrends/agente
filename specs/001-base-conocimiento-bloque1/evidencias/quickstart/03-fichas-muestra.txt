@@ -1,0 +1,48 @@
+##### gt-p-004
+---
+codigo: "GT-P-004"
+nombre: "Procedimiento permisos y autorizaciones ambientales"
+direccion_responsable: "Gestión Ambiental"
+estado: "Vigente"
+url_origen: "https://gmas2.envigado.gov.co/gmas/VisualizacionDocumento.public?documento=0000010207"
+version: "06"
+fecha_actualizacion: "2022-09-12"
+fecha_acceso: "2026-10-08T18:24:34.331Z"
+formatos_vinculados: ["GT-F-011", "GT-F-012", "MG-F-002", "MG-F-051"]
+normas_vinculadas: []
+---
+
+# GT-P-004 - Procedimiento permisos y autorizaciones ambientales
+
+|  |  |  |
+| --- | --- | --- |
+| logo | Procedimiento permisos y autorizaciones ambientales | Código: GT-P-004 |
+| PROCEDIMIENTO | Versión: 06 |
+| Gestión Trámites - GT | Fecha: 12-09-2022 |
+
+Estado del documento: Vigente
+44
+##### gt-p-021
+---
+codigo: "GT-P-021"
+nombre: "Procedimiento para esterilización de Animales de Compañía"
+direccion_responsable: "Bienestar Animal"
+estado: "Vigente"
+url_origen: "https://gmas2.envigado.gov.co/gmas/VisualizacionDocumento.public?documento=0000010445"
+version: "04"
+fecha_actualizacion: "2022-10-24"
+fecha_acceso: "2026-10-08T18:24:38.648Z"
+formatos_vinculados: ["GT-F-015"]
+normas_vinculadas: ["CS-N-012", "GT-N-218", "GT-N-219", "IV-N-102", "IV-N-258"]
+---
+
+# GT-P-021 - Procedimiento para esterilización de Animales de Compañía
+
+|  |  |  |
+| --- | --- | --- |
+| logo | Procedimiento para esterilización de Animales de Compañía | Código: GT-P-021 |
+| PROCEDIMIENTO | Versión: 04 |
+| Gestión Trámites - GT | Fecha: 24-10-2022 |
+
+Estado del documento: Vigente
+41

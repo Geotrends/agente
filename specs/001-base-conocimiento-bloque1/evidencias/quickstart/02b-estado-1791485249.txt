@@ -1,0 +1,21 @@
+docker compose exec kb-worker node dist/kb/cli.js estado
+{
+  alias: 'kb_chunks',
+  coleccion: 'kb_chunks_20261008182551700',
+  puntos: 1072,
+  elementosPorEstado: { pendiente_aprobacion: 414, publicado: 170 },
+  ultimaCorrida: {
+    id: 'bc840515-371b-477f-9e71-2ac517b5f8cc',
+    terminadaEn: 2026-10-08T18:25:36.099Z,
+    programada: false,
+    completa: true
+  },
+  ultimaIndexacion: {
+    tipo: 'completa',
+    estado: 'terminada',
+    iniciadaEn: 2026-10-08T18:25:51.701Z,
+    terminadaEn: 2026-10-08T18:26:44.861Z
+  },
+  notificacionesSinRevisar: 267
+}
+exit=0
