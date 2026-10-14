@@ -1,7 +1,7 @@
 /** Documentos del panel (contracts/documents-sources.md): matriz y carga para ambos perfiles; acciones solo técnico. */
 import { Router } from "express";
 import {
-  editarMetadata, listarDocumentos, obtenerOperacion, publicarDocumento, recibirCarga, rechazarDocumento, reindexar, retirarDocumento,
+  editarMetadata, listarDocumentos, obtenerOperacion, publicarDocumento, reanudarOperacion, recibirCarga, rechazarDocumento, reindexar, retirarDocumento,
 } from "../admin/documents.js";
 import { pageSize } from "../admin/contracts.js";
 import { requireAdmin, safe } from "./adminAuth.js";
@@ -44,6 +44,9 @@ router.patch("/admin/documents/:id/metadata", escrituraTecnico, safe(async (req,
 }));
 router.post("/admin/reindexations", escrituraTecnico, safe(async (req, res) => {
   res.status(202).json(await reindexar(req.admin!.accountId, req.body, req.header("idempotency-key")));
+}));
+router.post("/admin/document-operations/:id/resume", escrituraTecnico, safe(async (req, res) => {
+  res.json(await reanudarOperacion(req.admin!.accountId, req.params.id, req.body));
 }));
 router.get("/admin/document-operations/:id", lecturaTecnico, safe(async (req, res) => {
   res.json(await obtenerOperacion(req.params.id));

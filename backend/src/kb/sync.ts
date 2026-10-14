@@ -225,6 +225,13 @@ async function sincronizarElemento(
     const publicada = await hashDeVersion(client, fila.version_publicada_id);
     const pendiente = await hashDeVersion(client, fila.version_pendiente_id);
     if (hash === pendiente) return fila.insertado ? "nuevo" : "sin_cambios";
+    // Con una publicación o un rechazo en curso, la versión aprobada no puede cambiar (SPEC008,
+    // NV-02/NV-10): lo nuevo se aplaza y pasa a pendiente cuando la operación termina.
+    const { rowCount: operacionActiva } = await client.query(
+      `SELECT 1 FROM kb.document_operation WHERE element_id = $1 AND kind IN ('publish','replace','reject')
+          AND phase NOT IN ('complete','failed')`, [fila.id]);
+    const aplazar = (operacionActiva ?? 0) > 0;
+    if (hash === publicada && aplazar) return "sin_cambios";
     if (hash === publicada) {
       if (reactivado) {
         // Mismo contenido que tenía publicado: se vuelve a aprobar esa misma versión.
@@ -234,7 +241,9 @@ async function sincronizarElemento(
       // El contenido volvió a ser el publicado: la pendiente ya no hace falta.
       if (fila.version_pendiente_id) {
         await client.query("UPDATE kb.kb_elemento SET version_pendiente_id = NULL WHERE id = $1", [fila.id]);
-        await client.query("DELETE FROM kb.kb_version WHERE id = $1", [fila.version_pendiente_id]);
+        if (fila.version_pendiente_id !== fila.version_publicada_id) {
+          await client.query("DELETE FROM kb.kb_version WHERE id = $1", [fila.version_pendiente_id]);
+        }
       }
       return "sin_cambios";
     }
@@ -247,8 +256,19 @@ async function sincronizarElemento(
       [fila.id, hash, descarga?.hashOriginal ?? e.hashOriginal, contenido, fechaAcceso,
         e.gmas ? JSON.stringify(e.gmas) : null, procesamientoId, JSON.stringify(candidatos)],
     );
+    if (aplazar) {
+      const { rows: [previa] } = await client.query<{ version_aplazada_id: string | null }>(
+        "SELECT version_aplazada_id FROM kb.kb_elemento WHERE id = $1", [fila.id]);
+      await client.query("UPDATE kb.kb_elemento SET version_aplazada_id = $2 WHERE id = $1", [fila.id, version.id]);
+      const vieja = previa?.version_aplazada_id;
+      if (vieja && vieja !== version.id && vieja !== fila.version_publicada_id && vieja !== fila.version_pendiente_id) {
+        await client.query("DELETE FROM kb.kb_version WHERE id = $1", [vieja]);
+      }
+      return "version";
+    }
     await client.query("UPDATE kb.kb_elemento SET version_pendiente_id = $2 WHERE id = $1", [fila.id, version.id]);
-    if (fila.version_pendiente_id && fila.version_pendiente_id !== version.id) {
+    // La pendiente anterior solo se borra si no es, a la vez, la publicada (derogado reactivado, NV-09).
+    if (fila.version_pendiente_id && fila.version_pendiente_id !== version.id && fila.version_pendiente_id !== fila.version_publicada_id) {
       await client.query("DELETE FROM kb.kb_version WHERE id = $1", [fila.version_pendiente_id]);
     }
     return fila.insertado ? "nuevo" : "version";

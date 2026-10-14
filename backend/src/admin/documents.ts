@@ -286,6 +286,7 @@ export type OperacionCreada = { operationId: string; estado: "En curso"; repetid
 async function encolar(
   c: pg.PoolClient, actor: string, kind: string, elementoId: string | null, expectedRevision: string | null,
   payload: Record<string, unknown>, idempotencyKey: string | undefined, ruta: string,
+  targetVersionId: string | null = null,
 ): Promise<{ id: string; repetida: boolean }> {
   const payloadHash = createHash("sha256").update(JSON.stringify({ ruta, kind, elementoId, expectedRevision, payload })).digest("hex");
   if (idempotencyKey) {
@@ -303,9 +304,9 @@ async function encolar(
   }
   try {
     const { rows } = await c.query(
-      `INSERT INTO kb.document_operation (kind, actor_account_id, element_id, expected_revision, idempotency_key, payload_hash, payload)
-       VALUES ($1,$2,$3,$4,$5,$6,$7::jsonb) RETURNING id`,
-      [kind, actor, elementoId, expectedRevision, idempotencyKey ?? null, payloadHash, JSON.stringify(payload)]);
+      `INSERT INTO kb.document_operation (kind, actor_account_id, element_id, expected_revision, idempotency_key, payload_hash, payload, target_version_id)
+       VALUES ($1,$2,$3,$4,$5,$6,$7::jsonb,$8) RETURNING id`,
+      [kind, actor, elementoId, expectedRevision, idempotencyKey ?? null, payloadHash, JSON.stringify(payload), targetVersionId]);
     return { id: rows[0].id, repetida: false };
   } catch (error) {
     if ((error as { code?: string }).code === "23505" && kind === "reindex") {
@@ -337,7 +338,10 @@ export async function publicarDocumento(
         ? "El documento todavía se está procesando. Intente de nuevo en unos minutos."
         : "El documento no superó el procesamiento y no puede publicarse.");
     }
-    const op = await encolar(c, actor, e.tiene_vigente ? "replace" : "publish", id, expected, {}, idem, `publish:${id}`);
+    // La operación queda atada a la versión que se aprueba ahora (NV-02): el commit la exige.
+    const { rows: [objetivo] } = await c.query<{ v: string | null }>("SELECT kb.version_pendiente_de($1) AS v", [id]);
+    if (!objetivo?.v) throw new ApiError(409, "SIN_CANDIDATA", "El documento no tiene una versión pendiente por publicar.");
+    const op = await encolar(c, actor, e.tiene_vigente ? "replace" : "publish", id, expected, {}, idem, `publish:${id}`, objetivo.v);
     if (!op.repetida) await writeAudit(c, { actor, action: "documento.publicar", objectType: "documento", objectId: id, result: "ok" }, new Date(adminClock.now()));
     return { operationId: op.id, estado: "En curso" as const, repetida: op.repetida };
   }, db);
@@ -444,6 +448,8 @@ export async function editarMetadata(actor: string, idRaw: unknown, body: unknow
 export type OperacionDto = {
   id: string; tipo: string; estado: "En curso" | "Terminada" | "Fallida"; fase: string; inicio: string | null; fin: string | null;
   intentos: number; error: string | null; limpiezaPendiente: boolean;
+  /** SPEC008: reintento programado, intentos de limpieza y si requiere atención del administrador. */
+  proximoIntento: string | null; intentosLimpieza: number; requiereAtencion: boolean;
 };
 
 export async function obtenerOperacion(idRaw: unknown, db: pg.Pool = adminPool()): Promise<OperacionDto> {
@@ -457,7 +463,28 @@ export async function obtenerOperacion(idRaw: unknown, db: pg.Pool = adminPool()
     inicio: r.started_at ? new Date(r.started_at).toISOString() : null,
     fin: r.finished_at ? new Date(r.finished_at).toISOString() : null,
     intentos: r.attempts, error: r.error_code ?? null, limpiezaPendiente: r.cleanup_pending,
+    proximoIntento: r.next_attempt_at ? new Date(r.next_attempt_at).toISOString() : null,
+    intentosLimpieza: r.cleanup_attempts ?? 0, requiereAtencion: r.needs_attention === true,
   };
+}
+
+/**
+ * Reanuda de inmediato una operación en espera o que requiere atención (SPEC008, FR-008). No
+ * cambia la operación ni su objetivo: solo quita la espera; el worker la toma en su siguiente ciclo.
+ */
+export async function reanudarOperacion(
+  actor: string, idRaw: unknown, body: unknown, db: pg.Pool = adminPool(),
+): Promise<{ id: string; estado: "En curso" }> {
+  const id = parseUuid(idRaw, "id");
+  strictObject(body ?? {}, []);
+  return adminTx(async c => {
+    const { rows: [o] } = await c.query("SELECT phase FROM kb.document_operation WHERE id = $1 FOR UPDATE", [id]);
+    if (!o) throw new ApiError(404, "NO_ENCONTRADO", "La operación no existe.");
+    if (o.phase === "complete" || o.phase === "failed") throw new ApiError(409, "OPERACION_TERMINADA", "La operación ya terminó.");
+    await c.query("UPDATE kb.document_operation SET next_attempt_at = NULL, needs_attention = false WHERE id = $1", [id]);
+    await writeAudit(c, { actor, action: "documento.reanudar_operacion", objectType: "operacion", objectId: id, result: "ok" }, new Date(adminClock.now()));
+    return { id, estado: "En curso" as const };
+  }, db);
 }
 
 /** Última operación de reindexación (estado/inicio/fin en la pantalla de estado, AD47). */

@@ -78,7 +78,9 @@ export async function estadoBase(db: Pool = kbPool()): Promise<EstadoBase> {
 
 // ── Publicación y auditoría (US1: RF-C3-IV-01, IV-11; FR-005, FR-017) ───────
 
-export class ErrorPublicacion extends Error {}
+export class ErrorPublicacion extends Error {
+  constructor(message: string, readonly codigo?: "candidata_cambiada") { super(message); }
+}
 
 type FilaPublicable = {
   id: string; clave: string; codigo: string | null; nombre: string; tipo: string; direccion: string;
@@ -401,6 +403,12 @@ export async function reconstruirColeccion(
   opciones: {
     embedder?: Embedder; promover?: string[]; tipo?: "completa";
     /**
+     * Versión aprobada por clave (SPEC008, NV-02/NV-03). Si se indica, la promoción solo ocurre
+     * cuando el pendiente es exactamente esa versión y está procesada; si no, se aborta el commit
+     * con `candidata_cambiada` y lo vigente no se toca.
+     */
+    objetivos?: Record<string, string>;
+    /**
      * Calibra la colección CANDIDATA (RF-C3-DI-05). Se ejecuta antes del commit y su resultado se
      * guarda junto a la colección; si falla, la candidata se descarta y la activa sigue sirviendo.
      * Sin esta opción la candidata hereda la calibración vigente de la colección que reemplaza.
@@ -429,6 +437,18 @@ export async function reconstruirColeccion(
   let confirmada = false;
   try {
     await opciones.onFase?.("preparing", { candidata: nueva });
+    if (opciones.objetivos) {
+      const { rows: vigentes } = await db.query<{ clave: string; version_pendiente_id: string | null; estado_tecnico: string | null }>(
+        `SELECT e.clave, e.version_pendiente_id, v.estado_tecnico
+           FROM kb.kb_elemento e LEFT JOIN kb.kb_version v ON v.id = e.version_pendiente_id
+          WHERE e.clave = ANY($1::text[])`, [promover]);
+      for (const [clave, objetivo] of Object.entries(opciones.objetivos)) {
+        const f = vigentes.find(x => x.clave === clave);
+        if (!f || f.version_pendiente_id !== objetivo || f.estado_tecnico !== "procesado") {
+          throw new ErrorPublicacion("La versión pendiente cambió o no está procesada; no se publica.", "candidata_cambiada");
+        }
+      }
+    }
     const { rows } = await db.query<FilaReindexable>(
       `SELECT e.id, e.clave, e.codigo, e.nombre, e.tipo, e.direccion, e.url_origen, e.url_padre, e.fecha_actualizacion,
               v.id AS version_id, v.contenido_md, v.fecha_acceso, v.hash_contenido, e.revision::text AS revision,
@@ -503,12 +523,23 @@ export async function reconstruirColeccion(
     // colección nueva es la autoridad; el contenido anterior deja de existir en SQL.
     const { anterior } = await enTransaccion(db, async client => {
       if (promover.length) {
-        const { rows: promovidas } = await client.query<{ id: string; ver_pend: string; ver_pub: string | null; cand: Record<string, unknown> | null; ocr: boolean | null }>(
-          `SELECT e.id, e.version_pendiente_id AS ver_pend, e.version_publicada_id AS ver_pub,
-                  v.metadatos_candidatos AS cand,
+        const { rows: promovidas } = await client.query<{ id: string; clave: string; ver_pend: string; ver_pub: string | null; cand: Record<string, unknown> | null; ocr: boolean | null; estado_tecnico: string }>(
+          `SELECT e.id, e.clave, e.version_pendiente_id AS ver_pend, e.version_publicada_id AS ver_pub,
+                  v.metadatos_candidatos AS cand, v.estado_tecnico,
                   (SELECT p.ocr_aplicado FROM kb.kb_procesamiento p WHERE p.id = v.procesamiento_id) AS ocr
              FROM kb.kb_elemento e JOIN kb.kb_version v ON v.id = e.version_pendiente_id
             WHERE e.clave = ANY($1::text[]) FOR UPDATE OF e`, [promover]);
+        if (opciones.objetivos) {
+          // Solo se promueve la versión aprobada y procesada; cualquier otra cosa aborta el commit.
+          for (const clave of promover) {
+            const objetivo = opciones.objetivos[clave];
+            if (!objetivo) continue;
+            const p = promovidas.find(x => x.clave === clave);
+            if (!p || p.ver_pend !== objetivo || p.estado_tecnico !== "procesado") {
+              throw new ErrorPublicacion("La versión pendiente cambió o no está procesada; no se publica.", "candidata_cambiada");
+            }
+          }
+        }
         for (const p of promovidas) {
           const m = metadataPublicada(p.cand);
           await client.query(

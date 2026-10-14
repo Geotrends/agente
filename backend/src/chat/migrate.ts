@@ -107,6 +107,14 @@ async function grantKbAccessToPanel(db: pg.Pool): Promise<void> {
     await db.query("GRANT UPDATE (revision) ON kb.kb_notificacion TO admin_app");
     await db.query(`GRANT INSERT (kind, actor_account_id, element_id, expected_revision, idempotency_key, payload_hash, payload)
                       ON kb.document_operation TO admin_app`);
+    // SPEC008 (migración KB 007): objetivo de la publicación y reanudación de operaciones.
+    const spec008 = await db.query(
+      "SELECT 1 FROM information_schema.columns WHERE table_schema = 'kb' AND table_name = 'document_operation' AND column_name = 'target_version_id'");
+    if (spec008.rowCount) {
+      await db.query("GRANT INSERT (target_version_id) ON kb.document_operation TO admin_app");
+      await db.query("GRANT EXECUTE ON FUNCTION kb.version_pendiente_de(uuid) TO admin_app");
+      await db.query("GRANT UPDATE (cleanup_attempts, next_attempt_at, needs_attention) ON kb.document_operation TO admin_app");
+    }
     await db.query(`GRANT EXECUTE ON FUNCTION kb.registrar_carga_manual(uuid, text, text, text, kb.tipo_elemento, kb.direccion,
                       text, text, date, date, text[], text, char, text, jsonb) TO admin_app`);
     await db.query("GRANT EXECUTE ON FUNCTION kb.editar_metadata_documento(uuid, bigint, text, jsonb, uuid) TO admin_app");

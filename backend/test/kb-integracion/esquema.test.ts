@@ -75,3 +75,16 @@ test("el rol del chat solo lee la vista de códigos publicados (principio VII)",
     await app.end();
   }
 });
+
+test("SPEC008: columnas de objetivo/reintento, versión aplazada y FK de la publicada en RESTRICT", async () => {
+  const { rows: cols } = await base.kb.query(
+    `SELECT table_name, column_name FROM information_schema.columns
+      WHERE table_schema = 'kb' AND column_name IN ('target_version_id','cleanup_attempts','next_attempt_at','needs_attention','version_aplazada_id')`);
+  assert.deepEqual(cols.map(c => `${c.table_name}.${c.column_name}`).sort(), [
+    "document_operation.cleanup_attempts", "document_operation.needs_attention", "document_operation.next_attempt_at",
+    "document_operation.target_version_id", "kb_elemento.version_aplazada_id",
+  ]);
+  const { rows: [fk] } = await base.kb.query(
+    "SELECT confdeltype FROM pg_constraint WHERE conname = 'version_publicada_fk' AND conrelid = 'kb.kb_elemento'::regclass");
+  assert.equal(fk.confdeltype, "r", "ON DELETE RESTRICT");
+});

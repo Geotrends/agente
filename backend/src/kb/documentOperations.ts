@@ -21,7 +21,7 @@ import { eliminarArchivo } from "./documentFiles.js";
 import { notificar } from "./notifications.js";
 import { refrescarManifiestoActivo, reconciliarAlias } from "./publicationManifest.js";
 import type { CalibrationReport } from "./calibration.js";
-import { limpiarColeccion, reconstruirColeccion, type FaseGeneracion } from "./service.js";
+import { ErrorPublicacion, limpiarColeccion, reconstruirColeccion, type FaseGeneracion } from "./service.js";
 import { aliasKb, qdrant } from "../services/qdrant.js";
 
 export type OpcionesOperaciones = {
@@ -34,7 +34,7 @@ type Operacion = {
   id: string; kind: "publish" | "replace" | "reject" | "withdraw" | "reindex" | "metadata";
   actor_account_id: string; element_id: string | null; phase: string; attempts: number;
   previous_collection: string | null; candidate_collection: string | null; payload: Record<string, unknown> | null;
-  cleanup_pending: boolean;
+  cleanup_pending: boolean; target_version_id: string | null;
 };
 
 const actorDe = (op: Operacion) => `cuenta:${op.actor_account_id}`;
@@ -47,8 +47,42 @@ async function guardar(db: Pool, id: string, cambios: Record<string, unknown>): 
     [id, ...valores]);
 }
 
-const terminar = (db: Pool, id: string, fase: "complete" | "failed", extra: Record<string, unknown> = {}) =>
-  guardar(db, id, { phase: fase, finished_at: new Date(), ...extra });
+const terminar = async (db: Pool, id: string, fase: "complete" | "failed", extra: Record<string, unknown> = {}): Promise<void> => {
+  await guardar(db, id, { phase: fase, finished_at: new Date(), ...extra });
+  // Al terminar la operación, la versión que llegó mientras tanto pasa a pendiente (SPEC008, FR-006).
+  const { rows: [o] } = await db.query<{ element_id: string | null }>("SELECT element_id FROM kb.document_operation WHERE id = $1", [id]);
+  await promoverAplazada(db, o?.element_id ?? null);
+};
+
+/**
+ * Una carga o detección recibida con una publicación/rechazo en curso se guardó como «aplazada»
+ * para no cambiar el objetivo de la operación. Al terminar, pasa a ser la pendiente (y requiere su
+ * propia aprobación); la pendiente anterior, si ya no es la publicada, se descarta con su archivo.
+ */
+async function promoverAplazada(db: Pool, elementoId: string | null): Promise<void> {
+  if (!elementoId) return;
+  const archivos: string[] = [];
+  await enTransaccion(db, async client => {
+    const { rows: [e] } = await client.query(
+      `SELECT version_aplazada_id, version_pendiente_id, version_publicada_id FROM kb.kb_elemento WHERE id = $1 FOR UPDATE`, [elementoId]);
+    if (!e?.version_aplazada_id) return;
+    const activa = await client.query(
+      `SELECT 1 FROM kb.document_operation WHERE element_id = $1 AND kind IN ('publish','replace','reject')
+          AND phase NOT IN ('complete','failed')`, [elementoId]);
+    if (activa.rowCount) return;
+    const anterior: string | null = e.version_pendiente_id && e.version_pendiente_id !== e.version_aplazada_id
+      && e.version_pendiente_id !== e.version_publicada_id ? e.version_pendiente_id : null;
+    if (anterior) {
+      const { rows: [v] } = await client.query("SELECT archivo_ref FROM kb.kb_version WHERE id = $1", [anterior]);
+      if (v?.archivo_ref) archivos.push(v.archivo_ref);
+    }
+    await client.query(
+      `UPDATE kb.kb_elemento SET version_pendiente_id = version_aplazada_id, version_aplazada_id = NULL,
+              revision = revision + 1, actualizado_en = now() WHERE id = $1`, [elementoId]);
+    if (anterior) await client.query("DELETE FROM kb.kb_version WHERE id = $1", [anterior]);
+  });
+  for (const ref of archivos) await eliminarArchivo(ref).catch(() => false);
+}
 
 /** Colecciones físicas de esta base de conocimiento (prefijo del alias). */
 async function inventarioColecciones(): Promise<string[]> {
@@ -57,13 +91,46 @@ async function inventarioColecciones(): Promise<string[]> {
   return collections.map(c => c.name).filter(n => n.startsWith(prefijo));
 }
 
-/** Procesa la cola completa. Devuelve cuántas operaciones terminó (o dejó terminadas/fallidas). */
+/** Reintentos rápidos antes de pedir atención (FR-008): 15 s·2ⁿ → 15, 30, 60, 120 y 240 s. */
+export const REINTENTOS_RAPIDOS = 5;
+export const ESPERA_BASE_S = 15;
+export const ESPERA_LARGA_S = 60 * 60;
+
+/** Espera tras el fallo número `intento` (1 = primero). Después de los rápidos, una hora. */
+export function esperaTrasFallo(intento: number): number {
+  return intento <= REINTENTOS_RAPIDOS ? ESPERA_BASE_S * 2 ** (intento - 1) : ESPERA_LARGA_S;
+}
+
+/**
+ * Aparta la operación de la cola hasta su próximo intento (NV-07, NV-08): ni se declara fallida ni
+ * bloquea a las que esperan detrás. Al agotar los reintentos rápidos pide atención una sola vez y
+ * sigue reintentando con espera larga.
+ */
+async function reprogramar(db: Pool, op: Operacion, motivo: string): Promise<void> {
+  const { rows: [r] } = await db.query<{ cleanup_attempts: number; needs_attention: boolean }>(
+    "SELECT cleanup_attempts, needs_attention FROM kb.document_operation WHERE id = $1", [op.id]);
+  const intento = (r?.cleanup_attempts ?? 0) + 1;
+  await db.query(
+    `UPDATE kb.document_operation
+        SET cleanup_attempts = $2, next_attempt_at = now() + make_interval(secs => $3), updated_at = now(),
+            needs_attention = needs_attention OR $4, error_code = COALESCE(error_code, 'limpieza_pendiente')
+      WHERE id = $1`,
+    [op.id, intento, esperaTrasFallo(intento), intento >= REINTENTOS_RAPIDOS]);
+  if (intento === REINTENTOS_RAPIDOS && !r?.needs_attention) {
+    await notificar(db, "indexacion_fallida", `operacion:${op.id}`,
+      `La operación «${op.kind}» no pudo completarse tras ${REINTENTOS_RAPIDOS} intentos (${motivo}). Sigue reintentándose cada hora; puede reanudarla desde el panel.`);
+  }
+}
+
+/** Procesa la cola completa. Devuelve cuántas operaciones terminó (o dejó terminadas/fallidas/en espera). */
 export async function procesarOperaciones(db: Pool, opciones: OpcionesOperaciones = {}): Promise<number> {
   let n = 0;
   for (;;) {
     const { rows } = await db.query<Operacion>(
-      `SELECT id, kind, actor_account_id, element_id, phase, attempts, previous_collection, candidate_collection, payload, cleanup_pending
-         FROM kb.document_operation WHERE phase NOT IN ('complete', 'failed') ORDER BY created_at, id LIMIT 1`);
+      `SELECT id, kind, actor_account_id, element_id, phase, attempts, previous_collection, candidate_collection, payload, cleanup_pending, target_version_id
+         FROM kb.document_operation
+        WHERE phase NOT IN ('complete', 'failed') AND (next_attempt_at IS NULL OR next_attempt_at <= now())
+        ORDER BY created_at, id LIMIT 1`);
     const op = rows[0];
     if (!op) return n;
     const antes = op.phase;
@@ -71,12 +138,23 @@ export async function procesarOperaciones(db: Pool, opciones: OpcionesOperacione
       await ejecutar(db, op, opciones);
     } catch (error) {
       console.error(`[kb-worker] operación ${op.id} (${op.kind}): ${error instanceof Error ? error.message : error}`);
+      if (op.kind === "withdraw" || op.kind === "reject" || op.kind === "metadata") {
+        // Fallo transitorio (almacén vectorial, base, disco): se reintenta, nunca queda terminal.
+        await reprogramar(db, op, "error transitorio");
+        n++;
+        continue;
+      }
       await terminar(db, op.id, "failed", { error_code: "error_interno" });
     }
     n++;
-    // Una limpieza pendiente deja la operación «En curso»: no se reintenta en bucle apretado.
-    const { rows: [despues] } = await db.query("SELECT phase FROM kb.document_operation WHERE id = $1", [op.id]);
-    if (despues && !["complete", "failed"].includes(despues.phase) && despues.phase === antes) return n;
+    // Una limpieza pendiente deja la operación «En curso»: se programa su reintento y la cola sigue.
+    const { rows: [despues] } = await db.query(
+      "SELECT phase, cleanup_pending, (next_attempt_at IS NULL OR next_attempt_at <= now()) AS sin_espera FROM kb.document_operation WHERE id = $1", [op.id]);
+    if (despues && !["complete", "failed"].includes(despues.phase)) {
+      if (despues.phase === antes || despues.cleanup_pending) {
+        if (despues.sin_espera) await reprogramar(db, op, "limpieza pendiente");
+      }
+    }
   }
 }
 
@@ -151,7 +229,9 @@ async function publicar(db: Pool, op: Operacion, o: OpcionesOperaciones): Promis
         await guardar(db, op.id, cambios);
       };
       const r = await reconstruirColeccion(db, actorDe(op), {
-        promover: clave ? [clave] : [], embedder: o.embedder, calibrar: o.calibrar, graciaMs: o.graciaMs, onFase: fase, operacionId: op.id, avisarFallo: false,
+        promover: clave ? [clave] : [],
+        objetivos: clave && op.target_version_id ? { [clave]: op.target_version_id } : undefined,
+        embedder: o.embedder, calibrar: o.calibrar, graciaMs: o.graciaMs, onFase: fase, operacionId: op.id, avisarFallo: false,
       });
       await finalizarTrasCommit(db, op, r.limpiezaPendiente, o);
       return;
@@ -163,6 +243,16 @@ async function publicar(db: Pool, op: Operacion, o: OpcionesOperaciones): Promis
         return;
       }
       if (rows[0]?.candidate_collection) await descartarCandidata(db, op, rows[0].candidate_collection);
+      if (error instanceof ErrorPublicacion && error.codigo === "candidata_cambiada") {
+        // No es un fallo de indexación: la versión aprobada ya no es la pendiente. Se conserva
+        // lo vigente y lo recibido queda pendiente; reintentar no cambiaría el resultado.
+        await terminar(db, op.id, "failed", { error_code: "candidata_cambiada" });
+        await notificar(db, "indexacion_fallida", clave ?? "kb_chunks",
+          `La publicación de ${clave ?? "la base"} no se realizó: la versión pendiente cambió después de la aprobación. Se conserva la versión vigente; revise y apruebe de nuevo.`,
+          { propietario: autor, identidadDocumento: op.element_id });
+        await promoverAplazada(db, op.element_id);
+        return;
+      }
       await guardar(db, op.id, { error_code: "indexacion_fallida" });
       console.warn(`[kb-worker] intento ${intentos} de la operación ${op.id} falló: ${error instanceof Error ? error.message : error}`);
     }
@@ -230,11 +320,14 @@ async function rechazar(db: Pool, op: Operacion): Promise<void> {
       `INSERT INTO kb.document_removal (type, element_key, identity_id, document_name, source_url, origin, content_hash, reason, actor_account_id)
        VALUES ('reject',$1,$2,$3,$4,$5,$6,$7,$8)`,
       [e.clave, e.id, e.nombre, e.url_origen, e.version_origen, e.hash_contenido, motivo || "sin motivo", op.actor_account_id]);
-    if (e.archivo_ref) archivos = [e.archivo_ref];
+    // Pendiente == publicada (derogado reactivado): se quita la marca de pendiente sin borrar la
+    // versión vigente ni su archivo (NV-09).
+    const mismaQuePublicada = e.version_publicada_id && e.version_pendiente_id === e.version_publicada_id;
+    if (e.archivo_ref && !mismaQuePublicada) archivos = [e.archivo_ref];
     if (e.version_publicada_id) {
       // Se descarta solo la nueva versión: la vigente sigue intacta.
       await client.query("UPDATE kb.kb_elemento SET version_pendiente_id = NULL, revision = revision + 1, actualizado_en = now() WHERE id = $1", [e.id]);
-      await client.query("DELETE FROM kb.kb_version WHERE id = $1", [e.version_pendiente_id]);
+      if (!mismaQuePublicada) await client.query("DELETE FROM kb.kb_version WHERE id = $1", [e.version_pendiente_id]);
     } else {
       await client.query("DELETE FROM kb.kb_elemento WHERE id = $1", [e.id]);
     }
