@@ -10,7 +10,58 @@ import * as XLSX from "xlsx";
 const execFileAsync = promisify(execFile);
 export const DOCUMENT_PREPROCESSOR_VERSION = "markdown-v3";
 const cacheDir = path.resolve(process.env.DOCUMENT_CACHE_DIR || ".cache/documents");
-const contentCache = new Map<string, { stamp: string; extraction: Extraction }>();
+/**
+ * Memoria de extracciones (SPEC008, NV-11). Acotada en número y en tiempo: antes crecía sin límite
+ * con cada archivo procesado y conservaba el texto —que puede traer datos personales— de cargas
+ * ya descartadas.
+ */
+const MEMORY_MAX_ENTRIES = 16;
+const MEMORY_TTL_MS = 10 * 60_000;
+const contentCache = new Map<string, { stamp: string; extraction: Extraction; at: number }>();
+
+function rememberExtraction(filePath: string, stamp: string, extraction: Extraction): void {
+  contentCache.delete(filePath);
+  while (contentCache.size >= MEMORY_MAX_ENTRIES) {
+    const oldest = contentCache.keys().next().value as string | undefined;
+    if (oldest === undefined) break;
+    contentCache.delete(oldest);
+  }
+  contentCache.set(filePath, { stamp, extraction, at: Date.now() });
+}
+
+const pathHash = (filePath: string): string =>
+  createHash("sha256").update(path.resolve(filePath)).digest("hex").slice(0, 16);
+
+/**
+ * Olvida la extracción de un archivo: la memoria y su copia diagnóstica en disco. Se invoca al
+ * terminar de procesar una carga (aceptada o descartada): el texto aceptado ya vive en la base.
+ */
+export async function discardExtraction(filePath: string): Promise<void> {
+  contentCache.delete(filePath);
+  try {
+    const hash = pathHash(filePath);
+    for (const name of await fs.readdir(cacheDir)) {
+      if (name.includes(`-${hash}-`)) await fs.rm(path.join(cacheDir, name), { force: true });
+    }
+  } catch { /* sin caché en disco: nada que borrar */ }
+}
+
+/** Barre las copias diagnósticas más viejas que `maxAgeMs`; devuelve cuántas eliminó. */
+export async function sweepDocumentCache(maxAgeMs = 24 * 60 * 60_000): Promise<number> {
+  let removed = 0;
+  let names: string[];
+  try { names = await fs.readdir(cacheDir); } catch { return 0; }
+  for (const name of names) {
+    const file = path.join(cacheDir, name);
+    try {
+      const st = await fs.stat(file);
+      if (st.isFile() && Date.now() - st.mtimeMs > maxAgeMs) { await fs.rm(file, { force: true }); removed++; }
+    } catch { /* otro proceso la borró */ }
+  }
+  const now = Date.now();
+  for (const [key, entry] of contentCache) if (now - entry.at > MEMORY_TTL_MS) contentCache.delete(key);
+  return removed;
+}
 
 type SupportedExtension = ".md" | ".txt" | ".docx" | ".doc" | ".pdf" | ".xlsx" | ".xls";
 
@@ -67,7 +118,7 @@ export async function preprocessDocument(filePath: string): Promise<Extraction> 
   const stat = await fs.stat(filePath);
   const stamp = `${stat.mtimeMs}:${stat.size}:${DOCUMENT_PREPROCESSOR_VERSION}`;
   const cached = contentCache.get(filePath);
-  if (cached?.stamp === stamp) return cached.extraction;
+  if (cached?.stamp === stamp && Date.now() - cached.at <= MEMORY_TTL_MS) return cached.extraction;
 
   const extension = path.extname(filePath).toLowerCase() as SupportedExtension;
   let extraction: Extraction;
@@ -101,7 +152,7 @@ export async function preprocessDocument(filePath: string): Promise<Extraction> 
   } catch (error) {
     console.warn(`[documents] No se pudo escribir la caché diagnóstica de ${path.basename(filePath)}: ${error instanceof Error ? error.message : error}`);
   }
-  contentCache.set(filePath, { stamp, extraction });
+  rememberExtraction(filePath, stamp, extraction);
   return extraction;
 }
 

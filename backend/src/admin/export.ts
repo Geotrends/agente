@@ -32,7 +32,7 @@ const celda = (v: string | null | undefined): string => (v ?? "");
 
 export async function prepararExportacion(
   filtro: FiltroInteracciones,
-  opciones: { sesionVigente: () => Promise<boolean>; db?: pg.Pool; reintentos?: number } = { sesionVigente: async () => true },
+  opciones: { sesionVigente: () => Promise<boolean>; db?: pg.Pool; reintentos?: number; signal?: AbortSignal } = { sesionVigente: async () => true },
 ): Promise<ExportacionPreparada> {
   const db = opciones.db ?? adminPool();
   const dir = path.join(raizCargas(), "exportaciones");
@@ -53,6 +53,8 @@ export async function prepararExportacion(
         const params = paramsDe(filtro);
         let cursor: [string, number] | null = null as [string, number] | null;
         for (;;) {
+          // El cliente se fue: no se sigue construyendo un archivo con texto ciudadano que nadie recibirá.
+          if (opciones.signal?.aborted) throw new Error("client_disconnected");
           if (!(await opciones.sesionVigente())) throw new ApiError(401, "NO_AUTENTICADO", "La sesión terminó; la exportación se canceló.");
           const lote: pg.QueryResult = await client.query(
             `SELECT ${COLUMNAS} ${FROM} WHERE ${WHERE}

@@ -9,6 +9,7 @@ import { formatoEnBlanco } from "./blankForms.js";
 import { convertirArchivo, hashTexto, registrarProcesamiento, type Conversion } from "./conversion.js";
 import { eliminarArchivo, resolverReferencia } from "./documentFiles.js";
 import { notificar } from "./notifications.js";
+import { discardExtraction } from "../services/documentPreprocessor.js";
 import { encabezadoMinimo } from "./sync.js";
 
 type FilaCarga = {
@@ -60,7 +61,11 @@ async function procesarUna(db: Pool, c: FilaCarga): Promise<void> {
   let conversion: Conversion;
   try {
     conversion = await convertirArchivo(resolverReferencia(c.archivo_ref));
+    // El texto aceptado vive en la base; el rechazado no debe sobrevivir: se olvida la extracción
+    // (memoria y copia diagnóstica en disco) en todos los desenlaces (NV-11).
+    await discardExtraction(resolverReferencia(c.archivo_ref));
   } catch (error) {
+    await discardExtraction(resolverReferencia(c.archivo_ref)).catch(() => undefined);
     conversion = {
       texto: "", formatoOriginal: c.archivo_ref.split(".").pop() ?? "desconocido", caracteresNativos: 0, ocrAplicado: false,
       confianzaOcr: null, calidadNativaBaja: false, decision: "fallo_extraccion",

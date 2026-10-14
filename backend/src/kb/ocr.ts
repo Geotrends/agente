@@ -26,6 +26,29 @@ const TIMEOUT_PAGINA_MS = 120_000;
 
 export type ResultadoOcr = { texto: string; confianzaMedia: number; palabras: number };
 
+/**
+ * Topes de trabajo por documento (SPEC008, NV-06). Un PDF escaneado de miles de páginas o con
+ * páginas enormes no puede detener al worker que también ejecuta publicar y retirar.
+ */
+export type LimitesOcr = { maxPaginas: number; maxPixelesPagina: number; plazoTotalMs: number };
+
+const positivo = (v: string | undefined, d: number): number => (v && Number.isFinite(Number(v)) && Number(v) > 0 ? Number(v) : d);
+
+export function limitesOcr(): LimitesOcr {
+  return {
+    maxPaginas: positivo(process.env.OCR_MAX_PAGES, 100),
+    maxPixelesPagina: positivo(process.env.OCR_MAX_PIXELS_PAGINA, 40_000_000),
+    plazoTotalMs: positivo(process.env.OCR_PLAZO_TOTAL_MS, 900_000),
+  };
+}
+
+export class OcrLimiteError extends Error {
+  constructor(readonly motivo: "paginas" | "pixeles" | "plazo" | "imagenes", mensaje: string) {
+    super(`ocr_excede_limites: ${mensaje}`);
+    this.name = "OcrLimiteError";
+  }
+}
+
 /** Formatos de imagen que Tesseract lee y que el scraper adquiere (RF-C3-IV-08). */
 export const EXTENSIONES_IMAGEN = new Set(["png", "jpg", "jpeg", "tif", "tiff"]);
 
@@ -105,17 +128,46 @@ async function paginasPdf(ruta: string): Promise<number> {
   return paginas;
 }
 
-/** OCR de un PDF: cada página se rasteriza a 300 dpi y se borra al terminar. */
-export async function ocrPdf(ruta: string): Promise<ResultadoOcr> {
+/** Tamaño de cada página en puntos (1/72 pulgada), según `pdfinfo -f 1 -l N`. */
+async function tamanosPdf(ruta: string, total: number): Promise<Array<{ w: number; h: number }>> {
+  const { stdout } = await execFileAsync(process.env.PDFINFO_COMMAND || "pdfinfo",
+    ["-f", "1", "-l", String(total), ruta], { timeout: TIMEOUT_PAGINA_MS });
+  const tamanos: Array<{ w: number; h: number }> = [];
+  for (const m of stdout.matchAll(/^Page\s+(\d+)\s+size:\s+([\d.]+)\s+x\s+([\d.]+)\s+pts/gm)) {
+    tamanos[Number(m[1]) - 1] = { w: Number(m[2]), h: Number(m[3]) };
+  }
+  return tamanos;
+}
+
+/** Resolución para que la página no supere el tope de píxeles; 300 dpi si cabe. Mínimo útil: 72 dpi. */
+export function dpiParaPagina(w: number, h: number, maxPixeles: number): number {
+  const pixeles300 = (w / 72) * 300 * (h / 72) * 300;
+  if (!(pixeles300 > maxPixeles)) return 300;
+  const dpi = Math.floor(300 * Math.sqrt(maxPixeles / pixeles300));
+  if (dpi < 72) throw new OcrLimiteError("pixeles", `la página mide ${Math.round(pixeles300 / 1e6)} Mpx a 300 dpi y no cabe en el tope`);
+  return dpi;
+}
+
+/** OCR de un PDF: cada página se rasteriza (≤300 dpi y tope de píxeles) y se borra al terminar. */
+export async function ocrPdf(ruta: string, opciones: { ahora?: () => number; limites?: LimitesOcr } = {}): Promise<ResultadoOcr> {
+  const ahora = opciones.ahora ?? Date.now;
+  const lim = opciones.limites ?? limitesOcr();
+  const inicio = ahora();
   return conTemporal(async dir => {
     const textos: string[] = [];
     const tsvs: string[] = [];
     const total = await paginasPdf(ruta);
+    if (total > lim.maxPaginas) throw new OcrLimiteError("paginas", `${total} páginas superan el máximo de ${lim.maxPaginas}`);
+    const tamanos = await tamanosPdf(ruta, total);
     for (let pagina = 1; pagina <= total; pagina++) {
+      const restante = lim.plazoTotalMs - (ahora() - inicio);
+      if (restante <= 0) throw new OcrLimiteError("plazo", `se superó el plazo total de ${Math.round(lim.plazoTotalMs / 1000)} s tras ${pagina - 1} páginas`);
+      const t = tamanos[pagina - 1];
+      const dpi = t ? dpiParaPagina(t.w, t.h, lim.maxPixelesPagina) : 150;
       const base = path.join(dir, `p${pagina}`);
       await execFileAsync(process.env.PDFTOPPM_COMMAND || "pdftoppm",
-        ["-r", "300", "-png", "-f", String(pagina), "-l", String(pagina), "-singlefile", ruta, base],
-        { timeout: TIMEOUT_PAGINA_MS });
+        ["-r", String(dpi), "-png", "-f", String(pagina), "-l", String(pagina), "-singlefile", ruta, base],
+        { timeout: Math.min(TIMEOUT_PAGINA_MS, restante) });
       const r = await tesseract(`${base}.png`, dir);
       textos.push(r.texto.trim());
       tsvs.push(r.tsv);
@@ -134,6 +186,9 @@ export async function ocrDocx(ruta: string): Promise<ResultadoOcr> {
       convertImage: mammoth.images.imgElement(async imagen => {
         const ext = TIPO_IMAGEN[imagen.contentType];
         if (ext) {
+          if (imagenes.length >= limitesOcr().maxPaginas) {
+            throw new OcrLimiteError("imagenes", `el documento trae más de ${limitesOcr().maxPaginas} imágenes`);
+          }
           const destino = path.join(dir, `img${imagenes.length + 1}.${ext}`);
           await fs.writeFile(destino, await imagen.readAsBuffer());
           imagenes.push(destino);

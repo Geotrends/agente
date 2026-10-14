@@ -26,9 +26,20 @@ router.get("/admin/interactions", lectura, safe(async (req, res) => {
 router.get("/admin/interactions/export", lectura, safe(async (req, res) => {
   const filtro = parseFiltro(req.query);
   const token = req.admin!.token;
-  const exportacion = await prepararExportacion(filtro, { sesionVigente: () => sessionActive(token) });
+  // El cierre se escucha ANTES de preparar: si el cliente se desconecta mientras se construye el
+  // libro, la preparación se cancela y el temporal con texto ciudadano se elimina (NV-12).
+  const desconexion = new AbortController();
+  res.on("close", () => desconexion.abort());
+  let exportacion: Awaited<ReturnType<typeof prepararExportacion>>;
+  try {
+    exportacion = await prepararExportacion(filtro, { sesionVigente: () => sessionActive(token), signal: desconexion.signal });
+  } catch (error) {
+    if (desconexion.signal.aborted) return; // sin cliente que responder; la preparación ya limpió
+    throw error;
+  }
   let limpio = false;
   const limpiar = () => { if (!limpio) { limpio = true; void exportacion.limpiar(); } };
+  if (desconexion.signal.aborted) { limpiar(); return; }
   res.on("close", limpiar);
   res.set({
     "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",

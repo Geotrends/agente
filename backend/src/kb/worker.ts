@@ -33,6 +33,8 @@ const { adoptarGeneracionInicial } = await import("./publicationManifest.js");
 const { elementosIndexados } = await import("./indexer.js");
 const { aliasKb } = await import("../services/qdrant.js");
 const { limpiarStagingViejo } = await import("./documentFiles.js");
+const { sweepDocumentCache } = await import("../services/documentPreprocessor.js");
+const { limpiarExportacionesViejas } = await import("../admin/export.js");
 const { publicarSnapshot, sembrarEnlaces } = await import("./managedLinks.js");
 
 // US1 (T039): informes de corrida del scraper.
@@ -47,6 +49,11 @@ registrarTareaCiclo("retención de registros", async db => { if (!(await purgaAl
 registrarTareaCiclo("cargas manuales", async db => { await procesarCargasManuales(db); });
 registrarTareaCiclo("vencimientos", async db => { await procesarVencimientos(db); });
 registrarTareaCiclo("temporales de carga", async () => { await limpiarStagingViejo(); });
+// SPEC008 (NV-11, NV-12): sin restos de texto extraído ni exportaciones huérfanas.
+registrarTareaCiclo("caché de extracción y exportaciones", async () => {
+  await sweepDocumentCache();
+  await limpiarExportacionesViejas();
+});
 
 /** Calibración de la candidata con el oro si está configurado; si no, hereda la vigente. */
 async function opcionesDeOperacion() {

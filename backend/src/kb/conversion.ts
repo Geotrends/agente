@@ -15,7 +15,7 @@ import { looksLikeGarbage, preprocessDocument } from "../services/documentPrepro
 import { setting } from "../services/settings.js";
 import type { Pool, PoolClient } from "./db.js";
 import { sanitizarDescripcion } from "./notifications.js";
-import { EXTENSIONES_IMAGEN, ocrArchivo } from "./ocr.js";
+import { EXTENSIONES_IMAGEN, OcrLimiteError, ocrArchivo } from "./ocr.js";
 
 export type Decision = "cargado" | "descartado_ocr" | "formato_diligenciado" | "fallo_extraccion";
 
@@ -104,6 +104,13 @@ export async function convertirArchivo(ruta: string): Promise<Conversion> {
   try {
     ocr = await ocrArchivo(ruta);
   } catch (error) {
+    if (error instanceof OcrLimiteError) {
+      // Excede los topes de trabajo: se descarta con motivo y la cola de operaciones sigue (NV-06).
+      return {
+        texto: "", formatoOriginal, caracteresNativos, ocrAplicado: true, confianzaOcr: null, calidadNativaBaja: false,
+        decision: "descartado_ocr", detalle: error.message, duracionMs: Date.now() - inicio,
+      };
+    }
     return falla(`OCR falló: ${error instanceof Error ? error.message : String(error)}`, caracteresNativos, { ocrAplicado: true });
   }
   const confianzaOcr = Math.round(ocr.confianzaMedia * 100) / 100;
