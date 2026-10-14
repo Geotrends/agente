@@ -74,6 +74,23 @@ def same_allowed_host(url: str, allowed_hosts: set[str]) -> bool:
     return host in allowed_hosts or host.removeprefix("www.") in allowed_hosts
 
 
+def host_is_internal(host: str) -> bool:
+    """True para localhost y direcciones loopback, privadas, de enlace local o reservadas (NV-04)."""
+    import ipaddress
+
+    host = host.strip("[]").lower()
+    if host in {"localhost", "localhost.localdomain"} or host.endswith(".localhost") or host.endswith(".internal"):
+        return True
+    try:
+        address = ipaddress.ip_address(host)
+    except ValueError:
+        return False
+    return (
+        address.is_loopback or address.is_private or address.is_link_local
+        or address.is_reserved or address.is_multicast or address.is_unspecified
+    )
+
+
 def should_ignore_url(url: str) -> bool:
     parts = urlsplit(url)
     path = parts.path.lower()

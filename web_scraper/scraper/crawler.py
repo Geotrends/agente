@@ -29,6 +29,7 @@ from .relevance import (
     classify_document, should_crawl_url, should_download_document,
 )
 from .utils import (
+    host_is_internal,
     looks_like_document_url, normalize_url, rehost, relative_posix, safe_destination,
     same_allowed_host, should_ignore_url, slugify, unique_path,
 )
@@ -79,6 +80,7 @@ class SourceCrawler:
         self.started_at = self._now()
         self._last_request_at = 0.0
         self._playwright = None
+        self._navegador_descartes: list[str] = []
         self._browser = None
         self._browser_page = None
 
@@ -160,6 +162,8 @@ class SourceCrawler:
             self._playwright = sync_playwright().start()
             self._browser = self._playwright.chromium.launch()
             self._browser_page = self._browser.new_page(user_agent=self.config.user_agent)
+            # SPEC008 (NV-04): el navegador no tiene mas alcance que `requests`.
+            self._browser_page.route("**/*", self._filtrar_solicitud_navegador)
         if self.config.render_wait == "load":
             # Visores de mapas: nunca dejan la red inactiva (teselas sin fin).
             self._browser_page.goto(url, wait_until="load", timeout=self.config.request_timeout * 1000)
@@ -167,7 +171,43 @@ class SourceCrawler:
                 self._browser_page.wait_for_timeout(self.config.render_espera_ms)
         else:
             self._browser_page.goto(url, wait_until="networkidle", timeout=self.config.request_timeout * 1000)
+        # La pagina donde termino el navegador (meta refresh, JS, otra respuesta) debe ser de un
+        # host permitido: su contenido se guarda bajo la URL ya validada y no puede venir de otro sitio.
+        destino = self._browser_page.url
+        if not (
+            same_allowed_host(destino, self.config.allowed_hosts)
+            or same_allowed_host(destino, self.config.document_allowed_hosts)
+        ):
+            self._navegador_descartes.append(destino)
+            raise ValueError(f"Redirect externo bloqueado: {destino}")
         return self._browser_page.content()
+
+    def _filtrar_solicitud_navegador(self, route) -> None:  # type: ignore[no-untyped-def]
+        """Aborta navegaciones a hosts no permitidos y cualquier solicitud a direcciones internas.
+
+        Los scripts, estilos e imagenes publicos de terceros (CDN) se dejan pasar: sin ellos las
+        fuentes SPA no renderizan. Lo que nunca se permite es que el navegador llegue a otro sitio
+        (documento/iframe) ni a la red interna (loopback, privada, enlace local).
+        """
+        solicitud = route.request
+        url = solicitud.url
+        esquema = urlsplit(url).scheme
+        if esquema in {"data", "blob", "about"}:
+            route.continue_()
+            return
+        permitido = (
+            same_allowed_host(url, self.config.allowed_hosts)
+            or same_allowed_host(url, self.config.document_allowed_hosts)
+        )
+        if permitido:
+            route.continue_()
+            return
+        es_documento = solicitud.is_navigation_request() or solicitud.resource_type == "document"
+        if es_documento or host_is_internal(urlsplit(url).hostname or ""):
+            self._navegador_descartes.append(url)
+            route.abort()
+            return
+        route.continue_()
 
     # ── Informe de corrida (contracts/run-report.md) ─────────────────────────
 
@@ -536,7 +576,8 @@ class SourceCrawler:
         except (OSError, ValueError) as error:
             self._record_error(item.url, item.parent_url, type(error).__name__, str(error))
             tipo = "fuera_de_alcance" if "Redirect externo" in str(error) else "inaccesible"
-            self._reportar_error(item, tipo, type(error).__name__)
+            detalle = "host_no_permitido" if tipo == "fuera_de_alcance" else type(error).__name__
+            self._reportar_error(item, tipo, detalle)
         finally:
             if response is not None:
                 response.close()
