@@ -49,9 +49,23 @@ export async function readiness(
   return { ready: checks.every(c => c.ok), index: state, checks };
 }
 
-router.get("/ready", async (_req, res) => {
+/**
+ * Llamada directa desde el propio contenedor (operación): sin proxy delante y desde loopback.
+ * Por el proxy público siempre llega X-Forwarded-For, así que un anónimo nunca cumple esto.
+ */
+export function isInternalCaller(req: { headers: Record<string, unknown>; socket: { remoteAddress?: string } }): boolean {
+  if (req.headers["x-forwarded-for"] || req.headers["forwarded"] || req.headers["x-real-ip"]) return false;
+  const a = req.socket.remoteAddress ?? "";
+  return a === "127.0.0.1" || a === "::1" || a === "::ffff:127.0.0.1";
+}
+
+// SPEC008 (FR-019): a un anónimo solo se le dice si el chat está listo. El detalle (qué falla,
+// estado del índice, configuración) lo ve operación desde el contenedor y el panel autenticado.
+router.get("/ready", async (req, res) => {
   const r = await readiness();
-  res.status(r.ready ? 200 : 503).json(r);
+  if (isInternalCaller(req)) { res.status(r.ready ? 200 : 503).json(r); return; }
+  if (!r.ready) console.warn(`[ready] no listo: ${r.checks.filter(c => !c.ok).map(c => c.name).join(", ")}`);
+  res.status(r.ready ? 200 : 503).json({ ready: r.ready });
 });
 
 export default router;

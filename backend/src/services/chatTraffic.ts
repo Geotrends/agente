@@ -26,19 +26,23 @@ export type TrafficDecision =
   | { ok: true }
   | { ok: false; code: TrafficRejectionCode; retryAfterSeconds: number; message: string };
 
-function utcDay(now: number): string {
-  return new Date(now).toISOString().slice(0, 10);
+/** America/Bogotá es UTC−5 todo el año (sin horario de verano): el día cambia a las 05:00 UTC. */
+const BOGOTA_OFFSET_MS = 5 * HOUR_MS;
+const DAY_MS = 24 * HOUR_MS;
+
+function bogotaDay(now: number): string {
+  return new Date(now - BOGOTA_OFFSET_MS).toISOString().slice(0, 10);
 }
 
-function secondsUntilNextUtcDay(now: number): number {
-  const date = new Date(now);
-  const next = Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate() + 1);
-  return Math.max(1, Math.ceil((next - now) / 1_000));
+function secondsUntilNextBogotaDay(now: number): number {
+  const local = now - BOGOTA_OFFSET_MS;
+  const next = (Math.floor(local / DAY_MS) + 1) * DAY_MS;
+  return Math.max(1, Math.ceil((next - local) / 1_000));
 }
 
 function emptyState(now: number): TrafficState {
   return {
-    version: 1, day: utcDay(now), globalCount: 0, perIp: {},
+    version: 1, day: bogotaDay(now), globalCount: 0, perIp: {},
     longEvents: {}, blockedUntil: {}, emittedAlerts: [],
   };
 }
@@ -68,8 +72,43 @@ export class ChatTrafficController {
   private state = emptyState(Date.now());
   private loadedPath: string | undefined;
   private serial = Promise.resolve();
+  /**
+   * Con el archivo de estado ilegible o no escribible (FR-002a) el contador sigue en memoria por
+   * proceso y con un tope más estricto (la mitad), en lugar de rechazar todo o quedar sin límite.
+   */
+  private degraded = false;
+  private lastDegradedNotice = 0;
+  private degradedSink: (() => void) | undefined;
 
   constructor(private readonly now: () => number = Date.now) {}
+
+  /** Cableado de producción: avisa al administrador técnico (agrupado por el destino). */
+  setDegradedSink(sink: (() => void) | undefined): void { this.degradedSink = sink; }
+
+  isDegraded(): boolean { return this.degraded; }
+
+  private markDegraded(error: unknown): void {
+    this.degraded = true;
+    const now = this.now();
+    if (now - this.lastDegradedNotice < 5 * 60_000) return;
+    this.lastDegradedNotice = now;
+    console.error(`[traffic] state_degraded error=${safeErrorCode(error)}`);
+    try { this.degradedSink?.(); } catch { /* informar jamás impide contestar */ }
+  }
+
+  private effectiveLimit(limit: number): number {
+    return this.degraded ? Math.max(1, Math.floor(limit / 2)) : limit;
+  }
+
+  /** Persistir nunca rompe la consulta: ante un fallo el estado en memoria sigue siendo la autoridad. */
+  private async persistSafe(): Promise<void> {
+    try {
+      await this.persist();
+      this.degraded = false;
+    } catch (error) {
+      this.markDegraded(error);
+    }
+  }
 
   private statePath(): string {
     return path.resolve(setting("chatLimitStateFile"));
@@ -99,12 +138,13 @@ export class ChatTrafficController {
         });
       }
       this.state = emptyState(this.now());
+      if (code !== "ENOENT") this.markDegraded(error);
     }
   }
 
   private cleanup(now: number): boolean {
     let changed = false;
-    const day = utcDay(now);
+    const day = bogotaDay(now);
     if (this.state.day !== day) {
       this.state.day = day;
       this.state.globalCount = 0;
@@ -149,7 +189,7 @@ export class ChatTrafficController {
       const key = this.key(ip);
       const blockedUntil = this.state.blockedUntil[key] ?? 0;
       if (blockedUntil > now) {
-        if (changed) await this.persist();
+        if (changed) await this.persistSafe();
         return {
           ok: false, code: "ip_temporarily_blocked",
           retryAfterSeconds: Math.max(1, Math.ceil((blockedUntil - now) / 1_000)),
@@ -157,7 +197,7 @@ export class ChatTrafficController {
         };
       }
       if (messageChars <= setting("chatLongMessageChars")) {
-        if (changed) await this.persist();
+        if (changed) await this.persistSafe();
         return { ok: true };
       }
       const events = [...(this.state.longEvents[key] ?? []), now];
@@ -167,7 +207,7 @@ export class ChatTrafficController {
         const until = now + setting("chatLongMessageBlockHours") * HOUR_MS;
         this.state.blockedUntil[key] = until;
         delete this.state.longEvents[key];
-        await this.persist();
+        await this.persistSafe();
         console.warn(`[traffic] ip_block_started client=${key.slice(0, 12)} until=${new Date(until).toISOString()} reason=long_messages`);
         return {
           ok: false, code: "ip_temporarily_blocked",
@@ -175,7 +215,7 @@ export class ChatTrafficController {
           message: "Esta red fue bloqueada temporalmente por exceso de consultas extensas.",
         };
       }
-      if (changed) await this.persist();
+      if (changed) await this.persistSafe();
       return { ok: true };
     });
   }
@@ -186,18 +226,18 @@ export class ChatTrafficController {
       const now = this.now();
       const changed = this.cleanup(now);
       const key = this.key(ip);
-      const globalLimit = setting("chatDailyGlobalLimit");
-      const ipLimit = setting("chatDailyPerIpLimit");
+      const globalLimit = this.effectiveLimit(setting("chatDailyGlobalLimit"));
+      const ipLimit = this.effectiveLimit(setting("chatDailyPerIpLimit"));
       if (this.state.globalCount >= globalLimit) {
-        if (changed) await this.persist();
+        if (changed) await this.persistSafe();
         console.warn(`[traffic] daily_limit_rejected scope=global day=${this.state.day} count=${this.state.globalCount} limit=${globalLimit}`);
-        return { ok: false, code: "daily_global_limit", retryAfterSeconds: secondsUntilNextUtcDay(now), message: "Se alcanzó el límite global de consultas de hoy." };
+        return { ok: false, code: "daily_global_limit", retryAfterSeconds: secondsUntilNextBogotaDay(now), message: "Se alcanzó el límite global de consultas de hoy." };
       }
       const ipCount = this.state.perIp[key] ?? 0;
       if (ipCount >= ipLimit) {
-        if (changed) await this.persist();
+        if (changed) await this.persistSafe();
         console.warn(`[traffic] daily_limit_rejected scope=ip client=${key.slice(0, 12)} day=${this.state.day} count=${ipCount} limit=${ipLimit}`);
-        return { ok: false, code: "daily_ip_limit", retryAfterSeconds: secondsUntilNextUtcDay(now), message: "Esta red alcanzó el límite de consultas de hoy." };
+        return { ok: false, code: "daily_ip_limit", retryAfterSeconds: secondsUntilNextBogotaDay(now), message: "Esta red alcanzó el límite de consultas de hoy." };
       }
       this.state.globalCount++;
       this.state.perIp[key] = ipCount + 1;
@@ -208,7 +248,7 @@ export class ChatTrafficController {
           console.warn(`[traffic] daily_global_threshold day=${this.state.day} count=${this.state.globalCount} limit=${globalLimit} percentage=${percentage}`);
         }
       }
-      await this.persist();
+      await this.persistSafe();
       return { ok: true };
     });
   }

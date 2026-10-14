@@ -75,13 +75,53 @@ test("cuotas por IP y global persisten sin guardar la IP original", async () => 
   }
 });
 
-test("el cupo diario se reinicia al cambiar el día UTC", async () => {
-  const f = await fixture(Date.parse("2026-09-24T23:59:59Z"));
+test("el cupo diario se reinicia al cambiar el día de America/Bogotá (SPEC008)", async () => {
+  const f = await fixture(Date.parse("2026-09-25T04:59:59Z"));
   process.env.CHAT_DAILY_PER_IP_LIMIT = "1";
   assert.deepEqual(await f.controller.consumeDailyQuota("203.0.113.8"), { ok: true });
   assert.equal((await f.controller.consumeDailyQuota("203.0.113.8")).ok, false);
-  f.setNow(Date.parse("2026-09-25T00:00:01Z"));
+  f.setNow(Date.parse("2026-09-25T05:00:01Z"));
   assert.deepEqual(await f.controller.consumeDailyQuota("203.0.113.8"), { ok: true });
+  await f.cleanup();
+});
+
+test("Retry-After del cupo diario apunta a la medianoche de Bogotá", async () => {
+  const f = await fixture(Date.parse("2026-09-25T04:00:00Z")); // 23:00 del 24 en Bogotá
+  process.env.CHAT_DAILY_PER_IP_LIMIT = "1";
+  await f.controller.consumeDailyQuota("203.0.113.8");
+  const r = await f.controller.consumeDailyQuota("203.0.113.8");
+  assert.equal(r.ok, false);
+  if (!r.ok) assert.equal(r.retryAfterSeconds, 3600);
+  await f.cleanup();
+});
+
+test("el consumo del día sobrevive al reinicio del servicio (SPEC008 FR-002)", async () => {
+  const f = await fixture();
+  process.env.CHAT_DAILY_PER_IP_LIMIT = "1";
+  await f.controller.consumeDailyQuota("203.0.113.8");
+  const reiniciado = new ChatTrafficController(() => Date.parse("2026-09-24T12:30:00Z"));
+  assert.equal((await reiniciado.consumeDailyQuota("203.0.113.8")).ok, false);
+  await f.cleanup();
+});
+
+test("FR-002a: sin poder escribir el estado, sigue en memoria con la mitad del tope y avisa una vez", async () => {
+  const f = await fixture();
+  // Un archivo donde debería haber un directorio impide persistir.
+  const bloqueo = path.join(f.directory, "bloqueo");
+  await fs.writeFile(bloqueo, "x");
+  process.env.CHAT_LIMIT_STATE_FILE = path.join(bloqueo, "traffic.json");
+  process.env.CHAT_DAILY_PER_IP_LIMIT = "4";
+  const original = console.error; console.error = () => {};
+  let avisos = 0;
+  f.controller.setDegradedSink(() => { avisos++; });
+  try {
+    assert.deepEqual(await f.controller.consumeDailyQuota("203.0.113.8"), { ok: true });
+    assert.equal(f.controller.isDegraded(), true);
+    assert.deepEqual(await f.controller.consumeDailyQuota("203.0.113.8"), { ok: true });
+    const tercera = await f.controller.consumeDailyQuota("203.0.113.8");
+    assert.equal(tercera.ok, false, "tope temporal = floor(4/2) = 2");
+    assert.equal(avisos, 1);
+  } finally { console.error = original; }
   await f.cleanup();
 });
 

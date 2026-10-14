@@ -16,6 +16,7 @@ import { saveAnonymousUsage, saveInteraction } from "./records.js";
 import { describeEpisode, writeEpisodes } from "./registryEpisode.js";
 import { serviceEvents } from "../admin/serviceEvents.js";
 import { setUnavailableSink } from "./unavailable.js";
+import { chatTraffic } from "../services/chatTraffic.js";
 
 const MODEL_COMPONENT: Record<string, "gpt-oss-20b" | "gpt-oss-120b"> = {
   "openai.gpt-oss-20b-1:0": "gpt-oss-20b",
@@ -36,6 +37,11 @@ export function wireOperationalEvents(): void {
       : component === "busqueda" ? "La búsqueda documental no estuvo disponible para atender una consulta."
       : "Una consulta no pudo completarse dentro del plazo de 40 segundos.";
     void operations.notify("modelo_no_disponible", "componente", component === "modelos" ? "servicio-modelos" : component, descripcion);
+  });
+  // Topes diarios degradados (FR-002a): el contador sigue en memoria con un tope más estricto.
+  chatTraffic.setDegradedSink(() => {
+    void operations.notify("topes_degradados", "componente", "topes-chat",
+      "El estado de los topes diarios del chat no se pudo leer ni escribir; se aplica un tope temporal más estricto en memoria.");
   });
   onModelEvent(e => {
     const c = MODEL_COMPONENT[e.modelId];
