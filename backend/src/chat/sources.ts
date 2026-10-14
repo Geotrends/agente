@@ -93,20 +93,33 @@ export function requireCitableSources(hits: RetrievedHit[]): SourceEntry[] {
   return entries;
 }
 
+/**
+ * Neutraliza lo que un fragmento podría usar para imitar la estructura del prompt (SPEC008, FR-020):
+ * encabezados `--- … ---` de fragmento, separadores `===` y los marcadores `<!--FUENTES/TIPO-->`.
+ * Se inserta un carácter de ancho cero, invisible para el modelo y que impide el calce exacto; el
+ * texto sigue siendo legible y los datos no cambian.
+ */
+export function neutralizePromptDelimiters(text: string): string {
+  return text
+    .replace(/<!--/g, "<!\u200b--")
+    .replace(/-->/g, "-\u200b->")
+    .replace(/^([ \t]*)(-{3,}|={3,}|#{3,}\s*Canales oficiales)/gm, "$1\u200b$2");
+}
+
 /** Encabezado del fragmento para el modelo: alias opaco, nombre y página; sin rutas internas. */
 export function contextHeader(entry: SourceEntry, hit: RetrievedHit): string {
-  const parts = [`ID: ${entry.alias}`, `Fuente: ${entry.fuente.nombre}`];
-  if (hit.codigo) parts.push(`Código: ${hit.codigo}`);
+  const parts = [`ID: ${entry.alias}`, `Fuente: ${neutralizePromptDelimiters(entry.fuente.nombre)}`];
+  if (hit.codigo) parts.push(`Código: ${neutralizePromptDelimiters(String(hit.codigo))}`);
   if (hit.page) parts.push(`Página: ${hit.page}`);
   parts.push(`${entry.fechaTipo === "actualizado" ? "Actualizado" : "Consultado"}: ${entry.fuente.fecha}`);
-  if (hit.category) parts.push(`Dirección: ${hit.category}`);
+  if (hit.category) parts.push(`Dirección: ${neutralizePromptDelimiters(String(hit.category))}`);
   return `--- ${parts.join(" | ")} ---`;
 }
 
 export function formatContext(entries: SourceEntry[]): string {
   const blocks: string[] = [];
   for (const entry of entries) {
-    for (const hit of entry.hits) blocks.push(`${contextHeader(entry, hit)}\n${hit.snippet}`);
+    for (const hit of entry.hits) blocks.push(`${contextHeader(entry, hit)}\n${neutralizePromptDelimiters(hit.snippet)}`);
   }
   return blocks.join("\n\n");
 }

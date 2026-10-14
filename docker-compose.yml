@@ -39,13 +39,33 @@ x-backend-paths: &backend-paths
   # kb-worker en el volumen de informes (`geobot-runs`, subcarpeta `config/`).
   KB_UPLOAD_DIR: /app/var/cargas
 
+# SPEC008 (FR-016): `env_file: .env` entrega a cada contenedor TODO el archivo. Estos mapas vacían,
+# por servicio, lo que ese servicio no usa: las contraseñas de base de datos (cada servicio recibe
+# solo su *_DATABASE_URL, calculada por Compose) y las credenciales de proveedores deshabilitados
+# (principio V: solo Bedrock con el rol de la instancia). El valor vacío tiene precedencia sobre
+# env_file y `validateDiConfig` ya lo trata como «no definido».
+x-sin-contrasenas-de-base: &sin-contrasenas-de-base
+  POSTGRES_PASSWORD: ""
+  KB_DB_PASSWORD: ""
+  APP_DB_PASSWORD: ""
+  CHAT_DB_PASSWORD: ""
+  ADMIN_DB_PASSWORD: ""
+  MAINT_DB_PASSWORD: ""
+
+x-sin-proveedores: &sin-proveedores
+  GEMINI_API_KEY: ""
+  GROQ_API_KEY: ""
+  DEEPSEEK_API_KEY: ""
+  OPENAI_API_KEY: ""
+  OLLAMA_BASE_URL: ""
+
 services:
   backend:
     build: ./backend
     image: geobot-backend:latest
     env_file: .env
     environment:
-      <<: *backend-paths
+      <<: [*backend-paths, *sin-contrasenas-de-base, *sin-proveedores]
       # Rol de solo lectura: el chat nunca escribe en la matriz (R13).
       APP_DATABASE_URL: postgres://app_reader:${APP_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-geobot}
       # Una capa de proxy (el nginx del frontend). Súbelo si hay otro balanceador delante.
@@ -73,6 +93,11 @@ services:
     image: geobot-backend:latest
     env_file: .env
     environment:
+      <<: [*sin-contrasenas-de-base, *sin-proveedores]
+      # Solo el migrador necesita las contraseñas de los roles que crea.
+      CHAT_DB_PASSWORD: ${CHAT_DB_PASSWORD}
+      ADMIN_DB_PASSWORD: ${ADMIN_DB_PASSWORD}
+      MAINT_DB_PASSWORD: ${MAINT_DB_PASSWORD}
       CHAT_MIGRATOR_URL: postgres://${POSTGRES_USER:-geobot_admin}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-geobot}
     command: ["node", "dist/chat/migrateCli.js"]
     healthcheck:
@@ -88,6 +113,7 @@ services:
     image: geobot-backend:latest
     env_file: .env
     environment:
+      <<: [*sin-contrasenas-de-base, *sin-proveedores]
       MAINT_DATABASE_URL: postgres://chat_maint:${MAINT_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-geobot}
     command: ["sh", "-c", "while true; do node dist/chat/purgeCli.js; sleep 3600; done"]
     healthcheck:
@@ -114,7 +140,7 @@ services:
     image: geobot-backend:latest
     env_file: .env
     environment:
-      <<: *backend-paths
+      <<: [*backend-paths, *sin-contrasenas-de-base, *sin-proveedores]
       KB_DATABASE_URL: postgres://kb_writer:${KB_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-geobot}
       KB_RUNS_DIR: /app/data/runs
       KB_EXPORT_DIR: /app/var/exports

@@ -10,6 +10,8 @@ import type pg from "pg";
 import { adminPool } from "./db.js";
 
 export const SESSION_IDLE_MS = 30 * 60_000;
+/** Vigencia absoluta (SPEC008, FR-018): una sesión vence a las 8 h de su creación aunque tenga actividad. */
+export const SESSION_ABSOLUTE_MS = 8 * 60 * 60_000;
 export const COOKIE_NAME = "geobot_admin";
 
 export const adminClock: { now: () => number } = { now: () => Date.now() };
@@ -35,9 +37,9 @@ export async function createSession(accountId: string, db: pg.Pool | pg.PoolClie
   const csrf = csrfFor(token);
   const at = new Date(adminClock.now());
   await db.query(
-    `INSERT INTO admin.session (token_hash, account_id, csrf_token_hash, created_at, last_request_at)
-     VALUES ($1, $2, $3, $4, $4)`,
-    [sha256(token), accountId, sha256(csrf), at]);
+    `INSERT INTO admin.session (token_hash, account_id, csrf_token_hash, created_at, last_request_at, absolute_expires_at)
+     VALUES ($1, $2, $3, $4, $4, $5)`,
+    [sha256(token), accountId, sha256(csrf), at, new Date(at.getTime() + SESSION_ABSOLUTE_MS)]);
   return { token, csrf };
 }
 
@@ -49,7 +51,7 @@ export async function touchSession(token: string, db: pg.Pool = adminPool()): Pr
     `UPDATE admin.session s SET last_request_at = $2
        FROM admin.account a
       WHERE s.token_hash = $1 AND a.id = s.account_id AND a.active
-        AND s.revoked_at IS NULL AND s.last_request_at > $3
+        AND s.revoked_at IS NULL AND s.last_request_at > $3 AND s.absolute_expires_at > $2
       RETURNING a.id, a.email, a.display_name, a.profile, a.must_change_password`,
     [sha256(token), now, cutoff]);
   if (!rows.length) return null;
@@ -74,7 +76,8 @@ export async function sessionActive(token: string, db: pg.Pool = adminPool()): P
   const cutoff = new Date(adminClock.now() - SESSION_IDLE_MS);
   const { rowCount } = await db.query(
     `SELECT 1 FROM admin.session s JOIN admin.account a ON a.id = s.account_id
-      WHERE s.token_hash = $1 AND a.active AND s.revoked_at IS NULL AND s.last_request_at > $2`, [sha256(token), cutoff]);
+      WHERE s.token_hash = $1 AND a.active AND s.revoked_at IS NULL AND s.last_request_at > $2
+        AND s.absolute_expires_at > $3`, [sha256(token), cutoff, new Date(adminClock.now())]);
   return !!rowCount;
 }
 

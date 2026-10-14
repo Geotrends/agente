@@ -22,9 +22,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: "22"
           cache: npm
@@ -36,7 +36,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends tesseract-ocr tesseract-ocr-spa poppler-utils
 
       - name: Instalar dependencias
-        run: npm ci || npm install
+        run: npm ci
 
       # Cubre src/, test/ y scripts/. `tsconfig.json` solo incluye src/ porque
       # su trabajo es emitir dist/, lo que dejaba las pruebas sin revisar.
@@ -90,7 +90,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - name: Construir la imagen
         run: docker build -t geobot-backend:ci backend
       # Dependencias NATIVAS y artefactos del bloque 2: argon2id (panel), tokenizador fijado y SDK de
@@ -129,8 +129,8 @@ jobs:
       run:
         working-directory: web_scraper
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: "3.12"
           cache: pip
@@ -163,8 +163,8 @@ jobs:
       KB_TEST_ADMIN_URL: postgres://geobot_admin:ci-admin@localhost:5432/geobot_test
       QDRANT_URL: http://localhost:6333
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: "22"
           cache: npm
@@ -172,7 +172,7 @@ jobs:
       - name: Herramientas de OCR
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends tesseract-ocr tesseract-ocr-spa poppler-utils
       - name: Instalar dependencias
-        run: npm ci || npm install
+        run: npm ci
       - name: Pruebas de integración de la base de conocimiento
         run: npm run test:kb-integracion
 
@@ -200,21 +200,21 @@ jobs:
       QDRANT_URL: http://localhost:6333
       RETRIEVAL_CACHE_DIR: ${{ github.workspace }}/backend/.cache/retrieval
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: "22"
           cache: npm
           cache-dependency-path: backend/package-lock.json
       - name: Modelos locales (caché)
-        uses: actions/cache@v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: backend/.cache/retrieval/models
           key: modelos-retrieval-v1
       - name: Herramientas de OCR
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends tesseract-ocr tesseract-ocr-spa poppler-utils
       - name: Instalar dependencias
-        run: npm ci || npm install
+        run: npm ci
       - name: Integración del bloque 2 (roles, panel, perímetro, privacidad, consumo, recuperación)
         run: npm run test:di-integration
 
@@ -249,14 +249,14 @@ jobs:
       QDRANT_URL: http://localhost:6333
       RETRIEVAL_CACHE_DIR: ${{ github.workspace }}/backend/.cache/retrieval
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: "22"
           cache: npm
           cache-dependency-path: backend/package-lock.json
       - name: Instalar dependencias
-        run: npm ci || npm install
+        run: npm ci
       - name: Imagen de nginx de producción
         run: docker pull nginxinc/nginx-unprivileged:1.27-alpine
       # Un export del frontend es necesario para verificar la CSP de producción servida por nginx.
@@ -280,8 +280,8 @@ jobs:
       run:
         working-directory: frontend
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: "22"
           cache: npm
@@ -343,8 +343,8 @@ jobs:
       QDRANT_URL: http://localhost:6333
       RETRIEVAL_CACHE_DIR: ${{ github.workspace }}/backend/.cache/retrieval
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: "22"
           cache: npm
@@ -352,7 +352,7 @@ jobs:
             backend/package-lock.json
             frontend/package-lock.json
       - name: Modelos locales (caché)
-        uses: actions/cache@v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: backend/.cache/retrieval/models
           key: modelos-retrieval-v1
@@ -360,7 +360,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends tesseract-ocr tesseract-ocr-spa poppler-utils
       - name: Instalar dependencias del backend
         working-directory: backend
-        run: npm ci || npm install
+        run: npm ci
       - name: Auditoría de dependencias (sin vulnerabilidades altas)
         working-directory: backend
         run: npm audit --omit=dev --audit-level=high
@@ -396,7 +396,7 @@ jobs:
       run:
         working-directory: .
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - name: Construir imagen de pruebas nativas
         run: docker compose -p spec006-validation -f docker-compose.validation.yml build validation
       - name: Tipos y contratos offline de validación

@@ -11,6 +11,7 @@
  * guarda como HMAC con un secreto estable de la instalación.
  */
 import { createHmac, randomBytes } from "node:crypto";
+import { ipKeyGenerator } from "express-rate-limit";
 import type pg from "pg";
 import { adminPool } from "./db.js";
 import { writeAudit } from "./audit.js";
@@ -35,19 +36,27 @@ export type LoginResult =
 let ephemeralSecret: string | undefined;
 
 /**
- * Secreto estable de la instalación: ADMIN_IP_HMAC_SECRET o, en su defecto, AUTH_JWT_SECRET
- * (obligatorio en producción). Solo en desarrollo local sin ninguno se usa uno efímero por proceso.
+ * Secreto estable de la instalación para derivar la clave de bloqueo por IP. En producción es
+ * obligatorio ADMIN_IP_HMAC_SECRET y NO se reutiliza AUTH_JWT_SECRET (SPEC008, FR-018): una clave de
+ * firma de sesiones anónimas no debe servir además de pepper de las IP del panel. Fuera de
+ * producción se admite AUTH_JWT_SECRET, o uno efímero por proceso en desarrollo sin ninguno.
  */
 function ipHmacSecret(): string {
-  const configured = process.env.ADMIN_IP_HMAC_SECRET || process.env.AUTH_JWT_SECRET;
+  const configured = process.env.ADMIN_IP_HMAC_SECRET;
   if (configured) return configured;
   if (process.env.NODE_ENV === "production") throw new Error("Falta ADMIN_IP_HMAC_SECRET.");
+  if (process.env.AUTH_JWT_SECRET) return process.env.AUTH_JWT_SECRET;
   return (ephemeralSecret ??= randomBytes(32).toString("hex"));
 }
 
+/**
+ * La clave de bloqueo agrupa IPv6 por /64: un cliente con un /64 propio dispone de 2⁶⁴ direcciones y
+ * rotarlas no debe reiniciar el contador. IPv4 no cambia.
+ */
 function ipKey(ip: string): string {
   const secret = ipHmacSecret();
-  return createHmac("sha256", secret).update(`admin-ip:${ip}`).digest("hex");
+  const normalizada = ipKeyGenerator(ip || "desconocida", 64);
+  return createHmac("sha256", secret).update(`admin-ip:${normalizada}`).digest("hex");
 }
 
 const UNIFORM: LoginResult = { ok: false, status: 401 };
@@ -136,8 +145,28 @@ export async function changePassword(
   accountId: string, currentToken: string, current: unknown, next: unknown, db: pg.Pool = adminPool(),
 ): Promise<ChangePasswordResult> {
   if (typeof current !== "string" || !current) return { ok: false, campo: "currentPassword", mensaje: "La contraseña actual es obligatoria." };
-  const { rows } = await db.query("SELECT password_phc, must_change_password FROM admin.account WHERE id = $1", [accountId]);
+  const { rows } = await db.query(
+    "SELECT password_phc, must_change_password, email, failed_attempts, locked_until FROM admin.account WHERE id = $1", [accountId]);
+  // Quien tiene una sesión robada no puede adivinar la contraseña actual sin límite (SPEC008): los
+  // fallos cuentan con el mismo contador y bloqueo de cuenta que el ingreso.
+  const ahora = adminClock.now();
+  if (rows.length && rows[0].locked_until && new Date(rows[0].locked_until).getTime() > ahora) {
+    return { ok: false, campo: "currentPassword", mensaje: "Demasiados intentos fallidos. Intente de nuevo en unos minutos." };
+  }
   if (!rows.length || !(await verifyPassword(rows[0].password_phc, current))) {
+    if (rows.length) {
+      const cuenta = rows[0].failed_attempts + 1;
+      const bloqueo = cuenta >= ACCOUNT_MAX_FAILURES;
+      await db.query("UPDATE admin.account SET failed_attempts = $2, locked_until = $3, updated_at = $4 WHERE id = $1",
+        [accountId, bloqueo ? 0 : cuenta, bloqueo ? new Date(ahora + ACCOUNT_LOCK_MS) : null, new Date(ahora)]);
+      if (bloqueo) {
+        await emitNotification(db, {
+          type: "cuenta_bloqueada", objectType: "cuenta", objectId: accountId, at: new Date(ahora),
+          description: `Cuenta ${rows[0].email} bloqueada 15 minutos por cinco intentos fallidos al cambiar la contraseña.`,
+        });
+        await writeAudit(db, { actor: accountId, action: "cuenta.bloqueo", objectType: "cuenta", objectId: accountId, result: "rechazado" }, new Date(ahora));
+      }
+    }
     return { ok: false, campo: "currentPassword", mensaje: "La contraseña actual no es correcta." };
   }
   const check = checkNewPassword(next, rows[0].must_change_password ? current : undefined);
@@ -149,7 +178,7 @@ export async function changePassword(
   try {
     await client.query("BEGIN");
     await client.query(
-      "UPDATE admin.account SET password_phc = $2, must_change_password = false, revision = revision + 1, updated_at = $3 WHERE id = $1",
+      "UPDATE admin.account SET password_phc = $2, must_change_password = false, failed_attempts = 0, revision = revision + 1, updated_at = $3 WHERE id = $1",
       [accountId, phc, at]);
     await revokeAccountSessions(accountId, currentToken, client);
     await writeAudit(client, { actor: accountId, action: "cuenta.cambio_contrasena", objectType: "cuenta", objectId: accountId, result: "ok" }, at);

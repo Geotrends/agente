@@ -46,6 +46,15 @@ function isHttpsUrl(value: string): boolean {
   try { return new URL(value).protocol === "https:"; } catch { return false; }
 }
 
+/**
+ * Variables de proveedores o identidades deshabilitados con valor (SPEC008, principio V). Se usa
+ * en el arranque directo del backend: `make up` ya las rechaza con `check-env`, pero un arranque
+ * sin Compose no pasaba por ahí y solo marcaba `/ready`. Nunca incluye valores.
+ */
+export function forbiddenCredentialEnv(env: NodeJS.ProcessEnv = process.env): string[] {
+  return [...FORBIDDEN_LLM_ENV, ...NON_ROLE_AWS_ENV].filter(name => name !== "MIN_RERANK_SCORE" && Boolean(env[name]?.trim()));
+}
+
 export function validateDiConfig(env: NodeJS.ProcessEnv = process.env): string[] {
   const problems: string[] = [];
   const small = setting("bedrockModelSmall");

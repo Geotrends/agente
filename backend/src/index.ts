@@ -4,6 +4,21 @@ import { shutdownRetrieval, warmUpRetrieval } from "./services/retrievalClient.j
 import { describeSettings } from "./services/settings.js";
 import { registerProcessGuards } from "./services/processGuards.js";
 import { safeErrorCode } from "./services/safeLog.js";
+import { forbiddenCredentialEnv } from "./services/diConfig.js";
+
+// Principio V: en producción no se arranca con credenciales de otro proveedor ni llaves estáticas.
+// Solo se nombran las variables, nunca su valor. Compose ya las vacía para este servicio.
+if (process.env.NODE_ENV === "production") {
+  const sobrantes = forbiddenCredentialEnv();
+  if (sobrantes.length) {
+    console.error(`[config] Arranque rechazado: elimine del entorno ${sobrantes.join(", ")}. Solo se admite Bedrock con el rol de la instancia.`);
+    process.exit(1);
+  }
+  if (!process.env.ADMIN_IP_HMAC_SECRET?.trim()) {
+    console.error("[config] Arranque rechazado: falta ADMIN_IP_HMAC_SECRET (obligatorio en producción, distinto de AUTH_JWT_SECRET).");
+    process.exit(1);
+  }
+}
 
 const app = createApp();
 const port = Number(process.env.PORT || 4000);

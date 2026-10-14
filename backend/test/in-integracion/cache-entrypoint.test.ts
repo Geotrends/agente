@@ -52,6 +52,8 @@ async function levantarNginx(backendPort: number, readTimeout = "2s", extra: { c
   execFileSync("docker", ["run", "-d", "--rm", "--name", name, ...red,
     "-v", `${join(dir, "default.conf")}:/etc/nginx/conf.d/default.conf:ro`,
     "-v", `${join(dir, "csp-chat.conf")}:/etc/nginx/snippets/csp-chat.conf:ro`,
+    // SPEC008: el snippet real de cabeceras de seguridad que instala el Dockerfile del frontend.
+    "-v", `${fileURLToPath(new URL("../../../frontend/security-headers.conf", import.meta.url))}:/etc/nginx/snippets/security-headers.conf:ro`,
     ...(extra.htmlRoot ? ["-v", `${extra.htmlRoot}:/usr/share/nginx/html:ro`] : []), IMAGE], { stdio: "ignore" });
   const base = `http://127.0.0.1:${port}`;
   for (let i = 0; i < 40; i++) {

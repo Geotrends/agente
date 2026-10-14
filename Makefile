@@ -56,6 +56,8 @@ env-file:
 
 check-env: env-file
 	@grep -qE '^AUTH_JWT_SECRET=.{32,}' .env || { echo "AUTH_JWT_SECRET vacío o con menos de 32 caracteres en .env. Genera uno con: openssl rand -base64 48"; exit 1; }
+	@grep -qE '^ADMIN_IP_HMAC_SECRET=.{32,}' .env || { echo "ADMIN_IP_HMAC_SECRET vacío o con menos de 32 caracteres en .env. Genera uno con: openssl rand -base64 48"; exit 1; }
+	@a=$$(grep -E '^AUTH_JWT_SECRET=' .env | cut -d= -f2-); b=$$(grep -E '^ADMIN_IP_HMAC_SECRET=' .env | cut -d= -f2-); [ "$$a" != "$$b" ] || { echo "ADMIN_IP_HMAC_SECRET no puede ser igual a AUTH_JWT_SECRET."; exit 1; }
 	@for v in POSTGRES_PASSWORD KB_DB_PASSWORD APP_DB_PASSWORD CHAT_DB_PASSWORD ADMIN_DB_PASSWORD MAINT_DB_PASSWORD; do \
 	  grep -qE "^$$v=.+" .env || { echo "$$v vacío en .env. Genera uno con: openssl rand -base64 32"; exit 1; }; \
 	done

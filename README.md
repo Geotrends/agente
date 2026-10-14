@@ -57,8 +57,8 @@ printf '%s' "$CLAVE_TEMPORAL" | make bootstrap-admin EMAIL=tecnico@dominio NOMBR
 Después, entre al panel (`/admin/login`), cambie la contraseña temporal y cargue los
 **contactos oficiales**; la operación registra las **tarifas** de ambos modelos y calibra el
 umbral de relevancia (`make kb CMD="sincronizar --completa --oro=<archivo>"`). Mientras falte
-cualquiera de esos datos, `GET /ready` responde 503 nombrando qué falta y el chat no se
-declara listo: no hay contactos, tarifas ni umbral inventados.
+cualquiera de esos datos, `GET /ready` responde 503 (la lista de lo que falta se ve desde el
+contenedor, ver la tabla de endpoints) y el chat no se declara listo: no hay contactos, tarifas ni umbral inventados.
 
 La base se limita al alcance del bloque 1: los 6 procedimientos GT-P de GMAS2 con sus
 formatos, normas y MG vinculados, y las páginas del Observatorio (Ambientómetro,
@@ -369,9 +369,9 @@ Respuesta 200: `{ modo, conversationId?, responseId?, tipo, respuesta, fuentes[]
 
 | Endpoint | Descripción |
 | --- | --- |
-| `GET /api/retrieval/status` | Estado del índice y ocupación de la cola. |
+| `GET /api/retrieval/status` | Por el proxy público: `{ok}`. Desde el contenedor: estado del índice y ocupación de la cola. |
 | `GET /health` | Vivacidad del proceso. Sin token. Lo usa el healthcheck de Docker. |
-| `GET /ready` | 200 solo con índice y calibración vigentes, configuración válida, tokenizador con la huella fijada, contactos completos y tarifas de ambos modelos; si no, 503 con la lista de lo que falta. |
+| `GET /ready` | 200 solo con índice y calibración vigentes, configuración válida, tokenizador con la huella fijada, contactos completos y tarifas de ambos modelos; si no, 503. Por el proxy público responde solo `{ready}`; la lista de lo que falta sale desde el contenedor: `docker compose exec backend wget -qO- http://127.0.0.1:4000/ready`. |
 | `/api/admin/*` | Panel: sesión, contraseña, contactos, estado y avisos. Cookie `HttpOnly`, CSRF y dos perfiles (técnico / Gestor documental). |
 
 La protección contra abuso es una ventana deslizante de 60 solicitudes por minuto por IP (con el

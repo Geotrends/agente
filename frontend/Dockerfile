@@ -26,6 +26,7 @@ FROM nginxinc/nginx-unprivileged:1.27-alpine AS runtime
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/out /usr/share/nginx/html
 COPY --from=build /app/csp-chat.conf /etc/nginx/snippets/csp-chat.conf
+COPY security-headers.conf /etc/nginx/snippets/security-headers.conf
 
 EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
