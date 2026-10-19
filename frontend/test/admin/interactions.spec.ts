@@ -18,7 +18,7 @@ test("el técnico filtra interacciones, ve el texto depurado como tal y exporta 
   await page.getByLabel("Desde").fill("2020-01-01");
   await page.getByLabel("Hasta").fill("2030-01-01");
   await page.getByRole("button", { name: "Filtrar" }).click();
-  await expect(page.getByRole("cell", { name: `Pregunta ${m} vigente` })).toBeVisible();
+  await expect(page.getByRole("cell", { name: `Pregunta ${m} vigente`, exact: true })).toBeVisible();
   await expect(page.getByRole("cell", { name: "Texto depurado por retención" }).first()).toBeVisible();
   // Nueve columnas.
   await expect(page.getByRole("columnheader")).toHaveCount(9);
@@ -28,7 +28,7 @@ test("el técnico filtra interacciones, ve el texto depurado como tal y exporta 
   await page.getByLabel("Hasta").fill("2030-01-01");
   await page.getByRole("button", { name: "Filtrar" }).click();
   await expect(page.getByRole("cell", { name: `Pregunta ${m} sin info` })).toBeVisible();
-  await expect(page.getByRole("cell", { name: `Pregunta ${m} vigente` })).toHaveCount(0);
+  await expect(page.getByRole("cell", { name: `Pregunta ${m} vigente`, exact: true })).toHaveCount(0);
   await expect(page.getByRole("cell", { name: "Información incorrecta" })).toBeVisible();
 
   // Exportación del mismo filtro: descarga un .xlsx.

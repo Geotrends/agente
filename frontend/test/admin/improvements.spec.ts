@@ -12,7 +12,7 @@ test("el técnico avanza un caso: tipo de fallo para En ajuste y nota para Cerra
   await expect(page).toHaveURL(/\/admin\/documents$/);
   await page.goto("/admin/improvements");
   await expect(page.getByRole("heading", { name: "Casos de mejora", level: 1 })).toBeVisible();
-  await page.getByRole("button", { name: /Gestionar caso del .* \(Registrada\)/ }).first().click();
+  await page.getByRole("button", { name: /Gestionar caso .*, Registrada$/ }).first().click();
   await expect(page.getByRole("dialog")).toContainText("Siguiente estado permitido: En análisis");
   await page.getByRole("button", { name: "Pasar a «En análisis»" }).click();
   await expect(page.getByRole("dialog")).toContainText("Siguiente estado permitido: En ajuste");

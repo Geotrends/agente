@@ -18,7 +18,8 @@ test("el técnico revisa avisos del sistema; el contador del menú baja y los re
   const antes = Number(/\((\d+)\)/.exec(await enlace.innerText())![1]);
   await page.getByRole("row", { name: new RegExp(`Falla uno ${marca}`) }).getByRole("button").click();
   await expect(page.getByRole("status").filter({ hasText: "marcado como revisado" })).toBeVisible();
-  await expect(page.getByRole("row", { name: new RegExp(`Falla uno ${marca}`) })).toHaveCount(0);
+  // La fila revisada se conserva en la lista (con su estado) hasta la próxima actualización.
+  await expect(page.getByRole("row", { name: new RegExp(`Falla uno ${marca}`) })).toContainText("Revisado");
   await page.getByLabel("Mostrar también los revisados").check();
   await expect(page.getByRole("row", { name: new RegExp(`Falla uno ${marca}`) })).toContainText("Revisado");
   // El contador del menú se actualiza con la actividad (≤30 s): se fuerza con navegación.
@@ -51,10 +52,10 @@ test("el técnico consulta la auditoría con filtros y la bandeja de pendientes"
   await page.goto("/admin/audit");
   await expect(page.getByRole("heading", { name: "Auditoría", level: 1 })).toBeVisible();
   await expect(page.getByRole("table")).toBeVisible();
-  await page.getByLabel("Acción (por ejemplo cuenta.crear)").fill("sesion.inicio");
+  await page.getByLabel("Acción", { exact: true }).selectOption("sesion.inicio");
   await page.getByRole("button", { name: "Filtrar" }).click();
-  await expect(page.getByRole("cell", { name: "sesion.inicio" }).first()).toBeVisible();
-  await expect(page.getByRole("cell", { name: "cuenta.crear" })).toHaveCount(0);
+  await expect(page.getByRole("cell", { name: "Iniciar sesión", exact: true }).first()).toBeVisible();
+  await expect(page.getByRole("cell", { name: "Crear cuenta", exact: true })).toHaveCount(0);
   // Solo lectura: no hay controles de edición o borrado.
   await expect(page.getByRole("button", { name: /eliminar|borrar|editar/i })).toHaveCount(0);
   await page.goto("/admin/pending");

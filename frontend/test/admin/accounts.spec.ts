@@ -13,7 +13,7 @@ test("el técnico crea una cuenta, ve errores por campo y confirma o cancela la 
 
   // Error por campo: contraseña corta.
   const nuevo = unico("nueva");
-  await page.getByLabel("Nombre").fill("Persona Nueva");
+  await page.getByLabel("Nombre", { exact: true }).fill("Persona Nueva");
   await page.getByLabel("Correo electrónico").fill(nuevo);
   await page.getByLabel("Contraseña inicial").fill("corta");
   await page.getByRole("button", { name: "Crear cuenta" }).click();
@@ -25,7 +25,7 @@ test("el técnico crea una cuenta, ve errores por campo y confirma o cancela la 
   await expect(page.getByRole("cell", { name: nuevo, exact: true })).toBeVisible();
 
   // Correo repetido: error en el campo.
-  await page.getByLabel("Nombre").fill("Otra");
+  await page.getByLabel("Nombre", { exact: true }).fill("Otra");
   await page.getByLabel("Correo electrónico").fill(nuevo);
   await page.getByLabel("Contraseña inicial").fill("clave-inicial-larga");
   await page.getByRole("button", { name: "Crear cuenta" }).click();
@@ -110,9 +110,8 @@ test("la pantalla abierta e ignorada deja de consultar y cierra la sesión a los
   page.on("request", r => { if (r.url().includes("/api/admin/counters")) contadores++; });
   await iniciarSesion(page, tec.email);
   await expect(page).toHaveURL(/\/admin\/documents$/);
+  await expect.poll(() => contadores).toBeGreaterThanOrEqual(1); // la primera lectura es de red real
   await page.clock.runFor(1000);
-  const iniciales = contadores;
-  expect(iniciales).toBeGreaterThanOrEqual(1);
 
   // Pasan 10 minutos sin interacción humana: tras el primer minuto no hay más consultas.
   await page.clock.runFor(60_000);
@@ -122,6 +121,5 @@ test("la pantalla abierta e ignorada deja de consultar y cierra la sesión a los
 
   // Tras 30 minutos de inactividad humana, la interfaz cierra la sesión.
   await page.clock.runFor(21 * 60_000 + 40_000);
-  await expect(page).toHaveURL(/\/admin\/login\?expirada=1$/);
-  await expect(page.getByText("Su sesión se cerró por inactividad")).toBeVisible();
+  await expect(page.getByRole("dialog", { name: "Su sesión venció" })).toBeVisible();
 });

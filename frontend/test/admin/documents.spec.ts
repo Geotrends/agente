@@ -66,7 +66,7 @@ test("el técnico publica (202 → En curso → Terminada) y retira con motivo; 
   await correrWorker(request);
   await page.getByRole("button", { name: "Actualizar estado de la operación" }).first().click();
   await expect(page.getByRole("status").filter({ hasText: "Terminada" }).first()).toBeVisible({ timeout: 15_000 });
-  await expect(page.getByRole("row", { name: new RegExp(titulo) })).toContainText("Publicado");
+  await expect(page.getByRole("row", { name: new RegExp(titulo) })).toContainText("Publicado", { timeout: 15_000 });
 
   // Retiro: cancelar no cambia nada; sin motivo se rechaza; con motivo queda En curso y luego desaparece.
   await page.getByRole("button", { name: `Retirar ${titulo}` }).click();

@@ -17,7 +17,7 @@ test("el técnico ve los cuatro tableros con tablas equivalentes y rango validad
   // Rango incompleto → error de campo, no un cero.
   await page.getByLabel("Desde").fill("2026-05-01");
   await page.getByRole("button", { name: "Aplicar rango" }).click();
-  await expect(page.getByText("Indique ambas fechas del rango o ninguna.")).toBeVisible();
+  await expect(page.getByText("Indique ambas fechas y un inicio anterior o igual al final.")).toBeVisible();
 
   await page.goto("/admin/metrics/documents");
   await expect(page.getByRole("heading", { name: "Documentos más citados", level: 1 })).toBeVisible();
@@ -49,7 +49,7 @@ test("tarifas: guarda USD con cuatro decimales y rechaza cinco decimales, cero y
   await entrada.fill("0.0825");
   await guardar.click();
   await expect(page.getByRole("status").filter({ hasText: "Tarifa de gpt-oss-20b guardada" })).toBeVisible();
-  await expect(page.getByRole("cell", { name: "0.0825", exact: true })).toBeVisible();
+  await expect(page.getByRole("cell", { name: "0,0825", exact: true })).toBeVisible();
 });
 
 test("el Gestor no ve tableros ni tarifas: la API responde 403", async ({ page, request }) => {
@@ -61,7 +61,7 @@ test("el Gestor no ve tableros ni tarifas: la API responde 403", async ({ page, 
     await expect(nav.getByRole("link", { name: nombre, exact: true })).toHaveCount(0);
   }
   await page.goto("/admin/metrics/usage");
-  await expect(page.getByText(/Información no disponible/)).toBeVisible();
+  await expect(page.getByText("Su perfil no tiene acceso a esta función.")).toBeVisible();
   const estados = await page.evaluate(async () => Promise.all(["/api/admin/metrics/consumption", "/api/admin/tariffs"].map(async u => (await fetch(u, { credentials: "same-origin" })).status)));
   expect(estados).toEqual([403, 403]);
 });
