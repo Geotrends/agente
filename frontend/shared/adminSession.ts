@@ -18,14 +18,16 @@ export function recordarSesion(s: SesionAdmin): void { csrf = s.csrfToken; }
 
 export type Resultado<T> = { ok: true; status: number; data: T } | { ok: false; status: number; error: ErrorApi; retryAfter?: number };
 
-export async function llamar<T>(method: string, path: string, body?: unknown): Promise<Resultado<T>> {
+export async function llamar<T>(method: string, path: string, body?: unknown, options?: { signal?: AbortSignal }): Promise<Resultado<T>> {
   try {
     const res = await fetch(`${BASE}${path}`, {
       method,
+      signal: options?.signal,
       credentials: "same-origin",
       headers: { "Content-Type": "application/json", ...(csrf && method !== "GET" ? { "X-CSRF-Token": csrf } : {}) },
       body: body === undefined ? undefined : JSON.stringify(body),
     });
+    if (res.status === 401 && path !== "/session" && typeof window !== "undefined") window.dispatchEvent(new Event("admin-session-expired"));
     const retry = Number(res.headers.get("Retry-After"));
     const text = await res.text();
     const json = text && /json/i.test(res.headers.get("content-type") ?? "") ? JSON.parse(text) : undefined;

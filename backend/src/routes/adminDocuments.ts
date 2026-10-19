@@ -15,7 +15,7 @@ const escrituraTecnico = requireAdmin({ ...tecnico, mutation: true });
 
 router.get("/admin/documents", ambos, safe(async (req, res) => {
   res.json(await listarDocumentos(req.admin!.accountId, {
-    mine: req.query.mine, state: req.query.state, cursor: req.query.cursor, limit: pageSize(req.query.limit),
+    search: req.query.search, id: req.query.id, page: req.query.page, order: req.query.order, mine: req.query.mine, state: req.query.state, cursor: req.query.cursor, limit: pageSize(req.query.limit),
   }));
 }));
 

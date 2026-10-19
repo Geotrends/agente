@@ -30,7 +30,7 @@ export type CasoDetalle = CasoDto & {
 };
 
 const SELECT = `
-  SELECT c.id, c.created_at, c.origins, c.failure_type, c.status, c.revision, c.finding_ref, i.category,
+  SELECT c.id, c.created_at, c.created_at::text AS cursor_created_at, c.origins, c.failure_type, c.status, c.revision, c.finding_ref, i.category,
          GREATEST(0, (now() AT TIME ZONE 'America/Bogota')::date - (c.created_at AT TIME ZONE 'America/Bogota')::date) AS dias,
          (i.purged_at IS NOT NULL OR i.received_at + interval '12 months' <= now()) AS depurada,
          CASE WHEN i.purged_at IS NULL AND i.received_at + interval '12 months' > now() THEN i.question_text END AS question_text,
@@ -70,7 +70,7 @@ export async function listarCasos(
   const ultimo = pagina[pagina.length - 1];
   return {
     items: pagina.map(aCaso), total, abiertos,
-    nextCursor: rows.length > q.limit && ultimo ? encodeCursor([new Date(ultimo.created_at).toISOString(), ultimo.id]) : null,
+    nextCursor: rows.length > q.limit && ultimo ? encodeCursor([String(ultimo.cursor_created_at), ultimo.id]) : null,
   };
 }
 

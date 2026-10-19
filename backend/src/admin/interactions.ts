@@ -68,7 +68,7 @@ export async function listarInteracciones(
   const params = paramsDe(f);
   const total = Number((await db.query(`SELECT count(*) ${FROM} WHERE ${WHERE}`, params)).rows[0].count);
   const { rows } = await db.query(
-    `SELECT ${COLUMNAS} ${FROM} WHERE ${WHERE}
+    `SELECT ${COLUMNAS}, i.received_at::text AS cursor_received_at ${FROM} WHERE ${WHERE}
         AND ($6::timestamptz IS NULL OR (i.received_at, i.row_id) < ($6::timestamptz, $7::bigint))
       ORDER BY i.received_at DESC, i.row_id DESC LIMIT $8`,
     [...params, cur ? cur[0] : null, cur ? cur[1] : null, q.limit + 1]);
@@ -77,7 +77,7 @@ export async function listarInteracciones(
   return {
     items: pagina.map(aDto), total,
     // El row_id solo viaja dentro del cursor opaco; nunca como campo de salida.
-    nextCursor: rows.length > q.limit && ultimo ? encodeCursor([new Date(ultimo.received_at).toISOString(), Number(ultimo.row_id)]) : null,
+    nextCursor: rows.length > q.limit && ultimo ? encodeCursor([String(ultimo.cursor_received_at), String(ultimo.row_id)]) : null,
   };
 }
 

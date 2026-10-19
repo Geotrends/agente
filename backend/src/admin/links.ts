@@ -74,25 +74,26 @@ export async function crearPropuesta(actor: string, nombre: string, body: unknow
 }
 
 export async function listarPropuestas(
-  actor: string, esTecnico: boolean, query: { state?: unknown; owner?: unknown; cursor?: unknown; limit: number }, db: pg.Pool = adminPool(),
+  actor: string, esTecnico: boolean, query: { state?: unknown; owner?: unknown; cursor?: unknown; limit: number; id?: unknown }, db: pg.Pool = adminPool(),
 ): Promise<Page<PropuestaDto>> {
   const estado = query.state === undefined || query.state === "" ? null
     : parseEnum(query.state, ["Pendiente de validación", "Aprobada", "Rechazada", "Retirada"] as const, "state");
   // El Gestor solo ve las suyas; el técnico ve todas (y puede filtrar por propietario).
   const propietario = esTecnico ? (query.owner ? parseUuid(query.owner, "owner") : null) : actor;
   const cur = decodeCursor(query.cursor);
-  const filtros = "($1::uuid IS NULL OR owner_account_id = $1) AND ($2::text IS NULL OR state = $2)";
-  const total = Number((await db.query(`SELECT count(*) FROM kb.link_proposal WHERE ${filtros}`, [propietario, estado])).rows[0].count);
+  const id = query.id ? parseUuid(query.id, "id") : null;
+  const filtros = "($1::uuid IS NULL OR owner_account_id = $1) AND ($2::text IS NULL OR state = $2) AND ($3::uuid IS NULL OR id = $3)";
+  const total = Number((await db.query(`SELECT count(*) FROM kb.link_proposal WHERE ${filtros}`, [propietario, estado, id])).rows[0].count);
   const { rows } = await db.query(
-    `SELECT * FROM kb.link_proposal WHERE ${filtros}
-        AND ($3::timestamptz IS NULL OR (created_at, id) < ($3::timestamptz, $4::uuid))
-      ORDER BY created_at DESC, id DESC LIMIT $5`,
-    [propietario, estado, cur ? cur[0] : null, cur ? cur[1] : null, query.limit + 1]);
+    `SELECT *, created_at::text AS cursor_created_at FROM kb.link_proposal WHERE ${filtros}
+        AND ($4::timestamptz IS NULL OR (created_at, id) < ($4::timestamptz, $5::uuid))
+      ORDER BY created_at DESC, id DESC LIMIT $6`,
+    [propietario, estado, id, cur ? cur[0] : null, cur ? cur[1] : null, query.limit + 1]);
   const pagina = rows.slice(0, query.limit);
   const ultimo = pagina[pagina.length - 1];
   return {
     items: pagina.map(r => aDto(r, esTecnico)), total,
-    nextCursor: rows.length > query.limit && ultimo ? encodeCursor([new Date(ultimo.created_at).toISOString(), ultimo.id]) : null,
+    nextCursor: rows.length > query.limit && ultimo ? encodeCursor([String(ultimo.cursor_created_at), ultimo.id]) : null,
   };
 }
 

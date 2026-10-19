@@ -220,3 +220,27 @@ test("tarifas: dos ediciones simultáneas con la misma revisión → una aplica 
   const vigentes = (await app.db.migrator.query("SELECT count(*)::int n FROM chat.tariff WHERE model_id = $1 AND valid_to IS NULL", [M120])).rows[0].n;
   assert.equal(vigentes, 1);
 });
+
+test("tarifas: un modelo sin tarifa vigente se registra desde el panel con su fuente HTTPS; queda auditado", async () => {
+  // Sin vigente (se cierra la actual: el historial no se borra).
+  await app.db.migrator.query("UPDATE chat.tariff SET valid_to = clock_timestamp() WHERE model_id = $1 AND valid_to IS NULL", [M20]);
+  const l0 = (await tec.api("GET", "/tariffs")).json;
+  assert.deepEqual(l0.faltantes, ["gpt-oss-20b"]);
+  // Sin fuente → error de campo; con revisión inventada → 409; Gestor → 403.
+  const sinFuente = await tec.api("PUT", "/tariffs/gpt-oss-20b", { inputPerMillion: "0.07", outputPerMillion: "0.3" });
+  assert.equal(sinFuente.status, 422);
+  assert.equal(sinFuente.json.error.campo, "sourceUrl");
+  assert.equal((await tec.api("PUT", "/tariffs/gpt-oss-20b", { inputPerMillion: "0.07", outputPerMillion: "0.3", sourceUrl: "http://inseguro.com/x" })).status, 422);
+  assert.equal((await tec.api("PUT", "/tariffs/gpt-oss-20b", { expectedRevision: "1", inputPerMillion: "0.07", outputPerMillion: "0.3", sourceUrl: "https://aws.amazon.com/bedrock/pricing/" })).status, 409);
+  assert.equal((await ges.api("PUT", "/tariffs/gpt-oss-20b", { inputPerMillion: "0.07", outputPerMillion: "0.3", sourceUrl: "https://aws.amazon.com/bedrock/pricing/" })).status, 403);
+  const r = await tec.api("PUT", "/tariffs/gpt-oss-20b", { inputPerMillion: "0.07", outputPerMillion: "0.3", sourceUrl: "https://aws.amazon.com/bedrock/pricing/" });
+  assert.equal(r.status, 200, r.text);
+  assert.equal(r.json.inputPerMillion, "0.07");
+  const l1 = (await tec.api("GET", "/tariffs")).json;
+  assert.deepEqual(l1.faltantes, []);
+  assert.equal(l1.items.length, 2);
+  // Con vigente, la revisión vuelve a ser obligatoria.
+  assert.equal((await tec.api("PUT", "/tariffs/gpt-oss-20b", { inputPerMillion: "0.08", outputPerMillion: "0.3" })).status, 422);
+  const audit = (await app.db.migrator.query("SELECT count(*)::int n FROM admin.audit WHERE action = 'tarifa.crear' AND object_id = 'gpt-oss-20b'")).rows[0].n;
+  assert.equal(audit, 1);
+});

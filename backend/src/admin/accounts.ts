@@ -30,7 +30,7 @@ export type AccountDto = {
 
 type Row = {
   id: string; display_name: string; email: string; profile: Perfil; active: boolean;
-  must_change_password: boolean; revision: string; created_at: Date;
+  must_change_password: boolean; revision: string; created_at: Date; cursor_created_at?: string;
 };
 
 const toDto = (r: Row): AccountDto => ({
@@ -40,18 +40,20 @@ const toDto = (r: Row): AccountDto => ({
 
 const COLUMNS = "id, display_name, email, profile, active, must_change_password, revision, created_at";
 
-export async function listAccounts(query: { limit: number; cursor?: unknown }, db: pg.Pool = adminPool()): Promise<Page<AccountDto>> {
+export async function listAccounts(query: { limit: number; cursor?: unknown; search?: unknown }, db: pg.Pool = adminPool()): Promise<Page<AccountDto>> {
   const cur = decodeCursor(query.cursor);
   const limit = query.limit || DEFAULT_PAGE_SIZE;
-  const total = Number((await db.query("SELECT count(*) FROM admin.account")).rows[0].count);
+  const term = query.search === undefined || query.search === "" ? "" : requiredText(query.search, "search", 200);
+  const match = `strpos(lower(concat_ws(' ', display_name, email, profile)), lower($4::text)) > 0`;
+  const total = Number((await db.query("SELECT count(*) FROM admin.account WHERE strpos(lower(concat_ws(' ', display_name, email, profile)), lower($1::text)) > 0", [term])).rows[0].count);
   const { rows } = await db.query<Row>(
-    `SELECT ${COLUMNS} FROM admin.account
-      WHERE ($1::timestamptz IS NULL OR (created_at, id) > ($1::timestamptz, $2::uuid))
+    `SELECT ${COLUMNS}, created_at::text AS cursor_created_at FROM admin.account
+      WHERE ($1::timestamptz IS NULL OR (created_at, id) > ($1::timestamptz, $2::uuid)) AND ${match}
       ORDER BY created_at, id LIMIT $3`,
-    [cur ? cur[0] : null, cur ? cur[1] : null, limit + 1]);
+    [cur ? cur[0] : null, cur ? cur[1] : null, limit + 1, term]);
   const items = rows.slice(0, limit).map(toDto);
   const last = rows[limit - 1];
-  return { items, total, nextCursor: rows.length > limit ? encodeCursor([new Date(last.created_at).toISOString(), last.id]) : null };
+  return { items, total, nextCursor: rows.length > limit ? encodeCursor([String(last.cursor_created_at), last.id]) : null };
 }
 
 const PG_UNIQUE = "23505";

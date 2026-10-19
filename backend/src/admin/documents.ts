@@ -230,19 +230,34 @@ async function nombresDeCuentas(db: pg.Pool, ids: Array<string | null>): Promise
 }
 
 export async function listarDocumentos(
-  actor: string, query: { mine?: unknown; state?: unknown; cursor?: unknown; limit: number }, db: pg.Pool = adminPool(),
+  actor: string, query: { mine?: unknown; state?: unknown; cursor?: unknown; limit: number; search?: unknown; id?: unknown; page?: unknown; order?: unknown }, db: pg.Pool = adminPool(),
 ): Promise<Page<DocumentoDto>> {
   const mine = query.mine === "true" || query.mine === true;
   let estado: string | null = null;
   if (query.state !== undefined && query.state !== "") estado = parseEnum(query.state, ESTADOS_VISIBLES, "state");
   const cur = decodeCursor(query.cursor);
-  const filtros = `($1::boolean = false OR autor_cuenta_id = $2 OR candidata_autor_cuenta_id = $2) AND ($3::text IS NULL OR estado = $3)`;
-  const total = Number((await db.query(`SELECT count(*) FROM kb.v_matriz_admin WHERE ${filtros}`, [mine, actor, estado])).rows[0].count);
+  const search = query.search === undefined || query.search === "" ? "" : requiredText(query.search, "search", 300);
+  const tokens = search.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().split(/\s+/).filter(Boolean);
+  const id = query.id ? parseUuid(query.id, "id") : null;
+  if (query.page !== undefined && (typeof query.page !== "string" || !/^\d{1,6}$/.test(query.page))) throw new ValidationError("page", "La página no es válida.");
+  const page = query.page === undefined ? null : Number(query.page);
+  if (page !== null && (!Number.isSafeInteger(page) || page < 1 || page > 100000)) throw new ValidationError("page", "La página no es válida.");
+  const orders: Record<string, string> = { recent: "fecha_carga_ts DESC, id DESC", name: "nombre ASC, id ASC", code: "codigo ASC, id ASC" };
+  const order = query.order === undefined ? "recent" : parseEnum(query.order, ["recent", "name", "code"] as const, "order");
+  const filtros = `($1::boolean = false OR autor_cuenta_id = $2 OR candidata_autor_cuenta_id = $2)
+    AND ($3::text IS NULL OR estado = $3) AND ($5::uuid IS NULL OR id = $5)
+    AND NOT EXISTS (SELECT 1 FROM unnest($4::text[]) AS t(token)
+      WHERE strpos(translate(lower(concat_ws(' ', codigo, nombre, tipo, direccion, url_origen, estado, version,
+        formato_original, procedimiento_origen, origen,
+        CASE WHEN estado = 'Pendiente de aprobación' THEN 'por aprobar' END,
+        (SELECT display_name FROM admin.account WHERE id = autor_cuenta_id))), 'áéíóúüñÁÉÍÓÚÜÑ', 'aeiouunaeiouun'), token) = 0)`;
+  const params = [mine, actor, estado, tokens, id];
+  const total = Number((await db.query(`SELECT count(*) FROM kb.v_matriz_admin WHERE ${filtros}`, params)).rows[0].count);
   const { rows } = await db.query(
-    `SELECT * FROM kb.v_matriz_admin
-      WHERE ${filtros} AND ($4::timestamptz IS NULL OR (fecha_carga_ts, id) < ($4::timestamptz, $5::uuid))
-      ORDER BY fecha_carga_ts DESC, id DESC LIMIT $6`,
-    [mine, actor, estado, cur ? cur[0] : null, cur ? cur[1] : null, query.limit + 1]);
+    `SELECT *, fecha_carga_ts::text AS cursor_fecha FROM kb.v_matriz_admin WHERE ${filtros}
+      AND ($6::timestamptz IS NULL OR (fecha_carga_ts, id) < ($6::timestamptz, $7::uuid))
+      ORDER BY ${page === null ? orders.recent : orders[order]} LIMIT $8 OFFSET $9`,
+    [...params, page === null && cur ? cur[0] : null, page === null && cur ? cur[1] : null, query.limit + 1, page === null ? 0 : (page - 1) * query.limit]);
   const pagina = rows.slice(0, query.limit);
   const nombres = await nombresDeCuentas(db, pagina.flatMap(r => [r.autor_cuenta_id, r.candidata_autor_cuenta_id]));
   const persona = (id: string | null) => (id ? { id, nombre: nombres.get(id) ?? "Cuenta eliminada" } : null);
@@ -259,7 +274,7 @@ export async function listarDocumentos(
     } : null,
   }));
   const ultimo = pagina[pagina.length - 1];
-  return { items, total, nextCursor: rows.length > query.limit && ultimo ? encodeCursor([new Date(ultimo.fecha_carga_ts).toISOString(), ultimo.id]) : null };
+  return { items, total, nextCursor: page === null && rows.length > query.limit && ultimo ? encodeCursor([String(ultimo.cursor_fecha), ultimo.id]) : null };
 }
 
 // ── Comandos privilegiados (solo técnico; la ruta ya filtra el perfil) ──────────────────────────

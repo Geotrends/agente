@@ -59,7 +59,7 @@ export async function listarAvisos(
   const filtroEstado = estado === "todas" ? "TRUE" : "n.state = 'no_revisada'";
   const total = Number((await db.query(`SELECT count(*) FROM (${UNION}) n WHERE ${VISIBLE} AND ${filtroEstado}`, params)).rows[0].count);
   const { rows } = await db.query(
-    `SELECT * FROM (${UNION}) n WHERE ${VISIBLE} AND ${filtroEstado}
+    `SELECT *, n.last_at::text AS cursor_last_at FROM (${UNION}) n WHERE ${VISIBLE} AND ${filtroEstado}
         AND ($4::timestamptz IS NULL OR (n.last_at, n.id) < ($4::timestamptz, $5::text))
       ORDER BY n.last_at DESC, n.id DESC LIMIT $6`,
     [...params, cur ? cur[0] : null, cur ? cur[1] : null, q.limit + 1]);
@@ -74,7 +74,7 @@ export async function listarAvisos(
   const ultimo = pagina[pagina.length - 1];
   return {
     items, total, noRevisadas: await contarAvisos(v, db),
-    nextCursor: rows.length > q.limit && ultimo ? encodeCursor([new Date(ultimo.last_at).toISOString(), ultimo.id]) : null,
+    nextCursor: rows.length > q.limit && ultimo ? encodeCursor([String(ultimo.cursor_last_at), ultimo.id]) : null,
   };
 }
 
@@ -123,6 +123,35 @@ export async function revisarAviso(v: Viewer, rawId: string, expectedRevision?: 
   return { noRevisadas: await contarAvisos(v, db) };
 }
 
+/**
+ * Revisa de una vez TODOS los avisos sin revisar que esa persona puede ver (mismo predicado que
+ * listar y contar). Cada aviso queda con actor y fecha y con su propia entrada de auditoría.
+ * Los avisos volátiles (aún no guardados) no se pueden revisar y se quedan como están.
+ */
+export async function revisarTodosLosAvisos(v: Viewer, db: pg.Pool = adminPool()): Promise<{ revisados: number; noRevisadas: number }> {
+  const at = new Date(adminClock.now());
+  let revisados = 0;
+  await adminTx(async c => {
+    const params = [esTecnico(v), v.accountId, TIPOS_DE_CARGA_DEL_GESTOR, at];
+    const adm = await c.query(
+      `WITH r AS (
+         UPDATE admin.notification SET state = 'revisada', reviewed_by = $2::uuid, reviewed_at = $4, revision = revision + 1
+          WHERE state = 'no_revisada' AND ($1::boolean OR (scope = 'carga' AND owner_account_id = $2::uuid AND type = ANY($3::text[])))
+          RETURNING id)
+       INSERT INTO admin.audit (actor_account_id, action, object_type, object_id, result, occurred_at)
+       SELECT $2::uuid, 'aviso.revisar', 'notificacion', 'adm:' || r.id::text, 'ok', $4 FROM r`, params);
+    const kb = await c.query(
+      `WITH r AS (
+         UPDATE kb.kb_notificacion SET estado = 'revisada', revisada_por = $2::text, revisada_en = $4, revision = revision + 1
+          WHERE estado = 'no_revisada' AND ($1::boolean OR (alcance = 'carga' AND propietario_cuenta = $2::uuid AND tipo::text = ANY($3::text[])))
+          RETURNING id)
+       INSERT INTO admin.audit (actor_account_id, action, object_type, object_id, result, occurred_at)
+       SELECT $2::uuid, 'aviso.revisar', 'notificacion', 'kb:' || r.id::text, 'ok', $4 FROM r`, params);
+    revisados = (adm.rowCount ?? 0) + (kb.rowCount ?? 0);
+  }, db);
+  return { revisados, noRevisadas: await contarAvisos(v, db) };
+}
+
 // ── Contadores ──────────────────────────────────────────────────────────────
 
 export type Contadores = { notifications: number; pending?: number; openImprovements?: number };
@@ -153,7 +182,7 @@ export async function listarPendientes(q: { limit: number; cursor?: unknown }, d
       FROM kb.link_proposal p WHERE p.state = 'Pendiente de validación'`;
   const total = Number((await db.query(`SELECT count(*) FROM (${fuente}) x`)).rows[0].count);
   const { rows } = await db.query(
-    `SELECT x.*, GREATEST(0, (now() AT TIME ZONE 'America/Bogota')::date - (x.fecha AT TIME ZONE 'America/Bogota')::date) AS dias
+    `SELECT x.*, x.fecha::text AS cursor_fecha, GREATEST(0, (now() AT TIME ZONE 'America/Bogota')::date - (x.fecha AT TIME ZONE 'America/Bogota')::date) AS dias
        FROM (${fuente}) x
       WHERE ($1::timestamptz IS NULL OR (x.fecha, x.id) > ($1::timestamptz, $2::text))
       ORDER BY x.fecha ASC, x.id ASC LIMIT $3`, [cur ? cur[0] : null, cur ? cur[1] : null, q.limit + 1]);
@@ -161,7 +190,7 @@ export async function listarPendientes(q: { limit: number; cursor?: unknown }, d
   const ultimo = pagina[pagina.length - 1];
   return {
     items: pagina.map(r => ({ tipo: r.tipo, id: r.id, nombre: r.nombre, origen: r.origen, fecha: new Date(r.fecha).toISOString(), dias: Number(r.dias) })),
-    total, nextCursor: rows.length > q.limit && ultimo ? encodeCursor([new Date(ultimo.fecha).toISOString(), ultimo.id]) : null,
+    total, nextCursor: rows.length > q.limit && ultimo ? encodeCursor([String(ultimo.cursor_fecha), ultimo.id]) : null,
   };
 }
 
@@ -189,7 +218,7 @@ export async function listarAuditoria(
   const params = [usuario, accion, desde, hasta];
   const total = Number((await db.query(`SELECT count(*) FROM (${fuente}) x WHERE ${filtros}`, params)).rows[0].count);
   const { rows } = await db.query(
-    `SELECT x.*, c.display_name FROM (${fuente}) x LEFT JOIN admin.account c ON c.id::text = x.actor_id
+    `SELECT x.*, x.fecha::text AS cursor_fecha, c.display_name FROM (${fuente}) x LEFT JOIN admin.account c ON c.id::text = x.actor_id
       WHERE ${filtros} AND ($5::timestamptz IS NULL OR (x.fecha, x.id) < ($5::timestamptz, $6::text))
       ORDER BY x.fecha DESC, x.id DESC LIMIT $7`,
     [...params, cur ? cur[0] : null, cur ? cur[1] : null, q.limit + 1]);
@@ -200,7 +229,7 @@ export async function listarAuditoria(
       id: r.id, actor: { id: r.actor_id, nombre: r.display_name ?? null, rol: r.actor_role },
       accion: r.action, objeto: r.object_type, objetoId: r.object_id, resultado: r.result, fecha: new Date(r.fecha).toISOString(),
     })),
-    total, nextCursor: rows.length > q.limit && ultimo ? encodeCursor([new Date(ultimo.fecha).toISOString(), ultimo.id]) : null,
+    total, nextCursor: rows.length > q.limit && ultimo ? encodeCursor([String(ultimo.cursor_fecha), ultimo.id]) : null,
   };
 }
 

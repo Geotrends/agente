@@ -17,7 +17,7 @@ const esTecnico = (perfil: string) => perfil === "administrador técnico";
 router.get("/admin/link-proposals", ambos, safe(async (req, res) => {
   const a = req.admin!;
   res.json(await listarPropuestas(a.accountId, esTecnico(a.perfil), {
-    state: req.query.state, owner: req.query.owner, cursor: req.query.cursor, limit: pageSize(req.query.limit),
+    id: req.query.id, state: req.query.state, owner: req.query.owner, cursor: req.query.cursor, limit: pageSize(req.query.limit),
   }));
 }));
 router.post("/admin/link-proposals", ambosMutacion, safe(async (req, res) => {

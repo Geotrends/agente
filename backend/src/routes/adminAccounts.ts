@@ -10,7 +10,7 @@ const lectura = requireAdmin(tecnico);
 const escritura = requireAdmin({ ...tecnico, mutation: true });
 
 router.get("/admin/accounts", lectura, safe(async (req, res) => {
-  res.json(await listAccounts({ limit: pageSize(req.query.limit), cursor: req.query.cursor }));
+  res.json(await listAccounts({ limit: pageSize(req.query.limit), search: req.query.search, cursor: req.query.cursor }));
 }));
 
 router.post("/admin/accounts", escritura, safe(async (req, res) => {

@@ -5,13 +5,16 @@
  * vigencia actual y abre otra sin solape (el instante lo fija el servidor). Los costos ya
  * registrados no se recalculan; el registro usa `received_at` para elegir la tarifa, así que una
  * consulta recibida antes del guardado conserva la anterior aunque termine después.
+ *
+ * Si un modelo aún no tiene tarifa vigente, el técnico puede registrar la primera desde el panel:
+ * sin `expectedRevision` y con la URL HTTPS de la fuente del precio (nunca se inventa una).
  */
 import type pg from "pg";
 import { adminPool, adminTx } from "./db.js";
 import { writeAudit } from "./audit.js";
 import { ApiError } from "./contracts.js";
 import { adminClock } from "./sessions.js";
-import { parsePrice, parseRevision, strictObject } from "./validation.js";
+import { parsePrice, parsePublicUrl, parseRevision, strictObject } from "./validation.js";
 import { setting } from "../services/settings.js";
 
 export const MODELOS = { "gpt-oss-20b": "openai.gpt-oss-20b-1:0", "gpt-oss-120b": "openai.gpt-oss-120b-1:0" } as const;
@@ -47,10 +50,11 @@ export async function guardarTarifa(actor: string, modeloRaw: string, body: unkn
   if (!(modeloRaw in MODELOS)) throw new ApiError(404, "NO_ENCONTRADO", "El modelo no existe.");
   const etiqueta = modeloRaw as EtiquetaModelo;
   const modelId = MODELOS[etiqueta];
-  const b = strictObject(body, ["expectedRevision", "inputPerMillion", "outputPerMillion"], ["expectedRevision", "inputPerMillion", "outputPerMillion"]);
-  const esperada = parseRevision(b.expectedRevision);
+  const b = strictObject(body, ["expectedRevision", "inputPerMillion", "outputPerMillion", "sourceUrl"], ["inputPerMillion", "outputPerMillion"]);
+  const esperada = b.expectedRevision === undefined ? null : parseRevision(b.expectedRevision);
   const entrada = parsePrice(b.inputPerMillion, "inputPerMillion");
   const salida = parsePrice(b.outputPerMillion, "outputPerMillion");
+  const fuente = b.sourceUrl === undefined ? null : parsePublicUrl(b.sourceUrl, "sourceUrl");
   const region = setting("bedrockRegion");
 
   await adminTx(async c => {
@@ -58,17 +62,26 @@ export async function guardarTarifa(actor: string, modeloRaw: string, body: unkn
     const actual = (await c.query(
       `SELECT version, valid_from, source_url FROM chat.tariff
         WHERE model_id = $1 AND region = $2 AND valid_to IS NULL ORDER BY valid_from DESC LIMIT 1 FOR UPDATE`, [modelId, region])).rows[0];
-    if (!actual) throw new ApiError(409, "SIN_TARIFA_VIGENTE", "No hay una tarifa vigente de la cual partir. Cárguela con el procedimiento de instalación.");
-    if (String(actual.version) !== esperada) throw new ApiError(409, "REVISION_OBSOLETA", "La tarifa cambió. Recargue y vuelva a intentar.");
     // El instante lo fija la base de datos al guardar (no el cliente).
     const ahora = (await c.query("SELECT clock_timestamp() AS t")).rows[0].t as Date;
+    if (!actual) {
+      if (esperada !== null) throw new ApiError(409, "REVISION_OBSOLETA", "La tarifa cambió. Recargue y vuelva a intentar.");
+      if (!fuente) throw new ApiError(422, "VALIDACION", "Indique la URL HTTPS de la fuente del precio.", "sourceUrl");
+      await c.query(
+        `INSERT INTO chat.tariff (model_id, region, currency, input_price_per_million, output_price_per_million, valid_from, source_url)
+         VALUES ($1,$2,'USD',$3,$4,$5,$6)`, [modelId, region, entrada, salida, ahora, fuente]);
+      await writeAudit(c, { actor, action: "tarifa.crear", objectType: "tarifa", objectId: etiqueta, result: "ok" }, new Date(adminClock.now()));
+      return;
+    }
+    if (esperada === null) throw new ApiError(422, "VALIDACION", "Campo obligatorio.", "expectedRevision");
+    if (String(actual.version) !== esperada) throw new ApiError(409, "REVISION_OBSOLETA", "La tarifa cambió. Recargue y vuelva a intentar.");
     if (ahora.getTime() <= new Date(actual.valid_from).getTime()) {
       throw new ApiError(409, "CONFLICTO_DE_VIGENCIA", "Ya hay una edición con la misma marca de tiempo. Intente de nuevo.");
     }
     await c.query("UPDATE chat.tariff SET valid_to = $2 WHERE version = $1", [actual.version, ahora]);
     await c.query(
       `INSERT INTO chat.tariff (model_id, region, currency, input_price_per_million, output_price_per_million, valid_from, source_url)
-       VALUES ($1,$2,'USD',$3,$4,$5,$6)`, [modelId, region, entrada, salida, ahora, actual.source_url]);
+       VALUES ($1,$2,'USD',$3,$4,$5,$6)`, [modelId, region, entrada, salida, ahora, fuente ?? actual.source_url]);
     await writeAudit(c, { actor, action: "tarifa.editar", objectType: "tarifa", objectId: etiqueta, result: "ok" }, new Date(adminClock.now()));
   }, db);
   const { items } = await listarTarifas(db);

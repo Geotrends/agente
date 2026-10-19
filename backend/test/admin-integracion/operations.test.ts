@@ -260,3 +260,36 @@ test("AD48 + reinicio: 5 estados visibles al instante, normalidad explícita, pe
   assert.equal(fin.estado, "Terminada");
   assert.ok(fin.inicio && fin.fin);
 });
+
+test("revisar todos: el Gestor solo marca sus avisos de carga; el técnico marca todos los visibles, cada uno auditado", async () => {
+  await notificar(app.kb, "descarte_ocr", "doc-todos-a", "doc-todos-a no se cargó: OCR bajo", { propietario: idA });
+  await notificar(app.kb, "descarte_ocr", "doc-todos-b", "doc-todos-b no se cargó: OCR bajo", { propietario: idB });
+  await operations.notify("modelo_no_disponible", "componente", "op-todos", "Aviso para revisar todos");
+  const pendientesB = (await contadores(gesB)).notifications;
+  assert.ok(pendientesB >= 1);
+
+  // El Gestor A no toca los avisos del Gestor B ni los del sistema.
+  const ra = await gesA.api("POST", "/notifications/review-all", {});
+  assert.equal(ra.status, 200, ra.text);
+  assert.ok(ra.json.revisados >= 1);
+  assert.equal(ra.json.noRevisadas, 0);
+  assert.equal((await contadores(gesB)).notifications, pendientesB);
+
+  // El técnico marca todo lo que ve; el contador queda en cero y cada aviso tiene su auditoría.
+  const antes = (await contadores(tec)).notifications;
+  assert.ok(antes >= 2);
+  const rt = await tec.api("POST", "/notifications/review-all", {});
+  assert.equal(rt.status, 200, rt.text);
+  assert.equal(rt.json.revisados, antes);
+  assert.equal(rt.json.noRevisadas, 0);
+  assert.equal((await contadores(gesB)).notifications, 0);
+  const todas = await avisos(tec, "&estado=todas");
+  assert.ok(todas.items.filter((a: { id: string }) => !a.id.startsWith("volatil-")).every((a: { state: string; reviewedBy: string | null; reviewedAt: string | null }) =>
+    a.state === "revisada" && a.reviewedBy && a.reviewedAt));
+  const auditados = (await app.db.migrator.query(
+    "SELECT count(*)::int n FROM admin.audit WHERE action = 'aviso.revisar' AND occurred_at >= now() - interval '1 minute'")).rows[0].n;
+  assert.ok(auditados >= antes);
+
+  // Sin pendientes, no hace nada.
+  assert.equal((await tec.api("POST", "/notifications/review-all", {})).json.revisados, 0);
+});

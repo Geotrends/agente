@@ -4,7 +4,7 @@
  */
 import { Router } from "express";
 import { pageSize } from "../admin/contracts.js";
-import { contadores, listarAuditoria, listarAvisos, listarPendientes, revisarAviso, type Viewer } from "../admin/inbox.js";
+import { contadores, listarAuditoria, listarAvisos, listarPendientes, revisarAviso, revisarTodosLosAvisos, type Viewer } from "../admin/inbox.js";
 import { operations } from "../admin/operations.js";
 import { ultimaReindexacion } from "../admin/documents.js";
 import { requireAdmin, safe } from "./adminAuth.js";
@@ -30,6 +30,10 @@ router.get("/admin/status", lecturaTecnico, safe(async (req, res) => {
 router.get("/admin/notifications", ambos, safe(async (req, res) => {
   const r = await listarAvisos(viewer(req), { estado: req.query.estado, cursor: req.query.cursor, limit: pageSize(req.query.limit) });
   res.json({ avisos: r.items, items: r.items, total: r.total, noRevisadas: r.noRevisadas, nextCursor: r.nextCursor });
+}));
+
+router.post("/admin/notifications/review-all", ambosMutacion, safe(async (req, res) => {
+  res.json(await revisarTodosLosAvisos(viewer(req)));
 }));
 
 router.post("/admin/notifications/:id/review", ambosMutacion, safe(async (req, res) => {
