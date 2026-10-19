@@ -4,14 +4,15 @@ import { createChatAdminDb } from "./chatAdminDb.js";
 import { setChatPoolForTests } from "../../src/chat/db.js";
 import { readiness } from "../../src/routes/health.js";
 
-const OK_ENV = { CHAT_ALLOWED_ORIGINS: "https://geobot.ejemplo.gov.co", CONSENT_POLICY_VERSION: "2026-10", CONSENT_POLICY_URL: "https://ejemplo.gov.co/p", TOKENIZER_DIR: "/app/var/tokenizer" };
+const OK_ENV = { CHAT_ALLOWED_ORIGINS: "https://geobot.ejemplo.gov.co", CONSENT_POLICY_VERSION: "2026-10", CONSENT_POLICY_URL: "https://ejemplo.gov.co/p", TOKENIZER_DIR: "/app/var/tokenizer",
+  AWS_ACCESS_KEY_ID: "AKIAAPPKEY000000001", AWS_SECRET_ACCESS_KEY: "secretoDeLaApp/0123456789" };
 
 test("la readiness se bloquea mientras falten contactos, tarifas, configuración o índice, y nombra qué falta", async () => {
   const db = await createChatAdminDb();
   setChatPoolForTests(db.chat);
   const saved = { ...process.env };
   try {
-    for (const k of ["CHAT_ALLOWED_ORIGINS", "CONSENT_POLICY_VERSION", "CONSENT_POLICY_URL", "TOKENIZER_DIR"]) delete process.env[k];
+    for (const k of ["CHAT_ALLOWED_ORIGINS", "CONSENT_POLICY_VERSION", "CONSENT_POLICY_URL", "TOKENIZER_DIR", "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY"]) delete process.env[k];
     let r = await readiness("ready", "vigente");
     assert.equal(r.ready, false);
     assert.deepEqual(r.checks.filter(c => !c.ok).map(c => c.name).sort(), ["configuracion", "contactos", "tarifas"]);

@@ -226,6 +226,7 @@ export function sanitizeForRecord(text: string, preserve: readonly string[] = []
   const guardados: string[] = [];
   let out = text;
   for (const v of protegidos) out = out.split(v).join(`\u0000${guardados.push(v) - 1}\u0000`);
-  out = sanitizeFragment(out).texto;
+  // Estricto: en el registro no hay «canales de la entidad» salvo los `preserve` ya protegidos arriba.
+  out = sanitize(out, { direccion: false, nombre: false }).texto;
   return out.replace(/\u0000(\d+)\u0000/g, (_m, i: string) => guardados[Number(i)] ?? "");
 }

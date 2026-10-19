@@ -76,7 +76,7 @@ test("5 presentes: respondidas con fuente, fecha y enlace https; 5 ausentes: tex
     for (const f of r.body.fuentes) {
       assert.match(f.enlace, /^https:\/\//);
       assert.match(f.fecha, /^\d{4}-\d{2}-\d{2}$/);
-      assert.ok(r.body.respuesta.includes(f.enlace), "la fuente citada aparece en el texto");
+      assert.ok(!/\[D\d+\]/.test(r.body.respuesta), "sin marcadores técnicos: la fuente viaja aparte, en `fuentes`");
     }
     assert.ok(c.contextos[0].includes("ID: D1"));
   }
