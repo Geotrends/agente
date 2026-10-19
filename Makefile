@@ -61,5 +61,5 @@ check-env: env-file
 	@for v in POSTGRES_PASSWORD KB_DB_PASSWORD APP_DB_PASSWORD CHAT_DB_PASSWORD ADMIN_DB_PASSWORD MAINT_DB_PASSWORD; do \
 	  grep -qE "^$$v=.+" .env || { echo "$$v vacío en .env. Genera uno con: openssl rand -base64 32"; exit 1; }; \
 	done
-	@! grep -qE '^(GEMINI|GROQ|DEEPSEEK|OPENAI)_API_KEY=.+|^AWS_(ACCESS_KEY_ID|SECRET_ACCESS_KEY)=.+|^MIN_RERANK_SCORE=.+' .env || { echo "Sobran variables en .env: solo se admite Bedrock con el rol de la instancia (sin claves de otros proveedores ni AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY) y el umbral sale de la calibración, no de MIN_RERANK_SCORE."; exit 1; }
+	@! grep -qE '^(GEMINI|GROQ|DEEPSEEK|OPENAI)_API_KEY=.+|^AWS_(SESSION_TOKEN|PROFILE|BEARER_TOKEN_BEDROCK)=.+|^MIN_RERANK_SCORE=.+' .env || { echo "Sobran variables en .env: solo se admite Bedrock con la llave de la aplicación (AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY; sin claves de otros proveedores ni AWS_SESSION_TOKEN/AWS_PROFILE/AWS_BEARER_TOKEN_BEDROCK) y el umbral sale de la calibración, no de MIN_RERANK_SCORE."; exit 1; }
 	@echo "Recuerda: el chat solo se declara listo (GET /ready) con contactos, tarifas, política de datos y calibración cargados. Detalle: docs/arquitectura-sistema.md"

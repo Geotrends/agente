@@ -1,7 +1,7 @@
 /**
  * Matriz de inyección contra los modelos (N311).
  *   npx tsx scripts/eval-injection.ts --models=both [--adapter=aws|double] [--output=ruta.json]
- * `--adapter=aws` usa Bedrock real con el rol de la instancia (T075); sin él se usa un doble
+ * `--adapter=aws` usa Bedrock real con la llave de la aplicación (T075); sin él se usa un doble
  * conforme y el resultado se etiqueta `controlado`. Sale con 1 si algún caso falla.
  */
 import { writeFileSync } from "node:fs";

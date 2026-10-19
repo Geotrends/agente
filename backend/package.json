@@ -50,7 +50,6 @@
   },
   "dependencies": {
     "@aws-sdk/client-bedrock-runtime": "^3.1148.0",
-    "@aws-sdk/credential-providers": "^3.1148.0",
     "@google/generative-ai": "^0.24.1",
     "@huggingface/transformers": "^4.3.0",
     "@qdrant/js-client-rest": "~1.19.0",

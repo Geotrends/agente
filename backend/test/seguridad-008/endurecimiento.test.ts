@@ -59,10 +59,10 @@ test("FR-020: un fragmento no puede imitar encabezados ni marcadores del prompt"
   assert.equal((ctx.match(/^--- /gm) ?? []).length, 1);
 });
 
-test("principio V: llaves de otros proveedores o identidades estáticas se detectan por nombre, sin valor", () => {
+test("principio V: llaves de otros proveedores o identidades AWS distintas de la llave de la aplicación se detectan por nombre, sin valor", () => {
   assert.deepEqual(forbiddenCredentialEnv({}), []);
   assert.deepEqual(forbiddenCredentialEnv({ GEMINI_API_KEY: "  ", GROQ_API_KEY: "" }), []);
-  const nombres = forbiddenCredentialEnv({ GEMINI_API_KEY: "secreto", AWS_ACCESS_KEY_ID: "AKIA", OLLAMA_BASE_URL: "http://x" });
-  assert.deepEqual(nombres.sort(), ["AWS_ACCESS_KEY_ID", "GEMINI_API_KEY", "OLLAMA_BASE_URL"]);
+  const nombres = forbiddenCredentialEnv({ GEMINI_API_KEY: "secreto", AWS_SESSION_TOKEN: "IQoJ", AWS_ACCESS_KEY_ID: "AKIA", OLLAMA_BASE_URL: "http://x" });
+  assert.deepEqual(nombres.sort(), ["AWS_SESSION_TOKEN", "GEMINI_API_KEY", "OLLAMA_BASE_URL"].sort());
   assert.ok(!JSON.stringify(nombres).includes("secreto"));
 });

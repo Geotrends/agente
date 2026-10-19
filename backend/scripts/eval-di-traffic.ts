@@ -27,7 +27,7 @@ if (!output) { console.error("Uso: eval:di-traffic -- --output=<dir> [--adapter=
 const region = process.env.BEDROCK_REGION ?? "us-east-1";
 const infra = (arg("infra-hosts") ?? process.env.TRAFFIC_INFRA_HOSTS ?? "").split(",").map(s => s.trim()).filter(Boolean);
 
-const OTHER_PROVIDER_ENV = ["GEMINI_API_KEY", "GROQ_API_KEY", "DEEPSEEK_API_KEY", "OPENAI_API_KEY", "OLLAMA_BASE_URL", "MIN_RERANK_SCORE", "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY"];
+const OTHER_PROVIDER_ENV = ["GEMINI_API_KEY", "GROQ_API_KEY", "DEEPSEEK_API_KEY", "OPENAI_API_KEY", "OLLAMA_BASE_URL", "MIN_RERANK_SCORE"];
 const configProblems = validateDiConfig();
 const envFound = OTHER_PROVIDER_ENV.filter(k => process.env[k]?.trim());
 

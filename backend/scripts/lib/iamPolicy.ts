@@ -1,7 +1,7 @@
 /**
  * Contrato ejecutable de la política IAM del servicio (RNF-C3-IN-07/08).
  *
- * El rol de la instancia puede ejecutar UNA acción —`bedrock:InvokeModel`— sobre DOS recursos: los
+ * La identidad de la aplicación (usuario IAM) puede ejecutar UNA acción —`bedrock:InvokeModel`— sobre DOS recursos: los
  * ARN `foundation-model` exactos de gpt-oss-20b y gpt-oss-120b en la región configurada. Sin
  * comodines, sin streaming (`InvokeModelWithResponseStream`), sin perfiles de inferencia ni
  * regionales, sin `NotAction`/`NotResource`. `evaluate` reproduce la evaluación de AWS sobre las

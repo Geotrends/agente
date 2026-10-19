@@ -6,12 +6,12 @@ import { registerProcessGuards } from "./services/processGuards.js";
 import { safeErrorCode } from "./services/safeLog.js";
 import { forbiddenCredentialEnv } from "./services/diConfig.js";
 
-// Principio V: en producción no se arranca con credenciales de otro proveedor ni llaves estáticas.
+// Principio V: en producción no se arranca con credenciales de otro proveedor ni con otra fuente de identidad AWS que no sea la llave de la aplicación.
 // Solo se nombran las variables, nunca su valor. Compose ya las vacía para este servicio.
 if (process.env.NODE_ENV === "production") {
   const sobrantes = forbiddenCredentialEnv();
   if (sobrantes.length) {
-    console.error(`[config] Arranque rechazado: elimine del entorno ${sobrantes.join(", ")}. Solo se admite Bedrock con el rol de la instancia.`);
+    console.error(`[config] Arranque rechazado: elimine del entorno ${sobrantes.join(", ")}. Solo se admite Bedrock con la llave de acceso de la aplicación.`);
     process.exit(1);
   }
   if (!process.env.ADMIN_IP_HMAC_SECRET?.trim()) {
