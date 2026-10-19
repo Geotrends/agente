@@ -89,6 +89,11 @@ jobs:
   imagen:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    # El Dockerfile se construye desde la raíz (`backend` es el contexto); el valor global apunta a
+    # `backend/` y haría buscar `backend/backend`.
+    defaults:
+      run:
+        working-directory: .
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - name: Construir la imagen
