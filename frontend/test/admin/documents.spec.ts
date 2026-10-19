@@ -8,6 +8,7 @@ test.beforeEach(async ({ request }) => { await reiniciarBloqueos(request); });
 const pdf = (dato: string) => ({ name: "documento.pdf", mimeType: "application/pdf", buffer: crearPdf([RELLENO, dato]) });
 
 async function cargar(page: import("@playwright/test").Page, titulo: string, dato: string, extra: Record<string, string> = {}) {
+  await page.getByRole("tab", { name: "Cargar un documento" }).click();
   await page.getByLabel("Archivo (PDF, DOCX o XLSX)").setInputFiles(pdf(dato));
   await page.getByLabel("Título").fill(titulo);
   await page.getByLabel("Dirección").selectOption("Ecosistemas");
@@ -23,11 +24,12 @@ test("el Gestor carga un documento, ve N/A y filtra sus cargas; no tiene accione
   await cargar(page, "Guía del gestor", "Dato GESTOR1");
   await expect(page.getByRole("status").filter({ hasText: "Pendiente de aprobación" })).toBeVisible();
   const fila = page.getByRole("row", { name: /Guía del gestor/ });
-  await expect(fila).toContainText("Pendiente de aprobación");
+  await expect(fila).toContainText("Por aprobar");
   await expect(fila).toContainText("N/A");
   await expect(fila).toContainText("Manual");
 
   // Error por campo: sin título.
+  await page.getByRole("tab", { name: "Cargar un documento" }).click();
   await page.getByLabel("Archivo (PDF, DOCX o XLSX)").setInputFiles(pdf("otro"));
   await page.getByLabel("Título").fill("");
   await page.getByLabel("Dirección").selectOption("Ecosistemas");
@@ -36,11 +38,13 @@ test("el Gestor carga un documento, ve N/A y filtra sus cargas; no tiene accione
   await expect(page.getByRole("alert").filter({ hasText: "obligatorio" })).toBeVisible();
 
   // Filtro propio y ausencia de controles privilegiados.
+  await page.getByRole("tab", { name: /^Matriz documental/ }).click();
   await page.getByLabel("Solo mis cargas").check();
   await expect(page.getByRole("row", { name: /Guía del gestor/ })).toBeVisible();
   for (const nombre of ["Publicar", "Rechazar", "Retirar", "Editar", "Reindexar"]) {
     await expect(page.getByRole("button", { name: new RegExp(`^${nombre}`) })).toHaveCount(0);
   }
+  await expect(page.getByRole("tab", { name: "Reindexación" })).toHaveCount(0);
   // Llamada directa a una función técnica: denegada por el servicio.
   const estado = await page.evaluate(async () => (await fetch("/api/admin/document-operations/00000000-0000-4000-8000-000000000000", { credentials: "same-origin" })).status);
   expect(estado).toBe(403);

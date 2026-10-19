@@ -1,8 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import AdminDialog from "../../../admin/AdminDialog";
-import { Campo } from "../../../admin/AdminForm";
+import { Campo, ErrorSummary } from "../../../admin/AdminForm";
+import { useAdminQuery, QueryState } from "../../../admin/useAdminQuery";
+import { fecha, EnlaceExterno } from "../../../admin/format";
 import AdminTable from "../../../admin/AdminTable";
 import { llamar, mensajeError } from "../../../admin/adminClient";
 import { DIRECCIONES } from "../../../admin/DocumentEditor";
@@ -15,28 +17,22 @@ type Propuesta = {
 };
 type Lista = { items: Propuesta[]; total: number; nextCursor: string | null };
 const ESTADOS = ["Pendiente de validación", "Aprobada", "Rechazada", "Retirada"];
-const fecha = (iso: string | null) => (iso ? new Date(iso).toLocaleString("es-CO") : "—");
 
 export default function PropuestasAdmin() {
+  const [seleccionada, setSeleccionada] = useState("");
+  useEffect(() => { setSeleccionada(new URLSearchParams(window.location.search).get("id") ?? ""); }, []);
   const [tecnico, setTecnico] = useState(false);
-  const [lista, setLista] = useState<Lista | null>(null);
   const [estado, setEstado] = useState("");
   const [aviso, setAviso] = useState("");
   const [errores, setErrores] = useState<Record<string, string>>({});
   const [rechazar, setRechazar] = useState<Propuesta | null>(null);
   const [errorRechazo, setErrorRechazo] = useState("");
 
-  const cargar = useCallback(async (cursor?: string) => {
-    const q = new URLSearchParams({ limit: "25" });
-    if (estado) q.set("state", estado);
-    if (cursor) q.set("cursor", cursor);
-    const r = await llamar<Lista>("GET", `/link-proposals?${q}`);
-    if (r.ok) setLista(prev => (cursor && prev ? { ...r.data, items: [...prev.items, ...r.data.items] } : r.data));
-    else setAviso(mensajeError(r.error, r.status));
-  }, [estado]);
+  const { data: lista, busy: cargando, error: errorConsulta, announcement: anuncio, cargar } = useAdminQuery<Lista>(`/link-proposals?${new URLSearchParams({ limit: "25", ...(estado ? { state: estado } : {}), ...(seleccionada ? { id: seleccionada } : {}) })}`);
 
   useEffect(() => { void consultarSesion().then(c => { if (c.estado === "ok") setTecnico(c.sesion.cuenta.perfil === "administrador técnico"); }); }, []);
-  useEffect(() => { void cargar(); }, [cargar]);
+
+  useEffect(() => { if (seleccionada && lista) document.getElementById(`propuesta-${seleccionada}`)?.focus(); }, [seleccionada, lista]);
 
   async function crear(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -69,18 +65,22 @@ export default function PropuestasAdmin() {
 
   return (
     <main className="admin-main admin-main-wide">
-      <h1>Propuestas de enlaces</h1>
+      <h1 tabIndex={-1}>Propuestas de enlaces</h1>
+      <QueryState busy={cargando} error={errorConsulta} announcement={anuncio} retry={cargar} />
       <p role="status" className="admin-aviso">{aviso}</p>
+      {seleccionada && <p>Mostrando la propuesta seleccionada. <button className="button button-secondary" onClick={() => setSeleccionada("")}>Ver todas las propuestas</button></p>}
       <section aria-labelledby="h-nueva-prop">
         <h2 id="h-nueva-prop">Registrar una propuesta</h2>
+        <p>Los campos marcados con * son obligatorios.</p>
+        <ErrorSummary errores={errores} prefijo="prop-" />
         <form className="admin-form" noValidate onSubmit={crear}>
           <Campo id="prop-type" etiqueta="Tipo de solicitud" error={errores.type}>
-            {p => <select {...p} name="type" className="input" defaultValue="">
+            {p => <select {...p} name="type" required className="input" defaultValue="">
               <option value="" disabled>Seleccione…</option><option value="add">Agregar enlace</option><option value="remove">Quitar enlace</option></select>}
           </Campo>
           <Campo id="prop-url" etiqueta="URL completa (https)" error={errores.url}>{p => <input {...p} name="url" type="url" className="input" required />}</Campo>
           <Campo id="prop-direction" etiqueta="Dirección responsable" error={errores.direction}>
-            {p => <select {...p} name="direction" className="input" defaultValue=""><option value="" disabled>Seleccione…</option>{DIRECCIONES.map(x => <option key={x}>{x}</option>)}</select>}
+            {p => <select {...p} name="direction" required className="input" defaultValue=""><option value="" disabled>Seleccione…</option>{DIRECCIONES.map(x => <option key={x}>{x}</option>)}</select>}
           </Campo>
           <Campo id="prop-justification" etiqueta="Justificación" error={errores.justification}>{p => <textarea {...p} name="justification" className="input" rows={3} required />}</Campo>
           <button className="button" type="submit">Registrar propuesta</button>
@@ -93,25 +93,25 @@ export default function PropuestasAdmin() {
           {p => <select {...p} className="input" value={estado} onChange={e => setEstado(e.target.value)}><option value="">Todos</option>{ESTADOS.map(s => <option key={s}>{s}</option>)}</select>}
         </Campo>
         {lista && (
-          <AdminTable<Propuesta> titulo="Propuestas de enlaces" filas={lista.items} clave={p => p.id}
+          <AdminTable<Propuesta> ocupado={cargando} titulo="Propuestas de enlaces" filaId={p => `propuesta-${p.id}`} filas={lista.items} clave={p => p.id}
             columnas={[
               { clave: "tipo", titulo: "Solicitud", render: p => (p.tipo === "add" ? "Agregar" : "Quitar") },
-              { clave: "url", titulo: "URL", render: p => p.url },
+              { clave: "url", titulo: "URL", fila: true, render: p => <EnlaceExterno href={p.url}>{p.url}</EnlaceExterno> },
               { clave: "dir", titulo: "Dirección", render: p => p.direccion },
               { clave: "just", titulo: "Justificación", render: p => p.justificacion },
-              { clave: "fecha", titulo: "Fecha y hora", render: p => fecha(p.creadaEn) },
+              { clave: "fecha", titulo: "Fecha y hora", fecha: true, render: p => fecha(p.creadaEn) },
               { clave: "estado", titulo: "Estado", render: p => (
                 <>{p.estado}{p.motivoRechazo ? ` — Motivo: ${p.motivoRechazo}` : ""}{p.decididaPor ? ` · ${p.decididaPor}, ${fecha(p.decididaEn)}` : ""}</>) },
-              ...(tecnico ? [{ clave: "prop", titulo: "Propietario", render: (p: Propuesta) => p.propietario?.nombre ?? "—" }] : []),
+              ...(tecnico ? [{ clave: "prop", titulo: "Propietario", render: (p: Propuesta) => p.propietario?.nombre ?? "Sin dato" }] : []),
               { clave: "acciones", titulo: "Acciones", render: p => (p.estado !== "Pendiente de validación" ? "—" : (
                 <div className="admin-acciones">
-                  {tecnico && <button type="button" className="button" onClick={() => { void decidir(p, "approve"); }}>Aprobar {p.url}</button>}
-                  {tecnico && <button type="button" className="button" onClick={() => { setErrorRechazo(""); setRechazar(p); }}>Rechazar {p.url}</button>}
-                  {!tecnico && <button type="button" className="button" onClick={() => { void decidir(p, "withdraw"); }}>Retirar propuesta {p.url}</button>}
+                  {tecnico && <button type="button" className="button" aria-label={`Aprobar ${p.url}`} onClick={() => { void decidir(p, "approve"); }}>Aprobar</button>}
+                  {tecnico && <button type="button" className="button button-danger" aria-label={`Rechazar ${p.url}`} onClick={() => { setErrorRechazo(""); setRechazar(p); }}>Rechazar</button>}
+                  {!tecnico && <button type="button" className="button button-danger" aria-label={`Retirar propuesta ${p.url}`} onClick={() => { void decidir(p, "withdraw"); }}>Retirar propuesta</button>}
                 </div>)) },
             ]} />
         )}
-        {lista?.nextCursor && <button type="button" className="button" onClick={() => { void cargar(lista.nextCursor!); }}>Cargar más propuestas</button>}
+        {lista?.nextCursor && <button type="button" className="button button-secondary" disabled={cargando} onClick={() => { void cargar(lista.nextCursor!); }}>Cargar más propuestas</button>}
       </section>
 
       <AdminDialog abierto={!!rechazar} titulo="Rechazar propuesta" onCancelar={() => setRechazar(null)}>
@@ -123,7 +123,7 @@ export default function PropuestasAdmin() {
             </Campo>
             <div className="admin-acciones">
               <button type="submit" className="button">Confirmar rechazo</button>
-              <button type="button" className="button" onClick={() => setRechazar(null)}>Cancelar</button>
+              <button type="button" className="button button-secondary" onClick={() => setRechazar(null)}>Cancelar</button>
             </div>
           </form>
         )}

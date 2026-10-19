@@ -1,5 +1,7 @@
 "use client";
 
+import { numero } from "../../../../admin/format";
+
 import AdminTable from "../../../../admin/AdminTable";
 import MetricsView from "../../../../admin/MetricsView";
 
@@ -14,13 +16,13 @@ export default function ValoracionesAdmin() {
       {d => (
         <>
           <dl>
-            <dt>Valoraciones</dt><dd>{d.total}</dd>
-            <dt>Útil</dt><dd>{d.util} ({d.porcentajeUtil} %)</dd>
-            <dt>No útil</dt><dd>{d.noUtil} ({d.porcentajeNoUtil} %)</dd>
+            <dt>Valoraciones</dt><dd>{numero(d.total)}</dd>
+            <dt>Útil</dt><dd>{numero(d.util)} ({d.porcentajeUtil} %)</dd>
+            <dt>No útil</dt><dd>{numero(d.noUtil)} ({d.porcentajeNoUtil} %)</dd>
           </dl>
           <p>{d.nota}</p>
           <AdminTable titulo="Motivos de «No útil»" filas={d.motivos} clave={x => x.motivo} columnas={[
-            { clave: "m", titulo: "Motivo", render: x => x.motivo }, { clave: "c", titulo: "Cantidad", render: x => x.cantidad }]} />
+            { clave: "m", titulo: "Motivo", fila: true, render: x => x.motivo }, { clave: "c", titulo: "Cantidad", numerica: true, ordenar: x => x.cantidad, render: x => numero(x.cantidad) }]} />
         </>
       )}
     </MetricsView>

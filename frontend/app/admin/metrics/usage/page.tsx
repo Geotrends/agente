@@ -1,5 +1,7 @@
 "use client";
 
+import { fecha, numero } from "../../../../admin/format";
+
 import AdminTable from "../../../../admin/AdminTable";
 import MetricsView from "../../../../admin/MetricsView";
 
@@ -15,17 +17,17 @@ export default function UsoAdmin() {
       {d => (
         <>
           <dl>
-            <dt>Consultas totales</dt><dd>{d.total}</dd>
-            <dt>En conversación (autorizadas)</dt><dd>{d.autorizadas}</dd>
-            <dt>Anónimas</dt><dd>{d.anonimas}</dd>
+            <dt>Consultas totales</dt><dd>{numero(d.total)}</dd>
+            <dt>En conversación (autorizadas)</dt><dd>{numero(d.autorizadas)}</dd>
+            <dt>Anónimas</dt><dd>{numero(d.anonimas)}</dd>
           </dl>
           <p>{d.nota}</p>
           <AdminTable titulo="Consultas por día" filas={d.porDia} clave={x => x.dia} columnas={[
-            { clave: "dia", titulo: "Día", render: x => x.dia }, { clave: "n", titulo: "Consultas", render: x => x.consultas }]} />
+            { clave: "dia", titulo: "Día", fila: true, fecha: true, render: x => fecha(x.dia, false) }, { clave: "n", titulo: "Consultas", numerica: true, ordenar: x => x.consultas, render: x => numero(x.consultas) }]} />
           <AdminTable titulo="Por categoría (solo conversación)" filas={d.porCategoria} clave={x => x.categoria} columnas={[
-            { clave: "c", titulo: "Categoría", render: x => x.categoria }, { clave: "n", titulo: "Consultas", render: x => x.consultas }]} />
+            { clave: "c", titulo: "Categoría", fila: true, render: x => x.categoria }, { clave: "n", titulo: "Consultas", numerica: true, ordenar: x => x.consultas, render: x => numero(x.consultas) }]} />
           <AdminTable titulo="Por tipo de resultado (solo conversación)" filas={d.porTipo} clave={x => x.tipo} columnas={[
-            { clave: "t", titulo: "Tipo", render: x => x.tipo }, { clave: "n", titulo: "Consultas", render: x => x.consultas }]} />
+            { clave: "t", titulo: "Tipo", fila: true, render: x => x.tipo }, { clave: "n", titulo: "Consultas", numerica: true, ordenar: x => x.consultas, render: x => numero(x.consultas) }]} />
         </>
       )}
     </MetricsView>

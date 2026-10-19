@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
+import { ErrorSummary } from "../../../admin/AdminForm";
 import { cargarSesion, llamar, type ErrorApi } from "../../../shared/adminSession";
 import { pantallaInicial } from "../../../admin/contracts";
 
@@ -45,7 +46,9 @@ export default function CambiarContrasena() {
   if (!listo) return <main className="admin-main"><p role="status">Cargando…</p></main>;
   return (
     <main className="admin-main">
-      <h1>Cambiar contraseña</h1>
+      <h1 tabIndex={-1}>Cambiar contraseña</h1>
+      <p>Todos los campos son obligatorios.</p>
+      <ErrorSummary errores={errores} />
       {obligatorio && <p>Su contraseña es temporal. Debe cambiarla para continuar.</p>}
       <form onSubmit={enviar} className="admin-form" noValidate>
         {general && <p role="alert" className="admin-error">{general}</p>}

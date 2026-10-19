@@ -1,7 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useState, type FormEvent } from "react";
-import { cargarSesion, cerrarSesion, llamar } from "../../../shared/adminSession";
+import { useState, useRef, type FormEvent } from "react";
+import { useAdminQuery, QueryState } from "../../../admin/useAdminQuery";
+import { ErrorSummary } from "../../../admin/AdminForm";
+import { cerrarSesion, llamar } from "../../../shared/adminSession";
 
 type Canal = { id: string; name: string; description: string; type: "teléfono" | "correo" | "url"; value: string; position: number };
 type Contactos = {
@@ -13,29 +15,19 @@ type Contactos = {
 type Errores = Record<string, string>;
 
 export default function ContactosAdmin() {
-  const [datos, setDatos] = useState<Contactos | null>(null);
+  const { data: datos, busy: cargando, error, announcement, cargar } = useAdminQuery<Contactos>("/contacts");
+  const guardandoRef = useRef(false);
+  const [guardando, setGuardando] = useState(false);
   const [errores, setErrores] = useState<Errores>({});
   const [aviso, setAviso] = useState("");
-  const [bloqueado, setBloqueado] = useState("");
-
-  const cargar = useCallback(async () => {
-    const r = await llamar<Contactos>("GET", "/contacts");
-    if (!r.ok) {
-      if (r.status === 401) window.location.assign("/admin/login");
-      else if (r.status === 403) setBloqueado(r.error.codigo === "CAMBIO_CONTRASENA_REQUERIDO"
-        ? "Debe cambiar la contraseña temporal antes de continuar." : "Su perfil no tiene acceso a esta función.");
-      else setAviso(r.error.mensaje);
-      return;
-    }
-    setDatos(r.data);
-  }, []);
-
-  useEffect(() => { void cargarSesion().then(s => { if (!s) window.location.assign("/admin/login"); else void cargar(); }); }, [cargar]);
 
   /** Guarda y maneja 422 (errores por campo) y 409 (revisión): nunca pierde lo que la persona escribió. */
   async function guardar(clave: string, metodo: string, ruta: string, cuerpo: object) {
+    if (guardandoRef.current) return false;
+    guardandoRef.current = true; setGuardando(true);
     setAviso(""); setErrores({});
     const r = await llamar<{ revision: number }>(metodo, ruta, { ...cuerpo, revision: datos?.revision ?? 0 });
+    guardandoRef.current = false; setGuardando(false);
     if (r.ok) { setAviso("Cambios guardados."); await cargar(); return true; }
     if (r.status === 422 && r.error.campo) setErrores({ [`${clave}.${r.error.campo}`]: r.error.mensaje });
     else if (r.status === 409) setAviso("Otra persona modificó los contactos. Sus cambios siguen en el formulario; recargue los datos y vuelva a guardar.");
@@ -43,8 +35,7 @@ export default function ContactosAdmin() {
     return false;
   }
 
-  if (bloqueado) return <main className="admin-main"><h1>Contactos oficiales</h1><p role="alert" className="admin-error">{bloqueado}</p></main>;
-  if (!datos) return <main className="admin-main"><p role="status">Cargando…</p></main>;
+  if (!datos) return <main className="admin-main"><h1>Contactos oficiales</h1><QueryState busy={cargando} error={error} retry={cargar} /></main>;
 
   const campo = (clave: string, id: string, etiqueta: string, valor: string, extra: { type?: string } = {}) => (
     <div key={id}>
@@ -59,6 +50,9 @@ export default function ContactosAdmin() {
   return (
     <main className="admin-main">
       <h1>Contactos oficiales</h1>
+      <QueryState busy={cargando} error={error} announcement={announcement} retry={cargar} />
+      <p>Todos los campos de los formularios son obligatorios.</p>
+      <ErrorSummary errores={errores} idCampo={key => key.replace(/\.([^.]*)$/, "-$1")} />
       <p>Revisión actual: {datos.revision}. Los cambios se ven en la siguiente respuesta del chat.</p>
       <p role="status" className="admin-aviso">{aviso}</p>
 
@@ -68,7 +62,7 @@ export default function ContactosAdmin() {
           {campo("recepcion", "pqrsd", "Enlace de PQRSD (https)", datos.recepcion?.pqrsd ?? "", { type: "url" })}
           {campo("recepcion", "whatsapp", "WhatsApp", datos.recepcion?.whatsapp ?? "")}
           {campo("recepcion", "email", "Correo", datos.recepcion?.email ?? "", { type: "email" })}
-          <button className="button" type="submit">Guardar recepción</button>
+          <button className="button" disabled={guardando} type="submit">Guardar recepción</button>
         </form>
       </section>
 
@@ -78,7 +72,7 @@ export default function ContactosAdmin() {
           {campo("general", "phone", "Teléfono", datos.general?.phone ?? "")}
           {campo("general", "email", "Correo", datos.general?.email ?? "", { type: "email" })}
           {campo("general", "url", "Página de contacto (https)", datos.general?.url ?? "", { type: "url" })}
-          <button className="button" type="submit">Guardar contacto general</button>
+          <button className="button" disabled={guardando} type="submit">Guardar contacto general</button>
         </form>
       </section>
 
@@ -92,15 +86,16 @@ export default function ContactosAdmin() {
                 {campo(`im-${c.id}`, "name", "Nombre", c.name)}
                 {campo(`im-${c.id}`, "description", "Descripción (máximo 120 caracteres)", c.description)}
                 <label htmlFor={`im-${c.id}-type`}>Tipo</label>
-                <select id={`im-${c.id}-type`} name="type" defaultValue={c.type} className="input">
+                <select id={`im-${c.id}-type`} name="type" defaultValue={c.type} className="input" aria-invalid={errores[`im-${c.id}.type`] ? true : undefined} aria-describedby={errores[`im-${c.id}.type`] ? `im-${c.id}-type-error` : undefined}>
                   <option>teléfono</option><option>correo</option><option>url</option>
                 </select>
+                {errores[`im-${c.id}.type`] && <p role="alert" id={`im-${c.id}-type-error`}>{errores[`im-${c.id}.type`]}</p>}
                 {campo(`im-${c.id}`, "value", "Valor", c.value)}
                 <div className="admin-acciones">
-                  <button className="button" type="submit">Guardar canal {i + 1}</button>
-                  <button className="button" type="button" disabled={i === 0}
+                  <button className="button" disabled={guardando} type="submit">Guardar canal {i + 1}</button>
+                  <button className="button" type="button" disabled={guardando || i === 0}
                     onClick={() => { const ids = datos.inmediatos.map(x => x.id); [ids[i - 1], ids[i]] = [ids[i], ids[i - 1]]; void guardar("orden", "PUT", "/contacts/immediate/order", { ids }); }}>Subir canal {i + 1}</button>
-                  <button className="button" type="button" disabled={datos.inmediatos.length <= 1}
+                  <button className="button button-danger" type="button" disabled={guardando || datos.inmediatos.length <= 1}
                     onClick={() => { void guardar("elim", "DELETE", `/contacts/immediate/${c.id}`, {}); }}>Eliminar canal {i + 1}</button>
                 </div>
               </form>
@@ -112,9 +107,10 @@ export default function ContactosAdmin() {
           {campo("nuevo", "name", "Nombre", "")}
           {campo("nuevo", "description", "Descripción (máximo 120 caracteres)", "")}
           <label htmlFor="nuevo-type">Tipo</label>
-          <select id="nuevo-type" name="type" defaultValue="teléfono" className="input"><option>teléfono</option><option>correo</option><option>url</option></select>
+          <select id="nuevo-type" name="type" defaultValue="teléfono" className="input" aria-invalid={errores["nuevo.type"] ? true : undefined} aria-describedby={errores["nuevo.type"] ? "nuevo-type-error" : undefined}><option>teléfono</option><option>correo</option><option>url</option></select>
+          {errores["nuevo.type"] && <p role="alert" id="nuevo-type-error">{errores["nuevo.type"]}</p>}
           {campo("nuevo", "value", "Valor", "")}
-          <button className="button" type="submit">Agregar canal</button>
+          <button className="button" disabled={guardando} type="submit">Agregar canal</button>
         </form>
       </section>
 

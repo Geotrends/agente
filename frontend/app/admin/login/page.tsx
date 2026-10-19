@@ -28,8 +28,14 @@ export default function LoginAdmin() {
   }
 
   return (
-    <main className="admin-main">
-      <h1>Panel de Geobot</h1>
+    <main className="admin-main admin-login">
+      <div className="admin-login-tarjeta">
+        <p className="admin-login-rotulo">Panel administrativo</p>
+        <h1>Panel de Geobot</h1>
+        <p className="admin-login-ayuda">
+          Gestión del asistente del Observatorio Ambiental de Envigado: documentos, contactos, tarifas y métricas.
+          Ingrese con su cuenta autorizada.
+        </p>
       {expirada && <p role="status" className="admin-aviso">Su sesión se cerró por inactividad. Ingrese de nuevo.</p>}
       <form onSubmit={enviar} className="admin-form" noValidate>
         {error && <p role="alert" className="admin-error" id="login-error">{error}</p>}
@@ -40,6 +46,7 @@ export default function LoginAdmin() {
         <input id="password" name="password" type="password" autoComplete="current-password" required className="input" />
         <button className="button" type="submit" disabled={enviando}>{enviando ? "Ingresando…" : "Ingresar"}</button>
       </form>
+      </div>
     </main>
   );
 }
