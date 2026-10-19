@@ -403,9 +403,9 @@ body {
   container-type: inline-size;
   flex: 1 1 0;
   width: 100%;
-  --agent-color: #a0a0a0;
+  --agent-color: #1f1f1f;
   background: #ffffff;
-  border: 2px solid var(--agent-color);
+  border: 1px solid #d5d5d5;
   border-radius: min(26px, 6vw);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
   padding: clamp(0.5rem, 2vw, 0.875rem);
@@ -422,7 +422,7 @@ body {
 }
 
 .agent-smart {
-  --agent-color: #7c3aed;
+  --agent-color: #1f1f1f;
 }
 
 .smart-agent-section {
@@ -447,9 +447,9 @@ body {
 
 .smart-agent-shell {
   container-type: inline-size;
-  --agent-color: #7c3aed;
+  --agent-color: #1f1f1f;
   background: #ffffff;
-  border: 2px solid var(--agent-color);
+  border: 1px solid #d5d5d5;
   border-radius: min(20px, 5vw);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
   padding: clamp(0.625rem, 3vw, 1rem);
@@ -515,9 +515,9 @@ body {
   border-radius: 999px;
   font-size: 11px;
   font-weight: 600;
-  background: #f3e8ff;
-  color: #6d28d9;
-  border: 1px solid #ddd6fe;
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
 }
 
 .placeholder-content {
@@ -922,16 +922,6 @@ body {
   }
 }
 
-/* Panel de administración (bloque 2): formularios accesibles, sin estilos de chat. */
-.admin-main { max-width: 44rem; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
-.admin-form { display: grid; gap: 0.5rem; margin: 1rem 0; }
-.admin-form label { font-weight: 600; margin-top: 0.5rem; }
-.admin-error { color: #8a1c1c; font-weight: 600; margin: 0.25rem 0; }
-.admin-aviso { min-height: 1.5rem; font-weight: 600; }
-.admin-lista { padding-left: 1.25rem; }
-.admin-lista li { margin-bottom: 1.5rem; }
-.admin-acciones { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
-.admin-main :focus-visible { outline: 3px solid #1a56db; outline-offset: 2px; }
 
 /* Consentimiento y canales de atención inmediata (bloque 2). */
 .consent-box { padding: 0.75rem 1rem; border: 1px solid currentColor; border-radius: 8px; margin: 0.5rem 0; }
@@ -943,20 +933,294 @@ body {
 .category-box { padding: 0.75rem 1rem; border: 1px solid currentColor; border-radius: 8px; margin: 0.5rem 0; }
 .category-box legend { font-weight: 600; }
 .category-box button[aria-pressed="true"] { outline: 2px solid currentColor; font-weight: 700; }
-.admin-nav { display: flex; flex-wrap: wrap; gap: 1rem; padding: 0.75rem 1rem; border-bottom: 1px solid currentColor; }
-.admin-nav a[aria-current="page"] { font-weight: 700; text-decoration: underline; }
-.admin-nav a:focus-visible { outline: 3px solid #1a56db; outline-offset: 2px; }
 
-/* Panel de administración (SPEC007): tablas, diálogos y estados accesibles. */
-.admin-main-wide { max-width: 72rem; }
-.admin-tabla-contenedor { overflow-x: auto; }
-.admin-tabla { border-collapse: collapse; width: 100%; }
-.admin-tabla th, .admin-tabla td { border: 1px solid currentColor; padding: 0.4rem 0.6rem; text-align: left; vertical-align: top; }
-.admin-tabla caption { text-align: left; font-weight: 700; padding: 0.4rem 0; }
-.admin-dialogo { border: 2px solid currentColor; border-radius: 0.5rem; padding: 1.25rem; max-width: 32rem; }
-.admin-dialogo::backdrop { background: rgba(0, 0, 0, 0.5); }
-.admin-salir { margin-left: auto; }
-.admin-filtros { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: end; margin: 1rem 0; }
-.admin-paginacion { display: flex; gap: 0.5rem; align-items: center; margin-top: 1rem; }
-.admin-main button:focus-visible, .admin-main select:focus-visible, .admin-main input:focus-visible,
-.admin-main textarea:focus-visible, .admin-dialogo :focus-visible { outline: 3px solid #1a56db; outline-offset: 2px; }
+/* ── Panel de administración ─────────────────────────────────────────────────
+   Fluido y responsive: barra superior desplazable en móvil, barra lateral fija desde 64rem,
+   tipografía y espacios con clamp(), tablas con desplazamiento propio y objetivos táctiles de
+   al menos 44 px. Los estilos de botón/campo del chat se reajustan solo dentro del panel. */
+:root {
+  --adm-bg: #f5f5f5;
+  --adm-surface: #ffffff;
+  --adm-text: #1e1e1e;
+  --adm-muted: #666666;
+  --adm-border: #d5d5d5;
+  --adm-primary: #1f1f1f;
+  --adm-primary-text: #ffffff;
+  --adm-danger: #8a1c1c;
+  --adm-radius: 0.625rem;
+  --adm-gap: clamp(0.75rem, 0.5rem + 1vw, 1.5rem);
+  --adm-pad: clamp(1rem, 0.5rem + 2.5vw, 2.5rem);
+}
+
+body:has(.admin-app, .admin-main) { background: var(--adm-bg); color: var(--adm-text); }
+
+.admin-app { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto 1fr; min-height: 100dvh; }
+#contenido-admin { min-width: 0; }
+
+/* Navegación: barra superior pegada y desplazable en horizontal (móvil/tablet). */
+.admin-nav {
+  position: sticky; top: 0; z-index: 20;
+  display: flex; flex-wrap: nowrap; align-items: center; gap: 0.25rem;
+  padding: max(0.5rem, var(--safe-top)) max(0.75rem, var(--safe-right)) 0.5rem max(0.75rem, var(--safe-left));
+  background: var(--adm-surface); border-bottom: 1px solid var(--adm-border);
+  overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: thin;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+.admin-nav a {
+  flex: none; display: inline-flex; align-items: center; min-height: 2.75rem; padding: 0 0.875rem;
+  border-radius: var(--adm-radius); color: var(--adm-text); text-decoration: none; font-weight: 500; white-space: nowrap;
+}
+.admin-nav a:hover { background: var(--adm-bg); }
+.admin-nav a[aria-current="page"] { background: var(--adm-primary); color: var(--adm-primary-text); font-weight: 600; text-decoration: none; }
+.admin-nav a:focus-visible { outline: 3px solid var(--adm-primary); outline-offset: 2px; box-shadow: 0 0 0 2px #fff; }
+.admin-badge { margin-left: 0.25rem; font-variant-numeric: tabular-nums; }
+.admin-nav .admin-salir { flex: none; margin-left: auto; }
+
+@media (min-width: 64rem) {
+  .admin-app { grid-template-columns: 15.5rem minmax(0, 1fr); grid-template-rows: 1fr; }
+  .admin-nav {
+    top: 0; height: 100dvh; flex-direction: column; align-items: stretch; flex-wrap: nowrap; gap: 0.125rem;
+    padding: max(1rem, var(--safe-top)) 0.75rem 1rem max(0.75rem, var(--safe-left));
+    border-bottom: 0; border-right: 1px solid var(--adm-border); overflow-x: hidden; overflow-y: auto;
+  }
+  .admin-nav a { min-height: 2.5rem; }
+  .admin-nav .admin-salir { margin: auto 0 0; align-self: stretch; }
+}
+
+/* Contenido */
+.admin-main {
+  width: 100%; max-width: 48rem; margin: 0 auto;
+  padding: var(--adm-pad) var(--adm-pad) calc(var(--adm-pad) * 1.5);
+  font-size: clamp(0.9375rem, 0.9rem + 0.2vw, 1.0625rem); line-height: 1.55;
+}
+.admin-main-wide { max-width: 80rem; }
+.admin-main h1 { font-size: clamp(1.5rem, 1.2rem + 1.4vw, 2.125rem); line-height: 1.2; margin: 0 0 var(--adm-gap); text-wrap: balance; }
+.admin-main h2 { font-size: clamp(1.15rem, 1.05rem + 0.6vw, 1.45rem); margin: 0 0 0.75rem; }
+.admin-main h3 { font-size: clamp(1rem, 0.95rem + 0.3vw, 1.15rem); margin: 0 0 0.5rem; }
+.admin-main p { max-width: 70ch; }
+.admin-main section {
+  background: var(--adm-surface); border: 1px solid var(--adm-border); border-radius: var(--adm-radius);
+  padding: clamp(1rem, 0.6rem + 1.6vw, 1.75rem); margin: 0 0 var(--adm-gap);
+}
+
+/* Formularios */
+.admin-form { display: grid; gap: 0.5rem; margin: 0 0 var(--adm-gap); max-width: 40rem; }
+.admin-form label { font-weight: 600; margin-top: 0.5rem; }
+.admin-campo { display: grid; gap: 0.25rem; }
+.admin-main .input {
+  width: 100%; flex: none; min-height: 2.75rem; padding: 0.5rem 0.75rem; border: 1px solid #8a8a8a;
+  border-radius: 0.5rem; background: #fff; color: var(--adm-text); font: inherit; font-size: max(1rem, 16px);
+}
+.admin-main textarea.input { min-height: 7rem; resize: vertical; }
+.admin-main .input:focus { border-color: var(--adm-primary); }
+.admin-main .button, .admin-nav .button {
+  min-height: 2.75rem; padding: 0.5rem 1rem; border: 1px solid transparent; border-radius: 0.5rem;
+  background: var(--adm-primary); color: var(--adm-primary-text); font: inherit; font-weight: 600; box-shadow: none; cursor: pointer;
+}
+.admin-main .button:hover:not(:disabled) { background: #3a3a3a; }
+.admin-nav .admin-salir:hover { background: var(--adm-bg); }
+.admin-main .button:disabled { opacity: 0.55; }
+.admin-nav .admin-salir { background: transparent; color: var(--adm-text); border-color: var(--adm-border); }
+.admin-error { color: var(--adm-danger); font-weight: 600; margin: 0.25rem 0; overflow-wrap: anywhere; }
+.admin-aviso { min-height: 1.5rem; font-weight: 600; }
+.admin-lista { padding-left: 0; list-style-position: inside; }
+.admin-lista li { margin-bottom: var(--adm-gap); padding-bottom: var(--adm-gap); border-bottom: 1px solid var(--adm-border); }
+.admin-lista li:last-child { border-bottom: 0; padding-bottom: 0; }
+.admin-acciones { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
+.admin-filtros { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: end; margin: 0 0 var(--adm-gap); }
+.admin-filtros > * { flex: 1 1 11rem; }
+.admin-filtros .button { flex: 0 0 auto; }
+.admin-paginacion { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin-top: 1rem; }
+
+/* Tablas: contenedor con desplazamiento propio y sombras que avisan de que hay más contenido a los
+   lados. La tabla toma el ancho de su contenido (nunca se aplasta) y las celdas de texto largo
+   se limitan y se parten en líneas. */
+.admin-tabla-contenedor {
+  overflow: auto; max-width: 100%; max-height: 75dvh; margin: 0 0 var(--adm-gap);
+  background:
+    linear-gradient(to right, var(--adm-surface) 30%, rgba(255,255,255,0)) left center / 2rem 100% no-repeat local,
+    linear-gradient(to left, var(--adm-surface) 30%, rgba(255,255,255,0)) right center / 2rem 100% no-repeat local,
+    linear-gradient(to right, rgba(0,0,0,0.14), rgba(0,0,0,0)) left center / 0.75rem 100% no-repeat scroll,
+    linear-gradient(to left, rgba(0,0,0,0.14), rgba(0,0,0,0)) right center / 0.75rem 100% no-repeat scroll,
+    var(--adm-surface);
+  border: 1px solid var(--adm-border); border-radius: var(--adm-radius);
+}
+.admin-tabla { border-collapse: separate; border-spacing: 0; width: max-content; min-width: 100%; font-size: 0.875rem; line-height: 1.45; }
+.admin-tabla caption { text-align: left; font-weight: 700; font-size: 1rem; padding: 0.85rem 1rem; position: sticky; left: 0; }
+.admin-tabla th, .admin-tabla td {
+  min-width: 7rem; max-width: 26rem; padding: 0.65rem 1rem; text-align: left; vertical-align: top;
+  border-bottom: 1px solid var(--adm-border); overflow-wrap: anywhere;
+}
+.admin-tabla thead th {
+  position: sticky; top: 0; z-index: 1; background: #f0f0f0; font-weight: 600; white-space: nowrap;
+  border-top: 1px solid var(--adm-border); border-bottom: 2px solid #bdbdbd;
+}
+.admin-tabla tbody tr:nth-child(even) { background: #fafafa; }
+.admin-tabla tbody tr:hover { background: #f0f0f0; }
+.admin-tabla tbody tr:last-child td { border-bottom: 0; }
+.admin-tabla .button { min-height: 2.25rem; padding: 0.25rem 0.75rem; font-size: 0.875rem; }
+.admin-tabla td .admin-acciones { margin: 0; flex-wrap: nowrap; }
+
+.admin-dialogo {
+  width: min(32rem, calc(100vw - 2rem)); max-height: calc(100dvh - 2rem); overflow: auto;
+  border: 0; border-radius: var(--adm-radius); padding: clamp(1rem, 0.6rem + 1.6vw, 1.75rem);
+  background: var(--adm-surface); color: var(--adm-text); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+}
+.admin-dialogo::backdrop { background: rgba(0, 0, 0, 0.55); }
+
+.admin-main :focus-visible, .admin-dialogo :focus-visible { outline: 3px solid var(--adm-primary); outline-offset: 2px; box-shadow: 0 0 0 2px #fff; }
+
+@media (max-width: 40rem) {
+  .admin-form { max-width: none; }
+  .admin-acciones > .button, .admin-form > .button { flex: 1 1 100%; }
+  .admin-main section { border-radius: 0.5rem; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .admin-nav a, .admin-main .button { transition: background-color 0.15s; }
+}
+
+/* Inicio de sesión: tarjeta centrada en la pantalla, fluida y con explicación breve. */
+.admin-login { display: grid; place-items: center; min-height: 100dvh; max-width: none; padding-block: max(var(--adm-pad), var(--safe-top)); }
+.admin-login-tarjeta {
+  width: min(100%, 26rem); background: var(--adm-surface); border: 1px solid var(--adm-border);
+  border-radius: calc(var(--adm-radius) * 1.5); padding: clamp(1.25rem, 0.6rem + 3vw, 2.25rem);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+.admin-login-rotulo { margin: 0 0 0.25rem; font-size: 0.8125rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--adm-primary); }
+.admin-login-tarjeta h1 { margin-bottom: 0.5rem; }
+.admin-login-ayuda { margin: 0 0 1.25rem; color: var(--adm-muted); font-size: 0.9375rem; }
+.admin-login-tarjeta .admin-form { margin-bottom: 0; }
+.admin-lista-corta { margin: 0 0 0.5rem; padding-left: 1.25rem; max-height: 12rem; overflow: auto; }
+.admin-busqueda { margin: 0 0 1rem; max-width: 40rem; }
+.admin-busqueda-cuenta { margin: 0.5rem 0 0; font-size: 0.875rem; color: var(--adm-muted); display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
+.admin-busqueda-cuenta .button { min-height: 2rem; padding: 0.15rem 0.7rem; font-size: 0.8125rem; }
+.admin-acciones-fila { flex-wrap: nowrap; }
+.admin-paginacion { justify-content: space-between; }
+.admin-paginacion-info { margin: 0; color: var(--adm-muted); font-size: 0.875rem; }
+.admin-paginacion-tam { display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; }
+.admin-paginacion-tam .input { width: auto; min-height: 2.25rem; padding: 0.25rem 0.5rem; }
+.admin-paginas { display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem; }
+.admin-paginas .button { min-height: 2.25rem; padding: 0.25rem 0.75rem; }
+.admin-paginas .admin-pagina { min-width: 2.25rem; background: transparent; color: var(--adm-text); border-color: var(--adm-border); }
+.admin-paginas .admin-pagina[aria-current="page"] { background: var(--adm-primary); color: var(--adm-primary-text); border-color: var(--adm-primary); }
+.admin-paginas .admin-pagina:hover:not([aria-current="page"]) { background: var(--adm-bg); }
+
+/* Tabla ajustada: cabe en el ancho disponible (sin barra horizontal) desde pantallas medianas. */
+@media (min-width: 48rem) {
+  .admin-tabla-ajustada { overflow-x: hidden; }
+  .admin-tabla-ajustada .admin-tabla { width: 100%; min-width: 0; table-layout: auto; font-size: 0.8125rem; }
+  .admin-tabla-ajustada .admin-tabla th, .admin-tabla-ajustada .admin-tabla td { min-width: 0; max-width: none; padding: 0.5rem 0.6rem; }
+  .admin-tabla-ajustada .admin-tabla thead th { white-space: normal; }
+  .admin-tabla-ajustada .admin-tabla td:last-child { width: 1%; }
+}
+.admin-acciones-celda { display: flex; flex-direction: column; align-items: stretch; flex-wrap: nowrap; gap: 0.25rem; margin: 0; min-width: 6.5rem; }
+.admin-acciones-celda .button { width: 100%; min-height: 2rem; padding: 0.2rem 0.6rem; font-size: 0.8125rem; }
+.admin-tabla-ajustada .admin-tabla th, .admin-tabla-ajustada .admin-tabla td { vertical-align: middle; }
+
+/* Accesibilidad y consulta del panel. */
+.admin-saltar { position: fixed; top: 0.5rem; left: 0.5rem; z-index: 100; padding: 0.75rem 1rem; background: #fff; color: #1e1e1e; border: 2px solid #1e1e1e; transform: translateY(-200%); }
+.admin-saltar:focus { transform: none; }
+#contenido-admin:focus { outline: none; }
+.admin-tabla-contenedor { scroll-padding-block: 4rem; }
+.admin-tabla { width: 100%; min-width: max-content; font-size: 1rem; }
+.admin-tabla th, .admin-tabla td { min-width: 8rem; max-width: 24rem; overflow-wrap: break-word; word-break: normal; vertical-align: top; }
+.admin-tabla thead th { white-space: normal; min-width: 8rem; }
+.admin-tabla tbody th { font-weight: 600; }
+.admin-tabla tbody tr:focus-within { background: #e8eef4; }
+.admin-tabla th.admin-numero, .admin-tabla td.admin-numero { text-align: right; font-variant-numeric: tabular-nums; }
+.admin-tabla .button, .admin-acciones-celda .button { min-height: 2.75rem; font-size: 1rem; padding: 0.5rem 0.75rem; white-space: normal; }
+.admin-tabla td .admin-acciones { flex-wrap: wrap; min-width: 10rem; max-width: 18rem; gap: 0.5rem; }
+.admin-tabla-ajustada { overflow-x: auto; }
+.admin-tabla-ajustada .admin-tabla { width: 100%; min-width: 64rem; table-layout: auto; font-size: 1rem; }
+.admin-tabla-ajustada .admin-tabla th, .admin-tabla-ajustada .admin-tabla td { min-width: 8rem; max-width: 24rem; padding: 0.75rem; vertical-align: top; }
+.admin-tabla-ajustada .admin-tabla td:last-child { width: auto; }
+.admin-tabla .admin-orden { display: inline-flex; align-items: center; justify-content: inherit; gap: 0.3rem; min-height: 2.75rem; padding: 0; background: transparent; border: 0; color: inherit; font: inherit; font-weight: 700; text-align: inherit; cursor: pointer; }
+.admin-tabla-ayuda { font-size: 0.875rem; color: #555; }
+.admin-query-state p:empty { margin: 0; }
+.admin-query-state { margin-block: 0.5rem; }
+.admin-main .button-secondary, .admin-dialogo .button-secondary { background: #fff; color: #1e1e1e; border: 1px solid #767676; }
+.admin-main .button-secondary:hover:not(:disabled), .admin-dialogo .button-secondary:hover:not(:disabled) { background: #e8e8e8; }
+.admin-main .button-danger, .admin-dialogo .button-danger { background: #8a1c1c; color: #fff; }
+.admin-main .button-danger:hover:not(:disabled), .admin-dialogo .button-danger:hover:not(:disabled) { background: #631414; }
+.admin-menu { display: none; }
+.admin-sesion-aviso { position: sticky; top: 0; z-index: 21; background: #fff4cc; border: 2px solid #614b00; padding: 1rem; }
+.admin-dialogo > .button { display: inline-block; margin: 0.5rem 0.5rem 0 0; }
+.admin-detalle { max-width: 70ch; white-space: pre-wrap; overflow-wrap: anywhere; }
+.admin-tabla details { min-width: 16rem; max-width: 24rem; }
+.admin-tabla summary { cursor: pointer; min-height: 2.75rem; padding-block: 0.5rem; font-weight: 600; }
+.admin-error-resumen { border-left: 4px solid #8a1c1c; padding: 0.75rem; background: #fff5f5; }
+.admin-tabla tr[id] { scroll-margin-block: 5rem; }
+@media (max-width: 63.999rem) {
+  .admin-menu { display: block; position: sticky; top: 0; z-index: 22; width: 100%; border-radius: 0; min-height: 3rem; background: #1f1f1f; color: #fff; font: inherit; font-weight: 600; }
+  .admin-app .admin-nav { display: none; position: static; flex-wrap: wrap; overflow: visible; }
+  .admin-app .admin-nav-abierta { display: flex; }
+  .admin-nav a { flex: 1 1 12rem; white-space: normal; }
+  .admin-nav .admin-salir { margin: 0; }
+  .admin-app { display: block; }
+  .admin-paginacion .button { min-height: 2.75rem; }
+}
+@media (forced-colors: active) {
+  .admin-tabla tbody tr:focus-within { outline: 2px solid Highlight; }
+  .admin-nav a[aria-current="page"] { outline: 2px solid Highlight; }
+  .button { border: 1px solid ButtonText; }
+}
+.admin-nav-grupo { display: block; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #555; padding: 0.75rem 0.875rem 0.25rem; }
+.admin-obligatorio { color: #8a1c1c; }
+@media (max-width: 63.999rem) { .admin-nav-grupo { flex: 1 1 100%; } }
+/* Keep absolutely positioned screen-reader text inside its scrolling region. */
+.admin-tabla-contenedor { position: relative; }
+.admin-columnas-movil { display: none; }
+@media (max-width: 40rem) {
+  .admin-tabla-movil, .admin-tabla-ajustada .admin-tabla-movil { min-width: 100%; width: 100%; table-layout: fixed; }
+  .admin-tabla-movil th, .admin-tabla-movil td, .admin-tabla-ajustada .admin-tabla-movil th, .admin-tabla-ajustada .admin-tabla-movil td { min-width: 0; max-width: none; padding: 0.65rem 0.5rem; overflow-wrap: anywhere; }
+  .admin-tabla-movil .admin-col-secundaria { display: none; }
+  .admin-tabla-movil .admin-columnas-movil { display: block; min-width: 0; }
+  .admin-tabla-movil details { min-width: 0; max-width: 100%; }
+  .admin-tabla-movil dl { font-weight: 400; text-align: left; }
+  .admin-tabla-movil dt { font-weight: 700; margin-top: 0.5rem; }
+  .admin-tabla-movil dd { margin: 0.25rem 0 0; }
+  .admin-tabla-movil td .admin-acciones, .admin-tabla-movil .admin-acciones-celda { min-width: 0; max-width: 100%; }
+  .admin-tabla-movil .button { width: 100%; overflow-wrap: normal; }
+}
+
+/* Escritorio: las vistas aprovechan el ancho de la pantalla (los formularios y párrafos conservan
+   su ancho de lectura). El inicio de sesión mantiene su tarjeta centrada. */
+.admin-main-wide { max-width: 112rem; }
+@media (min-width: 64rem) {
+  .admin-main:not(.admin-login) { max-width: 112rem; }
+}
+
+/* Columnas de fecha y hora: angostas, con el texto partido en líneas. */
+.admin-tabla th.admin-col-fecha, .admin-tabla td.admin-col-fecha,
+.admin-tabla-ajustada .admin-tabla th.admin-col-fecha, .admin-tabla-ajustada .admin-tabla td.admin-col-fecha {
+  width: 8.5rem; min-width: 7rem; max-width: 9rem; white-space: normal; overflow-wrap: normal; word-break: normal;
+}
+
+/* Pestañas de sección (p. ej. Documentos). */
+.admin-pestanas-lista {
+  display: flex; flex-wrap: wrap; gap: 0.25rem; margin: 0 0 var(--adm-gap);
+  border-bottom: 1px solid var(--adm-border);
+}
+.admin-main .admin-pestana {
+  min-height: 2.75rem; padding: 0.5rem 1rem; margin-bottom: -1px; border: 1px solid transparent; border-bottom: 3px solid transparent;
+  border-radius: var(--adm-radius) var(--adm-radius) 0 0; background: transparent; color: var(--adm-muted);
+  font: inherit; font-weight: 600; cursor: pointer;
+}
+.admin-main .admin-pestana:hover { background: var(--adm-surface); color: var(--adm-text); }
+.admin-main .admin-pestana[aria-selected="true"] {
+  background: var(--adm-surface); color: var(--adm-text); border-color: var(--adm-border); border-bottom: 3px solid var(--adm-primary);
+}
+.admin-pestanas-panel:focus { outline: none; }
+.admin-pestanas-panel:focus-visible { outline: 3px solid var(--adm-primary); outline-offset: 2px; }
+@media (forced-colors: active) {
+  .admin-main .admin-pestana[aria-selected="true"] { border-bottom-color: Highlight; }
+}
+@media (max-width: 40rem) {
+  .admin-main .admin-pestana { flex: 1 1 auto; }
+}
+
+/* Rejilla de tarjetas (formularios hermanos lado a lado en escritorio). */
+.admin-rejilla { display: grid; gap: var(--adm-gap); grid-template-columns: repeat(auto-fit, minmax(min(100%, 26rem), 1fr)); align-items: start; }
+.admin-rejilla > section { margin: 0; }
+.admin-acciones-barra { align-items: center; justify-content: space-between; }
+.admin-acciones-barra > p { margin: 0; }

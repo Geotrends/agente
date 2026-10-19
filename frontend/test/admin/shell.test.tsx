@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { act, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 
 let ruta = "/admin/documents";
 vi.mock("next/navigation", () => ({ usePathname: () => ruta }));
@@ -87,15 +87,29 @@ describe("AdminShell", () => {
     expect(contar()).toBe(trasInactividad + 1);
   });
 
-  it("cierra y revoca la sesión tras 30 minutos sin interacción humana", async () => {
+  it("revoca la sesión tras 30 minutos y conserva la pestaña para recuperar el trabajo", async () => {
     vi.useFakeTimers({ shouldAdvanceTime: false });
     const f = mockFetch(url => url.endsWith("/session") ? { status: 200, json: sesion("administrador técnico") } : { status: 200, json: { notifications: 0 } });
     render(<AdminShell><p>ok</p></AdminShell>);
     await act(async () => { await vi.advanceTimersByTimeAsync(0); });
     await act(async () => { await vi.advanceTimersByTimeAsync(SESSION_IDLE_MS + 30_000); });
     expect(f.mock.calls.some(c => (c[1] as RequestInit | undefined)?.method === "DELETE")).toBe(true);
-    expect(ir).toHaveBeenCalledWith("/admin/login?expirada=1");
+    expect(screen.getByRole("heading", { name: "Su sesión venció" })).toBeInTheDocument();
+    expect(ir).not.toHaveBeenCalled();
   });
+  it("advierte antes de vencer y conserva el formulario después de reautenticar", async () => {
+    vi.useFakeTimers();
+    mockFetch(url => url.endsWith("/session") ? { status: 200, json: sesion("administrador técnico") } : { status: 200, json: { notifications: 0 } });
+    render(<AdminShell><input aria-label="Borrador" defaultValue="Trabajo sin guardar" /></AdminShell>);
+    await act(async () => { await vi.advanceTimersByTimeAsync(0); });
+    await act(async () => { await vi.advanceTimersByTimeAsync(SESSION_IDLE_MS - 60_000); });
+    expect(screen.getByRole("button", { name: "Continuar sesión" })).toBeInTheDocument();
+    await act(async () => { await vi.advanceTimersByTimeAsync(90_000); });
+    fireEvent.click(screen.getByRole("button", { name: "Ya ingresé, recuperar formulario" }));
+    await act(async () => { await vi.advanceTimersByTimeAsync(0); });
+    expect(screen.getByRole("textbox", { name: "Borrador" })).toHaveValue("Trabajo sin guardar");
+  });
+
 });
 
 describe("ActivityTracker", () => {

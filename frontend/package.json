@@ -13,6 +13,7 @@
     "test:ui:e2e": "playwright test",
     "test:admin": "vitest run test/admin",
     "test:admin:e2e": "playwright test -c playwright.admin.config.ts --grep-invert \"@a11y|@perf\"",
+    "test:admin:ux": "playwright test -c playwright.ux.config.ts",
     "test:admin:perf": "playwright test -c playwright.admin.config.ts --grep @perf",
     "test:admin:a11y": "playwright test -c playwright.admin.config.ts --grep @a11y",
     "build:admin": "NEXT_OUTPUT=export NEXT_DIST_DIR=out-admin NEXT_PUBLIC_AGENT_API_URL=/api/chat next build",

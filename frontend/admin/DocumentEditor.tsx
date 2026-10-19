@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { Campo } from "./AdminForm";
+import { Campo, ErrorSummary } from "./AdminForm";
 import { subirArchivo } from "./adminClient";
 
 export const TIPOS = ["Procedimiento", "Formato", "Norma", "Página", "Documento"] as const;
@@ -21,6 +21,7 @@ export default function DocumentUploadForm({ onCargado }: { onCargado: (mensaje:
 
   async function enviar(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (enviando) return;
     const form = e.currentTarget;
     const d = new FormData(form);
     const archivo = d.get("file");
@@ -50,18 +51,20 @@ export default function DocumentUploadForm({ onCargado }: { onCargado: (mensaje:
 
   return (
     <form className="admin-form" noValidate onSubmit={enviar} aria-label="Cargar un documento">
+      <p>Los campos marcados con * son obligatorios.</p>
+      <ErrorSummary errores={errores} prefijo="carga-" />
       {general && <p role="alert" className="admin-error">{general}</p>}
       <Campo id="carga-file" etiqueta="Archivo (PDF, DOCX o XLSX)" error={errores.file}>
         {p => <input {...p} name="file" type="file" accept=".pdf,.docx,.xlsx" required />}
       </Campo>
       <Campo id="carga-type" etiqueta="Tipo" error={errores.type}>
-        {p => <select {...p} name="type" className="input" defaultValue="Documento">{TIPOS.map(t => <option key={t}>{t}</option>)}</select>}
+        {p => <select {...p} name="type" required className="input" defaultValue="Documento">{TIPOS.map(t => <option key={t}>{t}</option>)}</select>}
       </Campo>
       <Campo id="carga-title" etiqueta="Título" error={errores.title}>
         {p => <input {...p} name="title" className="input" required />}
       </Campo>
       <Campo id="carga-direction" etiqueta="Dirección" error={errores.direction}>
-        {p => <select {...p} name="direction" className="input" defaultValue="">
+        {p => <select {...p} name="direction" required className="input" defaultValue="">
           <option value="" disabled>Seleccione…</option>{DIRECCIONES.map(t => <option key={t}>{t}</option>)}</select>}
       </Campo>
       <Campo id="carga-publicUrl" etiqueta="Enlace público (https)" error={errores.publicUrl}>
