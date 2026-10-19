@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { llamar } from "./adminClient";
 import { useGatedInterval } from "./useGatedInterval";
 
@@ -40,7 +40,14 @@ export default function DocumentOperationStatus({ operationId, onTerminada }: { 
 
   useEffect(() => { void leer(); }, [leer]);
   useGatedInterval(() => { if (!op || op.estado === "En curso") void leer(); }, 3_000);
-  useEffect(() => { if (op && op.estado !== "En curso") onTerminada?.(op); }, [op, onTerminada]);
+  // Avisa UNA vez por operación al salir de «En curso». `onTerminada` suele ser una función nueva en
+  // cada render de la pantalla: como dependencia reiniciaba el efecto y recargaba la lista en bucle.
+  const alTerminar = useRef(onTerminada);
+  alTerminar.current = onTerminada;
+  const avisada = useRef(false);
+  useEffect(() => {
+    if (op && op.estado !== "En curso" && !avisada.current) { avisada.current = true; alTerminar.current?.(op); }
+  }, [op]);
 
   if (error) return <p role="alert" className="admin-error">{error}</p>;
   if (!op) return <p role="status">Consultando la operación…</p>;
