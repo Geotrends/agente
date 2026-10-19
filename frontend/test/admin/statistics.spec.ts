@@ -25,7 +25,7 @@ test("el técnico ve los cuatro tableros con tablas equivalentes y rango validad
 
   await page.goto("/admin/metrics/ratings");
   await expect(page.getByRole("table", { name: "Motivos de «No útil»" })).toBeVisible();
-  await expect(page.getByRole("cell", { name: "Información incorrecta" })).toBeVisible();
+  await expect(page.getByRole("rowheader", { name: "Información incorrecta" })).toBeVisible();
 
   await page.goto("/admin/metrics/consumption");
   await expect(page.getByRole("table", { name: "Consumo por modelo" })).toBeVisible();

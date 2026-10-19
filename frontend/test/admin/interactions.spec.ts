@@ -27,9 +27,9 @@ test("el técnico filtra interacciones, ve el texto depurado como tal y exporta 
   await page.getByLabel("Desde").fill("2020-01-01");
   await page.getByLabel("Hasta").fill("2030-01-01");
   await page.getByRole("button", { name: "Filtrar" }).click();
-  await expect(page.getByRole("cell", { name: `Pregunta ${m} sin info` })).toBeVisible();
+  await expect(page.getByRole("cell", { name: `Pregunta ${m} sin info`, exact: true })).toBeVisible();
   await expect(page.getByRole("cell", { name: `Pregunta ${m} vigente`, exact: true })).toHaveCount(0);
-  await expect(page.getByRole("cell", { name: "Información incorrecta" })).toBeVisible();
+  await expect(page.getByRole("cell", { name: "Información incorrecta", exact: true })).toBeVisible();
 
   // Exportación del mismo filtro: descarga un .xlsx.
   const descarga = page.waitForEvent("download");

@@ -13,7 +13,7 @@ test("el técnico crea una cuenta, ve errores por campo y confirma o cancela la 
 
   // Error por campo: contraseña corta.
   const nuevo = unico("nueva");
-  await page.getByLabel("Nombre", { exact: true }).fill("Persona Nueva");
+  await page.locator("#cuenta-nombre").fill("Persona Nueva");
   await page.getByLabel("Correo electrónico").fill(nuevo);
   await page.getByLabel("Contraseña inicial").fill("corta");
   await page.getByRole("button", { name: "Crear cuenta" }).click();
@@ -25,7 +25,7 @@ test("el técnico crea una cuenta, ve errores por campo y confirma o cancela la 
   await expect(page.getByRole("cell", { name: nuevo, exact: true })).toBeVisible();
 
   // Correo repetido: error en el campo.
-  await page.getByLabel("Nombre", { exact: true }).fill("Otra");
+  await page.locator("#cuenta-nombre").fill("Otra");
   await page.getByLabel("Correo electrónico").fill(nuevo);
   await page.getByLabel("Contraseña inicial").fill("clave-inicial-larga");
   await page.getByRole("button", { name: "Crear cuenta" }).click();

@@ -41,7 +41,8 @@ test("el Gestor ve únicamente los avisos de carga propios, no los del sistema, 
   await expect(nav.getByRole("link", { name: "Auditoría" })).toHaveCount(0);
   await expect(nav.getByRole("link", { name: "Pendientes", exact: true })).toHaveCount(0);
   await page.goto("/admin/audit");
-  await expect(page.getByText("Su perfil no tiene acceso a esta función.")).toBeVisible();
+  // El mensaje aparece en la consulta de auditoría y en la de cuentas del filtro «Usuario».
+  await expect(page.getByText("Su perfil no tiene acceso a esta función.").first()).toBeVisible();
   await expect(page.getByRole("table")).toHaveCount(0);
 });
 
