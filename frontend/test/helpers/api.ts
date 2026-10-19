@@ -63,6 +63,8 @@ export async function alternar(page: import("@playwright/test").Page): Promise<v
   const movil = (page.viewportSize()?.width ?? 1024) < 768;
   if (abierto && movil) {
     await page.frameLocator('iframe[title="Conversación con Geobot"]').getByRole("button", { name: "Cerrar Geobot" }).click();
+    // CLOSE viaja por postMessage: sin esta espera, la siguiente llamada vería el panel aún visible.
+    await page.locator("#geobot-w-box").waitFor({ state: "hidden" });
   } else {
     await page.locator("button.geobot-w-btn").click();
   }
