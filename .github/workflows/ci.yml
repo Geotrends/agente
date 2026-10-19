@@ -310,14 +310,16 @@ jobs:
       - name: Auditoría de dependencias
         run: npm audit --omit=dev --audit-level=high
       # E2E y axe sobre el export real de /chat y un host fixture (variante de prueba con CSP propia;
-      # nunca amplía la de producción). Chromium/Firefox/WebKit y móviles emulados NO equivalen a
-      # Chrome Android ni Safari iOS reales (T079).
+      # nunca amplía la de producción). En cada push solo corren Chromium de escritorio y Chromium móvil
+      # emulado (200 pruebas): con los cinco navegadores eran ~500 y el job superaba el límite de
+      # tiempo. La matriz completa (Firefox, WebKit y iPhone emulado) corre en e2e-navegadores.yml.
+      # Estos navegadores NO equivalen a Chrome Android ni Safari iOS reales (T079).
       - name: Navegadores de Playwright
-        run: npx playwright install --with-deps chromium firefox webkit
+        run: npx playwright install --with-deps chromium
       - name: Build de pruebas E2E
         run: npm run build:e2e
       - name: E2E y accesibilidad (axe)
-        run: npm run test:ui:e2e
+        run: npm run test:ui:e2e:ci
       - name: Construir la imagen del frontend
         working-directory: .
         run: docker build -t geobot-frontend:ci frontend

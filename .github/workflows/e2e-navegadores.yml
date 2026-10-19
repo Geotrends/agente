@@ -1,0 +1,40 @@
+# Matriz completa de navegadores del chat (SPEC004): Chromium, Firefox, WebKit y los móviles emulados.
+# Son ~500 pruebas, demasiadas para cada push (límite de 15 min del job `frontend` de ci.yml), así que
+# corren cada noche y a demanda. Chromium de escritorio y móvil emulado ya corren en cada push.
+# Los navegadores emulados NO equivalen a Chrome Android ni Safari iOS reales (T079).
+name: E2E navegadores
+
+on:
+  schedule:
+    - cron: "0 7 * * *"   # 02:00 hora de Bogotá
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  matriz:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        proyecto: [firefox, webkit, mobile-webkit-emulado]
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Instalar dependencias
+        run: npm ci
+      - name: Navegadores de Playwright
+        run: npx playwright install --with-deps chromium firefox webkit
+      - name: Build de pruebas E2E
+        run: npm run build:e2e
+      - name: E2E y accesibilidad (axe) · ${{ matrix.proyecto }}
+        run: npx playwright test --project=${{ matrix.proyecto }}

@@ -11,6 +11,7 @@
     "build:widget": "node scripts/build-widget.mjs",
     "test:ui": "vitest run",
     "test:ui:e2e": "playwright test",
+    "test:ui:e2e:ci": "playwright test --project=chromium --project=mobile-chromium-emulado",
     "test:admin": "vitest run test/admin",
     "test:admin:e2e": "playwright test -c playwright.admin.config.ts --grep-invert \"@a11y|@perf\"",
     "test:admin:ux": "playwright test -c playwright.ux.config.ts",
