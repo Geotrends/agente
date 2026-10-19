@@ -1,7 +1,7 @@
 /** T059: carreras de respuesta/configuración/abort/diálogo, axe del diálogo y storage vacío. */
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
-import { CHAT_ORIGIN, CONFIG, stubApi } from "./helpers/api";
+import { alternar, CHAT_ORIGIN, CONFIG, stubApi } from "./helpers/api";
 
 const toggle = (page: Page) => page.locator("button.geobot-w-btn");
 
@@ -60,8 +60,8 @@ test("ocultar y mostrar no reinicia: la conversación sigue y no hay diálogo", 
   await f.getByLabel("Pregunta").fill("a");
   await f.getByRole("button", { name: "Enviar" }).click();
   await expect(f.getByText("Respuesta 1")).toBeVisible();
-  await toggle(page).click();
-  await toggle(page).click();
+  await alternar(page);
+  await alternar(page);
   await expect(f.getByRole("dialog")).toHaveCount(0);
   await expect(f.getByRole("log")).toContainText("Respuesta 1");
 });

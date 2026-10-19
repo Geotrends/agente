@@ -1,6 +1,6 @@
 /** T021: CSP del HTML exportado y bloqueo de incrustación desde orígenes ajenos (RNF-C4-IN-02). */
 import { expect, test, type Page } from "@playwright/test";
-import { CHAT_ORIGIN, HOST_ORIGIN, stubApi } from "./helpers/api";
+import { alternar, CHAT_ORIGIN, HOST_ORIGIN, stubApi } from "./helpers/api";
 
 async function expectFrameBlocked(page: Page, navigate: () => Promise<void>) {
   const violations: string[] = [];
@@ -54,8 +54,8 @@ test("N402 · válida 2: ocultar y volver a mostrar conserva un único iframe de
   const toggle = page.locator("button.geobot-w-btn");
   await toggle.click();
   await expect(page.frameLocator("iframe").getByRole("heading", { name: "Geobot", exact: true })).toBeVisible();
-  await toggle.click();
-  await toggle.click();
+  await alternar(page);
+  await alternar(page);
   expect(await page.locator("iframe").count()).toBe(1);
   expect(await page.locator("iframe").getAttribute("src")).toBe(`${CHAT_ORIGIN}/chat`);
   await ctx.close();

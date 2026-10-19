@@ -62,6 +62,7 @@ test("@a11y diálogos y estados de error: confirmaciones, 403 del Gestor y error
   await page.getByRole("button", { name: "Cancelar" }).click();
   // Errores por campo en el formulario de carga.
   await page.goto("/admin/documents");
+  await page.getByRole("tab", { name: "Cargar un documento" }).click();
   await page.getByRole("button", { name: "Cargar documento" }).click();
   await expect(page.getByRole("alert").first()).toBeVisible();
   await auditar(page, "documentos con error de campo");

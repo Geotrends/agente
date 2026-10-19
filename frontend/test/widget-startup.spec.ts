@@ -1,6 +1,6 @@
 /** T029: launcher → puente → flujo único → cliente español; consulta en curso sigue al ocultar. */
 import { expect, test, type Page } from "@playwright/test";
-import { stubApi } from "./helpers/api";
+import { alternar, stubApi } from "./helpers/api";
 
 const toggle = (page: Page) => page.locator("button.geobot-w-btn");
 
@@ -35,9 +35,9 @@ test("ocultar con una consulta pendiente no la cancela; al mostrar aparece la re
   await f.getByLabel("Pregunta").fill("pendiente");
   await f.getByRole("button", { name: "Enviar" }).click();
   await expect(f.getByRole("status")).toContainText("Geobot está buscando en la información institucional…");
-  await toggle(page).click(); // ocultar durante la espera
+  await alternar(page); // ocultar durante la espera
   await page.waitForTimeout(1800);
-  await toggle(page).click(); // mostrar
+  await alternar(page); // mostrar
   await expect(f.getByText("Respuesta 1")).toBeVisible();
   expect(api.chats).toHaveLength(1);
   expect(api.sessions).toBe(1);

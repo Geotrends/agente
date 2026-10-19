@@ -1,6 +1,6 @@
 /** T019: red antes del clic, un solo iframe, continuidad tras ocultar/mostrar y mapa intacto (RNF-C4-UI-01). */
 import { expect, test, type Page } from "@playwright/test";
-import { CHAT_ORIGIN, stubApi } from "./helpers/api";
+import { alternar, CHAT_ORIGIN, stubApi } from "./helpers/api";
 
 const toggle = (page: Page) => page.locator("button.geobot-w-btn");
 const frame = (page: Page) => page.frameLocator('iframe[title="Conversación con Geobot"]');
@@ -38,10 +38,10 @@ test("dos consultas y cinco ciclos ocultar/mostrar conservan la conversación si
   const chatRequestsBefore: string[] = [];
   page.on("request", r => { if (r.url().startsWith(CHAT_ORIGIN) && !r.url().includes("/api/")) chatRequestsBefore.push(r.url()); });
   for (let i = 0; i < 5; i++) {
-    await toggle(page).click(); // ocultar
+    await alternar(page); // ocultar
     await expect(page.locator("#geobot-w-box")).toBeHidden();
     await expect(toggle(page)).toHaveAttribute("aria-expanded", "false");
-    await toggle(page).click(); // mostrar
+    await alternar(page); // mostrar
     await expect(page.locator("#geobot-w-box")).toBeVisible();
   }
   const log = f.getByRole("log");
@@ -61,7 +61,7 @@ test("oculto: el panel no es enfocable ni está en el árbol accesible, y el bot
   await page.goto("/observatorio");
   await toggle(page).click();
   await expect(frame(page).getByRole("heading", { name: "Geobot", exact: true })).toBeVisible();
-  await toggle(page).click();
+  await alternar(page);
   await expect(page.locator("#geobot-w-box")).toBeHidden();
   await expect(toggle(page)).toBeVisible();
   await expect(toggle(page)).toBeInViewport();

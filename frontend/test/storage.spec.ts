@@ -4,6 +4,7 @@
  * Sirve el export real de `/chat` y simula la API con `page.route`.
  */
 import { expect, test, type Page } from "@playwright/test";
+import { alternar } from "./helpers/api";
 
 const CHAT_ORIGIN = `http://localhost:${process.env.E2E_CHAT_PORT ?? 4311}`;
 const UUID = "11111111-1111-4111-8111-111111111111";
@@ -98,7 +99,7 @@ for (const modo of ["Autorizo", "No autorizo"] as const) {
       await expect(f.getByText("Respuesta 1")).toBeVisible();
 
       // Cinco ciclos de ocultar/mostrar: la conversación sigue ahí.
-      for (let ciclo = 0; ciclo < 5; ciclo++) { await toggle.click(); await toggle.click(); }
+      for (let ciclo = 0; ciclo < 5; ciclo++) { await alternar(page); await alternar(page); }
       await expect(f.getByText("Respuesta 1")).toBeVisible();
       await expect(f.getByLabel("Pregunta")).toBeEnabled();
 

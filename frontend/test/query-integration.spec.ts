@@ -1,6 +1,6 @@
 /** T050: errores, plazo de 45 s, contactos y ocultar con consulta pendiente, sobre el export real. */
 import { expect, test, type Page } from "@playwright/test";
-import { CHAT_ORIGIN, CONFIG, stubApi } from "./helpers/api";
+import { alternar, CHAT_ORIGIN, CONFIG, stubApi } from "./helpers/api";
 
 const toggle = (page: Page) => page.locator("button.geobot-w-btn");
 const FALLO = "En este momento no puedo responder. Puede intentarlo de nuevo o comunicarse por los canales oficiales.";
@@ -57,9 +57,9 @@ test("ocultar con consulta pendiente conserva el intento y la respuesta aparece 
   const f = await ready(page);
   await f.getByLabel("Pregunta").fill("pendiente");
   await f.getByRole("button", { name: "Enviar" }).click();
-  await toggle(page).click();
+  await alternar(page);
   await page.waitForTimeout(1800);
-  await toggle(page).click();
+  await alternar(page);
   await expect(f.getByText("Respuesta 1")).toHaveCount(1);
   expect(api.chats).toHaveLength(1);
 });

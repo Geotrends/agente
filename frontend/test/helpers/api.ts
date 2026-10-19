@@ -53,3 +53,17 @@ export async function stubApi(
   });
   return log;
 }
+
+/**
+ * Oculta o muestra el panel como lo haría una persona: en móvil (<768 px) el panel abierto cubre la pantalla
+ * y vuelve inerte el botón del portal, así que se oculta con el botón de cierre del iframe (RF-C4-UI-02).
+ */
+export async function alternar(page: import("@playwright/test").Page): Promise<void> {
+  const abierto = await page.locator("#geobot-w-box").isVisible().catch(() => false);
+  const movil = (page.viewportSize()?.width ?? 1024) < 768;
+  if (abierto && movil) {
+    await page.frameLocator('iframe[title="Conversación con Geobot"]').getByRole("button", { name: "Cerrar Geobot" }).click();
+  } else {
+    await page.locator("button.geobot-w-btn").click();
+  }
+}
