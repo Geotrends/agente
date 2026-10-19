@@ -14,8 +14,9 @@ const withChannels = process.env.E2E_CHANNELS === "1";
 export default defineConfig({
   testDir: "./test",
   testMatch: /.*\.spec\.ts/,
-  // El panel de SPEC007 tiene su propia configuración (playwright.admin.config.ts).
-  testIgnore: /[\\/]admin[\\/]/,
+  // El panel de SPEC007 tiene su propia configuración (playwright.admin.config.ts) y la revisión UX
+  // del panel otra (playwright.ux.config.ts, con `next dev`): ninguna corre contra el host del chat.
+  testIgnore: /[\\/]admin(-ux)?[\\/]/,
   fullyParallel: true,
   retries: 0,
   reporter: [["list"]],
