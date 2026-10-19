@@ -59,3 +59,4 @@ frontend/.cache/
 # Herramientas locales de Spec Kit y agentes (no se versionan)
 .specify/
 .agents/
+SKILL.md
