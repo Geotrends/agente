@@ -34,12 +34,45 @@ test('M-3: "el artículo 5 dice" en mitad de un párrafo no abre sección', () =
   assert.equal(chunks.length, 1);
 });
 
-test("RF-C3-DI-13: una tabla cabe íntegra en un solo fragmento; si excede el límite, el documento no es publicable", () => {
+test("RF-C3-DI-13: una tabla cabe íntegra en un solo fragmento; si excede el límite se divide por filas con el encabezado repetido", () => {
   const filas = (n: number) => Array.from({ length: n }, (_, i) => `| Rubro ${i} | ${i * 1000} | vigencia 2005 |`);
   const tabla = (n: number) => ["| Concepto | Valor | Nota |", "| --- | --- | --- |", ...filas(n)].join("\n");
   const chicas = chunkDocument(`Antes de la tabla.\n\n${tabla(5)}\n\nDespués de la tabla.`);
   assert.equal(chicas.filter(c => c.text.includes(tabla(5))).length, 1, "la tabla viaja entera");
-  assert.throws(() => chunkDocument(tabla(60)), (e: unknown) => e instanceof ChunkingError && e.finding.kind === "tabla_excede");
+  const grande = tabla(60);
+  assert.ok(grande.length > 1000, "la tabla de prueba excede el límite");
+  const partes = chunkDocument(`Texto previo.\n\n${grande}\n\nTexto posterior.`).filter(c => c.text.includes("| Rubro "));
+  assert.ok(partes.length >= 2, "se divide en varios fragmentos");
+  for (const c of partes) {
+    assert.ok(c.text.length <= 1000, "cada fragmento respeta el límite");
+    assert.ok(c.text.includes("| Concepto | Valor | Nota |\n| --- | --- | --- |"), "cada fragmento repite encabezado y separador");
+  }
+  // Ninguna fila se pierde ni se duplica, y el orden se conserva.
+  const vistas = partes.flatMap(c => c.text.split("\n").filter(l => l.startsWith("| Rubro ")));
+  assert.deepEqual(vistas, filas(60));
+});
+
+test("RF-C3-DI-13: una fila que no cabe ni sola con su encabezado pasa a prosa; las demás filas siguen siendo tabla", () => {
+  const parrafo = Array.from({ length: 220 }, (_, i) => `palabra${i}`).join(" "); // ~1900 caracteres
+  const md = ["| Políticas de Operación |", "| --- |", "| Fila corta uno |", `| ${parrafo} |`, "| Fila corta dos |"].join("\n");
+  const chunks = chunkDocument(md);
+  assert.ok(chunks.every(c => c.text.length <= 1000), "ningún fragmento supera 1000");
+  const prosa = chunks.filter(c => c.text.includes("palabra"));
+  assert.ok(prosa.length >= 2, "el párrafo se parte en varios fragmentos");
+  assert.ok(prosa.every(c => !c.text.includes("|")), "la prosa no lleva barras de tabla");
+  assert.ok(prosa[0].text.startsWith("Políticas de Operación — palabra0"), "conserva el título del encabezado");
+  // Solapamiento aproximado de 150 caracteres y ninguna palabra partida.
+  for (let k = 1; k < prosa.length; k++) {
+    const previo = prosa[k - 1].text.split(/\s+/), actual = prosa[k].text.split(/\s+/);
+    assert.ok(previo.includes(actual[0]), "el fragmento siguiente repite el final del anterior");
+  }
+  const dichas = new Set(chunks.flatMap(c => c.text.match(/palabra\d+/g) ?? []));
+  assert.equal(dichas.size, 220, "no se pierde ninguna palabra ni se corta alguna");
+  // Las filas cortas siguen como tabla, con su encabezado.
+  assert.ok(chunks.some(c => c.text.includes("| Fila corta uno |") && c.text.includes("| Políticas de Operación |\n| --- |")));
+  assert.ok(chunks.some(c => c.text.includes("| Fila corta dos |")));
+  // Una palabra de más de 1000 caracteres sigue bloqueando la publicación.
+  assert.throws(() => chunkDocument(`| H |\n| --- |\n| ${"x".repeat(1100)} |`), (e: unknown) => e instanceof ChunkingError && e.finding.kind === "palabra_excede");
 });
 
 test("M-4: el fragmento sabe en qué página del PDF empieza", () => {

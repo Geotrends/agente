@@ -90,13 +90,14 @@ test("una búsqueda fallida (colección inexistente) lanza error: nunca se confu
   await assert.rejects(retrieveCandidates("x", undefined, "coleccion_que_no_existe"));
 });
 
-test("publicación inválida (tabla >1000 caracteres) o calibración imposible: el alias anterior se conserva", async () => {
+test("publicación inválida (palabra >1000 caracteres) o calibración imposible: el alias anterior se conserva", async () => {
   const antes = await coleccionDelAlias();
   const { rows } = await base.kb.query("SELECT id FROM kb.kb_elemento ORDER BY clave LIMIT 1");
   const { rows: [v] } = await base.kb.query("SELECT version_publicada_id AS id FROM kb.kb_elemento WHERE id = $1", [rows[0].id]);
-  const tablaGrande = ["| A | B |", "| --- | --- |", ...Array.from({ length: 80 }, (_, i) => `| fila ${i} | ${"dato ".repeat(6)} |`)].join("\n");
+  // Una tabla se divide por filas y una fila que no cabe pasa a prosa; lo no publicable es una palabra >1000.
+  const tablaGrande = ["| A | B |", "| --- | --- |", `| fila única | ${"x".repeat(1100)} |`].join("\n");
   await base.kb.query("UPDATE kb.kb_version SET contenido_md = $2 WHERE id = $1", [v.id, `# Con tabla\n\n${tablaGrande}`]);
-  await assert.rejects(reconstruirColeccion(base.kb, "cli:prueba", { embedder: embed }), /tabla_excede/);
+  await assert.rejects(reconstruirColeccion(base.kb, "cli:prueba", { embedder: embed }), /palabra_excede/);
   assert.equal(await coleccionDelAlias(), antes, "el alias sigue en la colección validada");
   const { rows: notif } = await base.kb.query("SELECT tipo, descripcion FROM kb.kb_notificacion WHERE tipo = 'indexacion_fallida'");
   assert.ok(notif.length >= 1, "se notificó sin revelar contenido");

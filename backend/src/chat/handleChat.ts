@@ -16,7 +16,7 @@ import { ContactReadError } from "../admin/contacts.js";
 import { ConversationStoreError, type ConversationState } from "./conversations.js";
 import type { Budget } from "./boundedDb.js";
 import { ChatFailure, orchestrate, type ChatOutcome } from "./orchestrator.js";
-import { prioritizeByCategory } from "./categoryPriority.js";
+import { prioritizeByCategory, prioritizeProcedures } from "./categoryPriority.js";
 import { callWithRouting } from "./modelRouting.js";
 import type { AuthorizedRecord, AnonymousRecord, WriteHooks } from "./records.js";
 import type { RegistryEpisode } from "./registryEpisode.js";
@@ -110,8 +110,9 @@ export async function handleChat(input: PreguntaValidada, subject: string, deps:
         const r = await deps.retrieve(pregunta, followUpTail(pregunta, previous));
         // Los fragmentos también se sanean antes de llegar al proveedor.
         const hits = r.hits.map(h => ({ ...h, snippet: sanitizeFragment(h.snippet).texto }));
-        // La categoría solo prioriza el orden; no descarta fragmentos de otras direcciones.
-        return { hits: prioritizeByCategory(hits, input.categoria) };
+        // La categoría solo prioriza el orden; no descarta fragmentos de otras direcciones. Los
+        // procedimientos GT-P van siempre por delante de las páginas web y demás fuentes.
+        return { hits: prioritizeProcedures(prioritizeByCategory(hits, input.categoria)) };
       },
       model: async req => deps.modelCall ? deps.modelCall(req, deadline) : (await callWithRouting(deps.adapter, req, deadline)).result,
       linkCodes: deps.linkCodes,

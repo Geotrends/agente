@@ -163,12 +163,35 @@ function apply(text: string, re: RegExp, kind: PiiKind, label: string, found: Se
   });
 }
 
-function sanitize(text: string, kinds: { direccion: boolean; nombre: boolean }): Sanitized {
+/**
+ * Contexto que delata un dato de una PERSONA (no de la entidad) dentro de un documento: se mira solo
+ * la misma línea, antes del dato. Sin esta palabra, un teléfono o un correo `.gov.co` de un documento
+ * oficial es un canal de atención y debe llegar intacto al modelo.
+ */
+const CONTEXTO_PERSONAL = /(solicitante|ciudadan[oa]|usuari[oa]|propietari[oa]|denunciante|titular|tercero|vecin[oa]|particular|personal|peticionari[oa])/i;
+const esDePersona = (texto: string, desde: number): boolean => {
+  const inicioLinea = texto.lastIndexOf("\n", desde) + 1;
+  return CONTEXTO_PERSONAL.test(texto.slice(Math.max(inicioLinea, desde - 80), desde));
+};
+
+function sanitize(text: string, kinds: { direccion: boolean; nombre: boolean; institucional?: boolean }): Sanitized {
   const found = new Set<PiiKind>();
   let out = text;
-  out = apply(out, CORREO, "correo", PROVIDER_LABEL.correo, found);
-  out = apply(out, CEDULA_ANCLADA, "cédula", PROVIDER_LABEL.cédula, found, true);
-  out = apply(out, TELEFONO, "teléfono", PROVIDER_LABEL.teléfono, found);
+  if (kinds.institucional) {
+    // Documentos oficiales: los canales de la entidad (teléfonos y correos .gov.co) se conservan.
+    const marcar = (kind: PiiKind, label: string, oficial: (m: string) => boolean) => (m: string, offset: number, whole: string) => {
+      if (oficial(m) && !esDePersona(whole, offset)) return m;
+      found.add(kind);
+      return label;
+    };
+    out = out.replace(CORREO, marcar("correo", PROVIDER_LABEL.correo, m => /\.gov\.co$/i.test(m)));
+    out = apply(out, CEDULA_ANCLADA, "cédula", PROVIDER_LABEL.cédula, found, true);
+    out = out.replace(TELEFONO, marcar("teléfono", PROVIDER_LABEL.teléfono, () => true));
+  } else {
+    out = apply(out, CORREO, "correo", PROVIDER_LABEL.correo, found);
+    out = apply(out, CEDULA_ANCLADA, "cédula", PROVIDER_LABEL.cédula, found, true);
+    out = apply(out, TELEFONO, "teléfono", PROVIDER_LABEL.teléfono, found);
+  }
   if (kinds.direccion) out = apply(out, DIRECCION, "dirección", PROVIDER_LABEL.dirección, found);
   if (kinds.nombre) {
     out = out.replace(NOMBRE_TERCERO, (_m: string, anchor: string) => { found.add("nombre de tercero"); return `${anchor}${PROVIDER_LABEL.nombre}`; });
@@ -182,11 +205,14 @@ export function sanitizeCitizenText(text: string): Sanitized {
 }
 
 /**
- * Fragmentos y respuestas previas: solo cédula, teléfono y correo. Las direcciones de
- * oficinas públicas y los nombres de funcionarios del corpus son contenido legítimo.
+ * Fragmentos y respuestas previas: cédulas, correos personales y teléfonos o correos de personas.
+ * Las direcciones de oficinas públicas, los nombres de funcionarios y los canales de la propia
+ * entidad (teléfonos y correos `.gov.co` que no vienen precedidos de «solicitante», «ciudadano»,
+ * «propietario»…) son contenido legítimo y se conservan: sin ellos el chat no puede dar el
+ * teléfono de atención de una dependencia.
  */
 export function sanitizeFragment(text: string): Sanitized {
-  return sanitize(text, { direccion: false, nombre: false });
+  return sanitize(text, { direccion: false, nombre: false, institucional: true });
 }
 
 /**

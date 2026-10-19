@@ -8,15 +8,22 @@
  *   - La prosa se corta solo entre palabras y los fragmentos contiguos del mismo flujo
  *     comparten 150 caracteres de solapamiento, con la tolerancia de una palabra: el
  *     solapamiento es el sufijo MÁS CORTO de palabras completas que llega a 150.
- *   - Una tabla Markdown es un bloque indivisible, aunque conviva con prosa: se emite íntegra
- *     en un solo fragmento. Una tabla o una palabra de más de 1000 caracteres hace NO
- *     publicable al documento (`ChunkingError`): el hallazgo es REAL y se resuelve en la
- *     fuente, no partiendo la tabla ni aceptando una excepción.
+ *   - Una tabla Markdown de hasta 1000 caracteres es un bloque indivisible, aunque conviva con
+ *     prosa: se emite íntegra en un solo fragmento. EXCEPCIÓN APROBADA (RF-C3-DI-13, spec
+ *     corregido tras el bug gtp-tabla-excede): una tabla de más de 1000 caracteres se divide por
+ *     FILAS —nunca por celdas—, repitiendo en cada fragmento la fila de encabezado y su
+ *     separador, de modo que cada fragmento es una tabla Markdown válida de ≤ 1000. Una fila
+ *     que no cabe ni sola con su encabezado (típico: un párrafo entero metido en una tabla de una
+ *     fila) se emite como PROSA: se quitan las barras, el texto de sus celdas se une y se corta
+ *     entre palabras con el solapamiento de siempre. Solo esa fila: las demás siguen siendo tabla.
+ *     Una palabra de más de 1000 caracteres sigue haciendo NO publicable al documento
+ *     (`ChunkingError`): ese hallazgo es REAL y se resuelve en la fuente.
  *   - Las páginas ("-- N of M --") y los encabezados/artículos son metadata del fragmento;
  *     no inician flujos nuevos ni autorizan perder prosa o solapamiento.
  *
- * Se descartó dividir las tablas repitiendo su encabezado: producía varios fragmentos
- * por tabla, lo contrario de lo que exige el criterio de aceptación.
+ * Antes se descartó dividir las tablas repitiendo su encabezado porque producía varios fragmentos
+ * por tabla; los procedimientos GT-P reales traen tablas de hasta ~9.000 caracteres y quedaban sin
+ * publicar, así que la excepción se aprobó solo para las que superan el límite.
  */
 /** Separador que `pdf-parse` intercala entre páginas. */
 const PAGE_SEPARATOR = /--\s*(\d+)\s*of\s*(\d+)\s*--/g;
@@ -26,6 +33,9 @@ const HEADING = /^(?:#{1,6}\s+.+|(?:ART[ÍI]CULO|Art[íi]culo)\s+(?:\d+|[IVXLCDM
 
 /** Una línea de tabla Markdown. */
 const TABLE_ROW = /^\s*\|.*\|\s*$/;
+
+/** Fila separadora del encabezado de una tabla Markdown: `| --- | :---: |`. */
+const TABLE_SEPARATOR = /^\|?\s*:?-{3,}:?\s*(?:\|\s*:?-{3,}:?\s*)*\|?$/;
 
 /** Contexto máximo que se antepone a un fragmento; más largo se omite para no comerse el límite. */
 const MAX_CONTEXT = 200;
@@ -93,6 +103,58 @@ function blocksOf(flow: string): Block[] {
   return blocks;
 }
 
+type TablePiece = { kind: "table" | "prose"; start: number; text: string };
+
+/**
+ * Divide una tabla que no cabe en `size` por filas, repitiendo encabezado y separador. `contextLen`
+ * da cuánto del límite se come el contexto (título/encabezado) en cada posición: se intenta con él y,
+ * si ni una fila cabe, sin él (igual que en la prosa). Una fila que no cabe ni sola con su encabezado
+ * se devuelve como pieza de PROSA (celdas del encabezado y de la fila unidas, sin barras).
+ */
+function splitTable(raw: string, base: number, size: number, contextLen: (pos: number) => number): TablePiece[] {
+  const rows: Array<{ text: string; pos: number }> = [];
+  let off = 0;
+  for (const line of raw.split("\n")) {
+    const t = line.trim();
+    if (t) rows.push({ text: t, pos: base + off + line.indexOf(t) });
+    off += line.length + 1;
+  }
+  const header = rows.length >= 2 && TABLE_SEPARATOR.test(rows[1].text) ? rows.slice(0, 2) : [];
+  const body = rows.slice(header.length);
+  const headText = header.map(r => r.text).join("\n");
+  if (body.length === 0) throw new ChunkingError({ kind: "tabla_excede", length: headText.length, limit: size, excerpt: headText.slice(0, 80) });
+  const celdas = (fila: string) => fila.replace(/^\||\|$/g, "").split("|").map(c => c.trim()).filter(Boolean);
+  const encabezadoProsa = header.length ? celdas(header[0].text) : [];
+
+  const pieces: TablePiece[] = [];
+  let i = 0;
+  while (i < body.length) {
+    const fit = (limit: number): number => {
+      let len = headText.length;
+      let j = i;
+      while (j < body.length) {
+        const next = len + (len ? 1 : 0) + body[j].text.length;
+        if (next > limit) break;
+        len = next;
+        j++;
+      }
+      return j;
+    };
+    const ctx = contextLen(body[i].pos);
+    let j = fit(size - ctx);
+    if (j === i && ctx) j = fit(size);
+    if (j === i) {
+      // La fila no cabe ni sola con su encabezado: pasa a prosa (encabezado y celdas unidos por « — »).
+      pieces.push({ kind: "prose", start: body[i].pos, text: [...encabezadoProsa, ...celdas(body[i].text)].join(" — ") });
+      i++;
+      continue;
+    }
+    pieces.push({ kind: "table", start: body[i].pos, text: [headText, ...body.slice(i, j).map(r => r.text)].filter(Boolean).join("\n") });
+    i = j;
+  }
+  return pieces;
+}
+
 function lookup<T extends { offset: number }>(list: T[], offset: number): T | undefined {
   let found: T | undefined;
   for (const item of list) { if (item.offset <= offset) found = item; else break; }
@@ -143,14 +205,24 @@ export function chunkDocument(text: string, size = 1000, overlap = 150): Documen
     const start = block.start + raw.indexOf(content);
 
     if (block.kind === "table") {
-      if (content.length > size) {
-        throw new ChunkingError({ kind: "tabla_excede", length: content.length, limit: size, excerpt: content.slice(0, 80) });
+      if (content.length <= size) { emit(start, content); continue; }
+      // Tabla mayor que el límite: se divide por filas con el encabezado repetido (excepción aprobada).
+      const ctxAt = (pos: number) => {
+        const c = [title, lookup(headings, pos)?.text].filter(Boolean).filter((v, k, a) => a.indexOf(v) === k).join(" — ");
+        return c && c.length <= MAX_CONTEXT ? c.length + 1 : 0;
+      };
+      for (const piece of splitTable(content, start, size, ctxAt)) {
+        if (piece.kind === "table") emit(piece.start, piece.text); else emitProse(piece.text, piece.start);
       }
-      emit(start, content);
       continue;
     }
 
-    // Prosa: palabras con sus desplazamientos; los cortes caen siempre entre palabras.
+    emitProse(content, start);
+  }
+  return chunks.length ? chunks : [{ text: text.trim() }];
+
+  /** Prosa: palabras con sus desplazamientos; los cortes caen siempre entre palabras. */
+  function emitProse(content: string, start: number): void {
     const words = [...content.matchAll(/\S+/g)].map(m => ({ s: m.index!, e: m.index! + m[0].length }));
     for (const w of words) {
       if (w.e - w.s > size) {
@@ -178,5 +250,4 @@ export function chunkDocument(text: string, size = 1000, overlap = 150): Documen
       i = k > i ? k : i + 1;
     }
   }
-  return chunks.length ? chunks : [{ text: text.trim() }];
 }

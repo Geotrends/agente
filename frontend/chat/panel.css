@@ -31,8 +31,20 @@
   outline: 3px solid var(--obs-deep); outline-offset: 2px; box-shadow: 0 0 0 5px #ffffff;
 }
 .chat-panel .icon-button { background: linear-gradient(90deg, var(--obs-accent-from), var(--obs-accent-to)); color: var(--obs-deep); }
-.chat-panel .message.assistant { background: var(--obs-cream); color: var(--obs-deep); }
-.chat-panel .message.user { background: var(--obs-mint); color: var(--obs-deep); }
+.chat-panel .message.assistant {
+  background: var(--obs-surface); color: var(--obs-deep);
+  border: 1px solid color-mix(in srgb, var(--obs-green) 30%, #ffffff);
+}
+.chat-panel .message.user { background: var(--obs-mint); color: var(--obs-deep); border-color: color-mix(in srgb, var(--obs-green) 20%, var(--obs-mint)); }
+
+/* Avatar en forma de bolita: distingue a Geobot (verde oscuro) de la persona (menta). */
+.chat-panel .message-avatar {
+  width: 1.75rem; height: 1.75rem; flex: none; align-self: flex-start; margin-top: 0.25rem;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 50%; font-size: 0.75rem; font-weight: 700; line-height: 1; user-select: none;
+}
+.chat-panel .message-avatar.assistant { background: var(--obs-deep); color: #ffffff; }
+.chat-panel .message-avatar.user { background: var(--obs-mint); color: var(--obs-deep); border: 1px solid var(--obs-green); }
 .chat-panel a { color: var(--obs-green); text-decoration: underline; }
 .chat-panel .external-indicator { font-size: 0.85em; }
 .chat-panel .channel-list { margin: 0.5rem 0; padding-left: 1.1rem; overflow-wrap: anywhere; }

@@ -35,14 +35,14 @@ test("3 normales: no llevan aviso y caben en el tope", () => {
   }
 });
 
-test("6 cortes por max_tokens (3 por modelo): última oración completa, cita con enlace y fecha, aviso exacto", () => {
+test("6 cortes por max_tokens (3 por modelo): última oración completa, sin cita en el texto, aviso exacto", () => {
   for (let i = 0; i < 6; i++) {
     const cortada = `${oracion(1, "[D1]")} ${oracion(2, "[D2]")} El tercer paso consiste en entregar el form`;
     const r = composeWithinLimit({ ...base, body: cortada, stopReason: "max_tokens" });
     assert.equal(r.abreviada, true);
     assert.ok(r.respuesta.includes(`${AVISO_ABREVIADA}.`));
     assert.ok(!r.respuesta.includes("entregar el form"), "se descarta la oración inconclusa");
-    assert.match(r.respuesta, /\[Documento 2\]\(https:\/\/prueba\.gov\.co\/doc-2\.pdf\), actualizado el 2026-03-15/);
+    assert.ok(!/según|actualizado el|consultado el|\[D\d/.test(r.respuesta), "sin citas dentro del texto");
     assert.ok(r.respuesta.includes("no reemplaza asesoría técnica"), "la leyenda se conserva");
     assert.ok(r.respuesta.includes(CONTACTOS.recepcion.pqrsd), "el cierre se conserva");
   }
@@ -58,8 +58,9 @@ test("10 largas (5 por modelo): ≤2200 tokens contados, aviso, sin partir URL/t
     for (const url of r.respuesta.match(/https:\/\/[^\s)]+/g) ?? []) assert.ok(/^https:\/\/(www\.envigado\.gov\.co\/tema\/tramites\?i=\d+|prueba\.gov\.co\/[\w./-]+|pqrsd\.prueba\.gov\.co\/radicar)$/.test(url), url);
     const tablas = r.respuesta.split("| Documento | Plazo |").length - 1;
     assert.equal(r.respuesta.split("| GT-F-058 | 5 días |").length - 1, tablas, "cada tabla está completa");
-    // Fuentes = documentos que siguen citados en el texto.
-    for (const f of r.fuentes) assert.ok(r.respuesta.includes(f.enlace), `fuente ${f.id} sin cita visible`);
+    // Las fuentes siguen la cita interna de lo que sobrevive al recorte, sin cita visible en el texto.
+    assert.ok(r.fuentes.length > 0 && r.fuentes.some(f => f.id === "doc-1"));
+    assert.ok(!r.respuesta.includes("prueba.gov.co/doc-"), "ningún enlace de fuente dentro del texto");
     assert.ok(!/\[D\d+\]/.test(r.respuesta));
   }
 });

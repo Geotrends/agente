@@ -34,7 +34,7 @@ test("diez elementos coinciden con la guía y cumplen contraste", async ({ page,
     ["título Geobot", f.locator(".chat-header h1"), { color: GUIA.white }],
     ["subtítulo", f.locator(".chat-header p"), { color: GUIA.white }],
     ["botón primario", f.getByRole("button", { name: "No estoy seguro" }), { color: GUIA.white, bg: GUIA.green }],
-    ["mensaje de Geobot", f.locator(".message.assistant").first(), { color: GUIA.deep, bg: GUIA.cream }],
+    ["mensaje de Geobot", f.locator(".message.assistant").first(), { color: GUIA.deep, bg: GUIA.white }],
     ["mensaje del ciudadano", f.locator(".message.user").first(), { color: GUIA.deep, bg: GUIA.mint }],
     ["enlace", f.locator(".message.assistant a").first(), { color: GUIA.green }],
     ["botón enviar", f.getByRole("button", { name: "Enviar" }), { color: GUIA.deep }],
@@ -51,8 +51,8 @@ test("diez elementos coinciden con la guía y cumplen contraste", async ({ page,
   // Contrastes medidos (texto ≥ 4,5:1) entre color y fondo efectivo declarado en la guía.
   const pares: Array<[string, string, string]> = [
     ["encabezado", GUIA.white, GUIA.deep], ["botón primario", GUIA.white, GUIA.green],
-    ["mensaje de Geobot", GUIA.deep, GUIA.cream], ["mensaje del ciudadano", GUIA.deep, GUIA.mint],
-    ["enlace sobre crema", GUIA.green, GUIA.cream], ["panel", GUIA.deep, GUIA.white],
+    ["mensaje de Geobot", GUIA.deep, GUIA.white], ["mensaje del ciudadano", GUIA.deep, GUIA.mint],
+    ["enlace sobre blanco", GUIA.green, GUIA.white], ["panel", GUIA.deep, GUIA.white],
   ];
   for (const [n, a, b] of pares) expect(ratio(rgb(a), rgb(b)), n).toBeGreaterThanOrEqual(4.5);
   console.log("ESTILOS\n" + informe.join("\n"));

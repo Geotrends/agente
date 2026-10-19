@@ -43,7 +43,7 @@ test("US1 por contrato: 5 presentes con fuentes y fechas; 5 ausentes con texto e
       const out = await orchestrate(pregunta(`¿Qué necesito para el trámite ${i}?`), deps(db, converse));
       assert.equal(out.tipo, "respondida");
       assert.deepEqual(out.fuentes.map(f => f.id), ["doc-1", "doc-2"], "la fuente sobrante D3 no aparece");
-      assert.match(out.respuesta, /actualizado el 2026-03-15/);
+      assert.ok(!/según|actualizado el|consultado el/.test(out.respuesta), "la cita no va dentro del texto");
       assert.ok(out.respuesta.includes("+57 300 111 0000"), "cierre con el canal del registro");
       assert.ok(!/<!--|\[D\d/.test(out.respuesta));
       assert.ok(out.interno && !JSON.stringify({ r: out.respuesta, f: out.fuentes }).includes("gpt-oss"), "nada del modelo llega al ciudadano");

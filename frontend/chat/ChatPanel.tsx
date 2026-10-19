@@ -35,6 +35,8 @@ function Transcript() {
     <div className="messages smart-messages" role="log" aria-live="polite" aria-label="Conversación con Geobot" tabIndex={0}>
       {session.transcript.map(m => (
         <div key={m.id} className={`message-row ${m.role === "ciudadano" ? "user" : "assistant"}`}>
+          {/* Decorativo: quién habla ya lo anuncia el texto oculto de abajo. */}
+          <span className={`message-avatar ${m.role === "ciudadano" ? "user" : "assistant"}`} aria-hidden="true">{m.role === "ciudadano" ? "Tú" : "G"}</span>
           <article className={`message ${m.role === "ciudadano" ? "user" : "assistant"}`}>
             <span className="sr-only">{m.role === "ciudadano" ? "Usted: " : "Geobot: "}</span>
             {/* Consultas del ciudadano: texto plano, nunca interpretado. */}

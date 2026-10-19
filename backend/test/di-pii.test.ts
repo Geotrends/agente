@@ -43,8 +43,12 @@ test("14 casos: 9 con datos se enmascaran con la etiqueta exacta y 5 normas qued
 test("fragmentos: solo cédula/teléfono/correo; direcciones y nombres oficiales se conservan", () => {
   const oficial = "Secretaría de Medio Ambiente, Calle 40B Sur # 37 - 24. Atiende la señora Directora Ana Pérez.";
   assert.equal(sanitizeFragment(oficial).texto, oficial);
-  const r = sanitizeFragment("Escriba a ciudadano@envigado.gov.co o llame al 3201234567");
-  assert.match(r.texto, /\[CORREO\].*\[TELÉFONO\]/);
+  // Canales de la entidad: se conservan para que el chat pueda darlos.
+  const canales = "Línea oficial de Bienestar Animal: celular 3201234567, ext. 4170-4559. Correo: atencion@envigado.gov.co";
+  assert.equal(sanitizeFragment(canales).texto, canales);
+  // Datos de una persona o de dominios no oficiales: se enmascaran.
+  const r = sanitizeFragment("Solicitante: celular 3201234567 y correo ana@envigado.gov.co; escriba también a pepe@gmail.com");
+  assert.equal(r.texto, "Solicitante: celular [TELÉFONO] y correo [CORREO]; escriba también a [CORREO]");
 });
 
 test("8 equivalentes: 4 con datos avisan y no los reproducen; 4 neutras no avisan y reciben la misma orientación", async () => {

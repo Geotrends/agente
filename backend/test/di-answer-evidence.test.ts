@@ -56,11 +56,11 @@ test("fuentes ajenas, marcador inválido y respuesta factual sin fuente", () => 
   assert.ok(!/\[D\d+\]/.test(out.respuesta));
 });
 
-test("citas visibles con nombre enlazado y fecha, sin marcadores técnicos", () => {
+test("sin citas dentro del texto ni marcadores técnicos; las fuentes viajan aparte", () => {
   const { entries } = buildSourceCatalog([hit(1), hit(2, { fechaActualizacion: undefined, fechaAcceso: "2026-10-01T00:00:00Z" })]);
   const out = composeAnswer({ body: "Requisito A [D1]. Requisito B [D2].<!--oculto-->", used: entries, contactos: CONTACTOS, requiereLeyenda: false, cerrarConCanales: false });
-  assert.match(out.respuesta, /\[Documento 1\]\(https:\/\/prueba\.gov\.co\/doc-1\.pdf\), actualizado el 2026-03-15/);
-  assert.match(out.respuesta, /consultado el 2026-10-01/);
+  assert.ok(!/según|actualizado el|consultado el|Fuentes:|\[D\d/.test(out.respuesta));
+  assert.deepEqual(out.fuentes.map(f => f.fecha), ["2026-03-15", "2026-10-01"], "fecha y enlace siguen en las fuentes");
   assert.ok(!out.respuesta.includes("<!--"));
   assert.equal(out.fuentes.length, 2);
 });

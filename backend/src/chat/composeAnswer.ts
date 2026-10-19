@@ -1,8 +1,8 @@
 /**
  * Composición final de la respuesta al ciudadano (RF-C3-DI-07/09/24, RF-C3-IN-03).
  *
- * Convierte las referencias internas `[Dn]` en citas visibles con nombre enlazado y
- * fecha, mantiene la lista de fuentes sincronizada con lo citado, añade la leyenda
+ * Retira las referencias internas `[Dn]` del texto (las fuentes viajan aparte, en `fuentes`, y la
+ * interfaz las muestra en «Fuentes consultadas»), añade la leyenda
  * cuando se pidió una decisión y cierra con los tres canales de recepción tomados del
  * snapshot vigente. Nunca deja marcadores técnicos visibles ni inventa contactos.
  */
@@ -22,11 +22,6 @@ export function cierreCanales(c: ContactSnapshot): string {
 export function contactoGeneral(c: ContactSnapshot): string {
   const g = c.general;
   return `Contacto general: ${g.phone}, ${g.email} o [${g.url}](${g.url}).`;
-}
-
-function citation(e: SourceEntry): string {
-  const etiqueta = e.fechaTipo === "actualizado" ? "actualizado el" : "consultado el";
-  return ` (según [${e.fuente.nombre}](${e.fuente.enlace}), ${etiqueta} ${e.fuente.fecha})`;
 }
 
 export type ComposeInput = {
@@ -49,21 +44,11 @@ export type ComposeInput = {
 export type ComposeOutput = { respuesta: string; fuentes: FuenteCitada[] };
 
 export function composeAnswer(input: ComposeInput): ComposeOutput {
-  const usedByAlias = new Map(input.used.map(e => [e.alias, e]));
-  const cited = new Set<string>();
-  let text = input.body.replace(TECH_MARKER, "").replace(INLINE_REF, (_all, alias: string) => {
-    const e = usedByAlias.get(alias);
-    // Referencia a una fuente ajena, sobrante o inexistente: se retira sin dejar rastro.
-    if (!e) return "";
-    cited.add(alias);
-    return citation(e);
+  let text = input.body.replace(TECH_MARKER, "").replace(INLINE_REF, () => {
+    // Toda referencia `[Dn]` se retira del texto: la fuente, si es válida, sale en `fuentes`.
+    return "";
   }).trim();
 
-  // Fuentes usadas pero sin referencia en el cuerpo: se citan al final del texto.
-  const sinReferencia = input.used.filter(e => !cited.has(e.alias));
-  if (sinReferencia.length) {
-    text += `\n\nFuentes: ${sinReferencia.map(e => `[${e.fuente.nombre}](${e.fuente.enlace}), ${e.fechaTipo === "actualizado" ? "actualizado el" : "consultado el"} ${e.fuente.fecha}`).join("; ")}.`;
-  }
   if (input.abreviada) text += `\n\n${AVISO_ABREVIADA}.`;
   if (input.requiereLeyenda && !text.toLowerCase().includes(LEYENDA_ASESORIA)) {
     text += `\n\n*Esta orientación ${LEYENDA_ASESORIA}.*`;
