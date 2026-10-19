@@ -267,6 +267,8 @@ test("revisar todos: el Gestor solo marca sus avisos de carga; el técnico marca
   await operations.notify("modelo_no_disponible", "componente", "op-todos", "Aviso para revisar todos");
   const pendientesB = (await contadores(gesB)).notifications;
   assert.ok(pendientesB >= 1);
+  const auditadas = async () => (await app.db.migrator.query("SELECT count(*)::int n FROM admin.audit WHERE action = 'aviso.revisar'")).rows[0].n as number;
+  const auditoriaAntes = await auditadas();
 
   // El Gestor A no toca los avisos del Gestor B ni los del sistema.
   const ra = await gesA.api("POST", "/notifications/review-all", {});
@@ -286,9 +288,7 @@ test("revisar todos: el Gestor solo marca sus avisos de carga; el técnico marca
   const todas = await avisos(tec, "&estado=todas");
   assert.ok(todas.items.filter((a: { id: string }) => !a.id.startsWith("volatil-")).every((a: { state: string; reviewedBy: string | null; reviewedAt: string | null }) =>
     a.state === "revisada" && a.reviewedBy && a.reviewedAt));
-  const auditados = (await app.db.migrator.query(
-    "SELECT count(*)::int n FROM admin.audit WHERE action = 'aviso.revisar' AND occurred_at >= now() - interval '1 minute'")).rows[0].n;
-  assert.ok(auditados >= antes);
+  assert.equal(await auditadas() - auditoriaAntes, ra.json.revisados + rt.json.revisados, "una entrada de auditoría por aviso");
 
   // Sin pendientes, no hace nada.
   assert.equal((await tec.api("POST", "/notifications/review-all", {})).json.revisados, 0);
